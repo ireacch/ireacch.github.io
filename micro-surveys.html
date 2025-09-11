@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Micro Surveys | I-REACCH</title>
+  <title>Micro Survey Overview | I-REACCH</title>
 
-  <!-- Site styles -->
+  <!-- Your site styles (keep) -->
   <link rel="stylesheet" href="assets/css/brand.css">
   <link rel="stylesheet" href="assets/css/header.css">
   <link rel="stylesheet" href="assets/css/style.css">
 
   <style>
+    /* --------- Theme tokens (kept consistent with your design) ---------- */
     :root{
       --accent:   #4a6cf7;
       --accent-2: #9b51e0;
@@ -22,357 +23,375 @@
       --pill-tx:  #2f5d98;
       --done-bg:  #e7f8ec;
       --done-tx:  #1f7a41;
-      --red:      #ff6b6b;     /* unfinished */
-      --red-d:    #e25555;
+      --red-pill: #ff6b6b;
+      --page-max: 1200px;
     }
 
-    /* ===== Compact title row + overview card ===== */
-    .page-head{border-bottom:1px solid var(--border);background:#f0f6f9}
-    .page-head__inner{
-      max-width:1200px;margin:0 auto;padding:10px 16px;
-      display:flex;align-items:center;justify-content:space-between;gap:12px
+    /* --------- TOP BANNER (replaces your full nav) ---------- */
+    .overview-bar{
+      background:#cfe4e7;                /* light blue band */
+      padding:10px 0;
+      border-bottom:1px solid #c3d6d9;
     }
-    .page-head h1{margin:0;font-size:1.1rem;font-weight:900;color:#2c5aa0}
-    .backlink{color:#2c5aa0;text-decoration:none;font-weight:700}
-    .backlink:hover{text-decoration:underline}
-
-    .overview{max-width:1200px;margin:22px auto 16px;padding:0 16px}
-    .ov-card{
-      background:#fff;border:1px solid var(--border);border-radius:16px;
-      box-shadow:0 10px 24px rgba(18,47,76,.06);padding:18px
+    .overview-inner{
+      max-width:var(--page-max);
+      margin:0 auto;
+      padding:0 24px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
     }
-    .ov-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;align-items:start}
-    @media (max-width:980px){.ov-grid{grid-template-columns:1fr}}
+    .brand-wrap{
+      display:flex; align-items:center; gap:14px;
+    }
+    .brand-wrap img{
+      height:40px; width:auto; display:block;
+    }
+    .page-title{
+      font-size:20px; font-weight:800; color:var(--text);
+    }
+    .back-link{
+      font-weight:700; font-size:14px; color:#245b74;
+      text-decoration:none; padding:6px 10px; border-radius:8px;
+    }
+    .back-link:hover{ background:rgba(0,0,0,.05); }
 
-    .ov-title{margin:0 0 8px;font-weight:900;font-size:1.1rem;color:var(--text)}
-    .ov-section{margin:.7rem 0}
-    .ov-section h4{margin:.1rem 0 .3rem;font-size:.98rem;font-weight:900;color:var(--text)}
-    .ov-section p{margin:.2rem 0;color:var(--muted)}
-    .ov-section a{color:#2c5aa0;font-weight:700;text-decoration:none}
-    .ov-section a:hover{text-decoration:underline}
-    .ov-img{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;aspect-ratio:4/3;display:block}
-    .ov-img img{width:100%;height:100%;object-fit:cover}
+    /* --------- PAGE WRAP ---------- */
+    .page{
+      max-width:var(--page-max);
+      margin:18px auto 48px;
+      padding:0 24px;
+    }
 
-    /* ===== Survey runner (your existing styles) ===== */
-    .runner{display:grid;grid-template-columns:320px 1fr;gap:20px}
-    @media (max-width:980px){.runner{grid-template-columns:1fr}}
+    /* --------- INTRO CARD ---------- */
+    .intro-card{
+      background:#fff; border:1px solid var(--border); border-radius:14px;
+      box-shadow:0 6px 18px rgba(28,39,51,.06);
+      overflow:hidden; margin-bottom:20px;
+    }
+    .intro-grid{
+      display:grid; grid-template-columns:1fr 360px; gap:18px;
+      padding:16px;
+    }
+    @media (max-width:980px){ .intro-grid{ grid-template-columns:1fr; } }
+    .intro-card h2{
+      margin:0 0 8px; font-size:16px; color:var(--text);
+    }
+    .intro-card p{ margin:.35rem 0; color:var(--text); }
+    .intro-card b{ font-weight:800; }
+    .intro-figure{
+      display:flex; align-items:center; justify-content:center;
+    }
+    .intro-figure img{
+      max-width:100%; height:auto; border-radius:10px;
+      border:1px solid var(--border);
+      box-shadow:0 6px 16px rgba(28,39,51,.08);
+    }
 
-    .panel{background:#fff;border:1px solid var(--border);border-radius:14px;
-      box-shadow:0 4px 12px rgba(0,0,0,.06);overflow:hidden}
-    .panel .hd{padding:14px 16px;border-bottom:1px solid var(--border)}
-    .panel .bd{padding:14px 16px}
+    /* --------- MAIN TWO COLUMNS ---------- */
+    .runner{ display:grid; grid-template-columns:320px 1fr; gap:20px; }
+    @media (max-width:980px){ .runner{ grid-template-columns:1fr; } }
 
-    .side-title{margin:0 0 10px;font-size:17px;font-weight:800;color:var(--text)}
-    .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0 6px}
+    .panel{
+      background:#fff; border:1px solid var(--border); border-radius:14px;
+      box-shadow:0 6px 18px rgba(28,39,51,.06); overflow:hidden;
+    }
+    .panel .hd{ padding:14px 16px; border-bottom:1px solid var(--border); }
+    .panel .bd{ padding:14px 16px; }
+
+    /* LEFT: Survey list header + filters (link style) */
+    .side-title{ margin:0 0 10px; font-size:17px; font-weight:800; color:var(--text); }
+    .filters{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0; }
     .filters a{
-      display:inline-flex;align-items:center;justify-content:center;
-      min-height:28px;padding:4px 10px;border-radius:8px;
-      font-weight:700;font-size:14px;line-height:1;text-decoration:none;
-      color:var(--muted);background:transparent;border:1px solid transparent;
-      transition:background .15s ease,border-color .15s ease,color .15s ease
+      display:inline-block; padding:4px 8px; border-radius:6px;
+      font-weight:700; font-size:14px; line-height:1; text-decoration:none;
+      color:var(--muted); background:transparent; border:1px solid transparent;
+      transition:background .15s ease,border-color .15s ease,color .15s ease;
     }
-    .filters a:hover{background:#f7faff}
-    .filters a.active{color:var(--accent);background:var(--bg-soft);border-color:var(--border)}
-    .filters .sep{color:#c6cbd6;margin:0 2px}
+    .filters a:hover{ background:#f7faff; }
+    .filters a.active{ color:var(--accent); background:var(--bg-soft); border-color:var(--border); }
+    .filters .sep{ color:#c6cbd6; }
 
-    .list{display:flex;flex-direction:column;gap:12px}
-    .item{display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;cursor:pointer}
-    .item:hover{background:var(--bg-soft)}
-    .item.locked{opacity:.55}
-    .item.active{box-shadow:0 0 0 3px var(--accent);border-color:transparent;background:#fff}
+    /* Survey list items */
+    .list{ display:flex; flex-direction:column; gap:12px; }
+    .item{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:12px 14px; border:1px solid var(--border); border-radius:12px;
+      background:#fff; cursor:pointer;
+    }
+    .item:hover{ background:var(--bg-soft); }
+    .item.locked{ opacity:.55; }
+    .item.active{ box-shadow:0 0 0 3px var(--accent); border-color:transparent; background:#fff; }
 
-    .title{font-weight:700;color:var(--text);font-size:16px;line-height:1.28}
-    .meta{font-size:13px;color:var(--muted);margin-top:4px}
-    .left{display:flex;flex-direction:column}
-    .right{display:flex;align-items:center;gap:8px}
+    .title{ font-weight:700; color:var(--text); font-size:16px; line-height:1.28; }
+    .meta{ font-size:13px; color:var(--muted); margin-top:4px; }
+    .left{ display:flex; flex-direction:column; }
+    .right{ display:flex; align-items:center; gap:8px; }
 
-    .pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
-      background:var(--pill-bg);color:var(--pill-tx);border:1px solid var(--border)}
-    .pill.done{background:var(--done-bg);color:var(--done-tx)}
-    .pill.unfinished{background:var(--red);color:#fff;border-color:var(--red-d)}
+    .pill{
+      font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px;
+      background:var(--pill-bg); color:var(--pill-tx); border:1px solid var(--border);
+    }
+    .pill.done{ background:var(--done-bg); color:var(--done-tx); }
+    .pill.unfinished{ background:var(--red-pill); color:#fff; border-color:var(--red-pill); }
 
-    .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
-    .h2{margin:0;color:var(--text);font-size:18px;font-weight:800}
-    .muted{color:var(--muted);font-size:12px}
-    .status .pill{font-size:12px}
+    /* RIGHT: survey panel */
+    .head-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+    .h2{ margin:0; color:var(--text); font-size:18px; font-weight:800; }
+    .muted{ color:var(--muted); font-size:12px; }
+    .status .pill{ font-size:12px; }
 
-    iframe{width:100%;height:600px;border:0;border-radius:12px;background:#fff}
+    iframe{ width:100%; height:600px; border:0; border-radius:12px; background:#fff; }
 
-    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .btn{appearance:none;border:0;border-radius:999px;padding:10px 16px;font-weight:800;color:#fff;
-      background:linear-gradient(135deg,var(--accent-2),var(--accent));cursor:pointer}
-    .btn[disabled]{opacity:.45;cursor:not-allowed}
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+    .btn{
+      appearance:none; border:0; border-radius:999px; padding:10px 16px;
+      font-weight:800; color:#fff;
+      background:linear-gradient(135deg,var(--accent-2),var(--accent)); cursor:pointer;
+    }
+    .btn[disabled]{ opacity:.45; cursor:not-allowed; }
 
-    .admin{margin-top:26px;border-top:1px dashed var(--border);padding-top:16px}
-    .admin input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin:6px 0}
-    .admin .grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
-    code.json-out{display:block;white-space:pre-wrap;background:#0f172a;color:#e2e8f0;padding:10px;border-radius:10px;margin-top:10px;font-size:.85rem}
-
-    /* keep main content width aligned with overview */
-    .container.content{max-width:1200px}
+    /* Admin helper (unchanged) */
+    .admin{ margin-top:26px; border-top:1px dashed var(--border); padding-top:16px; }
+    .admin input{ width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0; }
+    .admin .grid{ display:grid; grid-template-columns:2fr 1fr; gap:10px; }
+    code.json-out{ display:block; white-space:pre-wrap; background:#0f172a; color:#e2e8f0; padding:10px; border-radius:10px; margin-top:10px; font-size:.85rem; }
   </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="container bar">
-    <a class="logo" href="index.html"><img src="assets/img/ireacch-logo.png" alt="I-REACCH"/></a>
-    <nav class="nav" aria-label="Primary">
-      <a href="index.html">Home</a>
-      <a class="active" href="micro-surveys.html">Surveys</a>
-      <a href="dashboard.html">Dashboard</a>
-      <a href="best-practices.html">Best practices</a>
-      <a href="https://ireacch.le.ac.uk/meet-the-team/" target="_blank" rel="noopener">Meet the team</a>
-      <a href="https://ireacch.le.ac.uk/events/" target="_blank" rel="noopener">Events</a>
-      <a href="https://ireacch.le.ac.uk/disrupting-the-default/" target="_blank" rel="noopener">Disrupting the Default</a>
-      <a href="https://ireacch.le.ac.uk/funding-opportunities/" target="_blank" rel="noopener">Funding opportunities</a>
-      <a href="https://ireacch.le.ac.uk/blog/" target="_blank" rel="noopener">Blog</a>
-    </nav>
-  </div>
-</header>
-
-<!-- Compact heading -->
-<div class="page-head">
-  <div class="page-head__inner">
-    <h1>Micro Survey Overview</h1>
-    <a class="backlink" href="https://ireacch.le.ac.uk/" target="_blank" rel="noopener">Back to official website</a>
-  </div>
-</div>
-
-<!-- Overview with your exact copy -->
-<section class="overview">
-  <div class="ov-card">
-    <div class="ov-grid">
-      <div>
-        <h3 class="ov-title">Speak up for research culture: I-REACCH Micro Survey</h3>
-        <p class="ov-section" style="margin-top:.3rem">
-          The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester. These anonymous micro-surveys are designed to capture perceptions and establish a baseline for evaluating I-REACCH’s interventions.
-        </p>
-
-        <div class="ov-section">
-          <h4>Why take part in the micro-surveys?</h4>
-          <p>Help shape a more inclusive and supportive research culture at Leicester – one click at a time!</p>
-          <p>Each weekly I-REACCH micro-survey has just one question and takes less than a minute. It’s quick, anonymous, and open to all research staff, research-enabling staff, and PGRs.</p>
-        </div>
-
-        <div class="ov-section">
-          <h4>What will happen to your responses?</h4>
-          <p>
-            The survey is totally anonymous. You may be asked to log in with your University of Leicester email; the system won't collect your name or your email address. Your anonymous responses are analysed by the I-REACCH evaluation team to help us understand what’s working and what needs to change. Your voice helps steer real improvements. No fuss, no hassle.
-          </p>
-        </div>
-
-        <div class="ov-section">
-          <p>If you would like to find out more before deciding to participate, please <a href="#" id="contactLink">contact us</a>.</p>
-          <p><strong>By completing the survey, you confirm that you have read the information above and consent to take part in the study.</strong></p>
-        </div>
+  <!-- LIGHT BLUE TOP BANNER (no nav) -->
+  <header class="overview-bar" role="banner">
+    <div class="overview-inner">
+      <div class="brand-wrap">
+        <img src="assets/img/ireacch-logo.png" alt="I-REACCH">
+        <div class="page-title">Micro Survey Overview</div>
       </div>
-
-      <figure class="ov-img">
-        <img src="assets/img/speak-up.png" alt="Speak up for research culture">
-      </figure>
+      <a class="back-link" href="https://ireacch.le.ac.uk/" target="_blank" rel="noopener">Back to official website</a>
     </div>
-  </div>
-</section>
+  </header>
 
-<!-- Survey runner (unchanged behaviour) -->
-<main class="container content" style="padding-bottom:64px">
-  <div class="runner">
-    <!-- LEFT LIST -->
-    <aside class="panel">
-      <div class="hd">
-        <h3 class="side-title">Survey List</h3>
-        <nav class="filters" id="filters" aria-label="Filter surveys">
-          <a href="#" data-filter="all" class="active">All</a><span class="sep">|</span>
-          <a href="#" data-filter="unfinished">Unfinished</a><span class="sep">|</span>
-          <a href="#" data-filter="completed">Completed</a>
-        </nav>
-      </div>
-      <div class="bd"><div id="list" class="list"></div></div>
-    </aside>
+  <main class="page">
+    <!-- INTRO CARD -->
+    <section class="intro-card" aria-labelledby="intro-heading">
+      <div class="intro-grid">
+        <div>
+          <h2 id="intro-heading">Speak up for research culture: I-REACCH Micro Survey</h2>
+          <p>The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester. These anonymous micro-surveys are designed to capture perceptions and establish a baseline for evaluating I-REACCH’s interventions.</p>
 
-    <!-- RIGHT PANEL -->
-    <section class="panel">
-      <div class="hd">
-        <div class="head-row">
-          <div>
-            <h2 class="h2" id="currTitle">Select a micro survey</h2>
-            <div class="muted" id="currDate"></div>
-          </div>
-          <div class="status"><span id="currBadge" class="pill unfinished">Unfinished</span></div>
+          <h2>Why take part in the micro-surveys?</h2>
+          <p>Help shape a more inclusive and supportive research culture at Leicester – one click at a time! Each weekly I-REACCH micro-survey has just one question and takes less than a minute. It’s quick, anonymous, and open to all research staff, research-enabling staff, and PGRs.</p>
+
+          <h2>What will happen to your responses?</h2>
+          <p>The survey is totally anonymous. You may be asked to log in with your University of Leicester email; the system won't collect your name or your email address. Your anonymous responses are analysed by the I-REACCH evaluation team to help us understand what’s working and what needs to change. Your voice helps steer real improvements. No fuss, no hassle.</p>
+
+          <p>If you would like to find out more before deciding to participate, please <a href="mailto:ireacch@leicester.ac.uk">contact us</a>.</p>
+          <p>By completing the survey, you confirm that you have read the information above and consent to take part in the study.</p>
         </div>
-      </div>
 
-      <div class="bd">
-        <iframe id="formFrame" title="Survey"></iframe>
-        <div class="controls">
-          <button id="btnComplete" class="btn">Mark as completed</button>
-        </div>
+        <figure class="intro-figure" aria-hidden="true">
+          <img src="assets/img/speak-up.png" alt="">
+        </figure>
       </div>
     </section>
-  </div>
 
-  <!-- Admin helper (open with ?admin=1) -->
-  <section id="admin" class="admin" style="display:none">
-    <h2 style="margin:0 0 8px">Admin • add a survey (JSON helper)</h2>
-    <div class="grid">
-      <input id="aTitle" placeholder="Title e.g., I-REACCH Micro Survey (Q1) Feel Valued"/>
-      <input id="aMinutes" placeholder="Minutes (e.g., 1)"/>
+    <!-- MAIN CONTENT: Survey list + Survey embed -->
+    <div class="runner">
+      <!-- LEFT: Survey list -->
+      <aside class="panel" aria-labelledby="list-heading">
+        <div class="hd">
+          <h3 id="list-heading" class="side-title">Survey List</h3>
+          <nav class="filters" id="filters" aria-label="Filter surveys">
+            <a href="#" data-filter="all" class="active">All</a><span class="sep">|</span>
+            <a href="#" data-filter="unfinished">Unfinished</a><span class="sep">|</span>
+            <a href="#" data-filter="completed">Completed</a>
+          </nav>
+        </div>
+        <div class="bd"><div id="list" class="list"></div></div>
+      </aside>
+
+      <!-- RIGHT: Current survey -->
+      <section class="panel" aria-live="polite">
+        <div class="hd">
+          <div class="head-row">
+            <div>
+              <h2 class="h2" id="currTitle">Select a micro survey</h2>
+              <div class="muted" id="currDate"></div>
+            </div>
+            <div class="status"><span id="currBadge" class="pill unfinished">Unfinished</span></div>
+          </div>
+        </div>
+        <div class="bd">
+          <iframe id="formFrame" title="Survey"></iframe>
+          <div class="controls">
+            <button id="btnComplete" class="btn">Mark as completed</button>
+          </div>
+        </div>
+      </section>
     </div>
-    <div class="grid">
-      <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
-      <input id="aSchool" placeholder="School/College (optional)"/>
-    </div>
-    <input id="aUrl" placeholder="Microsoft Forms embed URL"/>
-    <div class="controls">
-      <button id="aAdd" class="btn">Add to config (in memory)</button>
-      <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
-    </div>
-    <code id="aOut" class="json-out" style="display:none"></code>
-  </section>
-</main>
 
-<script>
-let SURVEYS=[];
-async function loadSurveys(){
-  try{const r=await fetch('surveys.json?cb='+Date.now());SURVEYS=await r.json();}
-  catch{SURVEYS=[];}
-}
-
-const statusKey=id=>`survey-status:${id}`;
-const getStatus=id=>localStorage.getItem(statusKey(id))||"not";
-function setStatus(id,s){localStorage.setItem(statusKey(id),s);renderList(current?.id);updateBtn();}
-
-const nextUnfinishedIndex=()=>SURVEYS.findIndex(s=>getStatus(s.id)!=="done");
-
-const $list=document.getElementById('list');
-const $frame=document.getElementById('formFrame');
-const $title=document.getElementById('currTitle');
-const $date=document.getElementById('currDate');
-const $badge=document.getElementById('currBadge');
-const $btn=document.getElementById('btnComplete');
-const $filters=document.getElementById('filters');
-
-let current=null,filter="all";
-
-/* Filters */
-[...$filters.querySelectorAll('a')].forEach(a=>{
-  a.onclick=e=>{
-    e.preventDefault();
-    [...$filters.querySelectorAll('a')].forEach(x=>x.classList.remove('active'));
-    a.classList.add('active');
-    filter=a.dataset.filter;
-    renderList(current?.id);
-  };
-});
-
-/* Render list with Q-number prefixes and two statuses */
-function renderList(activeId){
-  $list.innerHTML='';
-  const unlock=nextUnfinishedIndex();
-
-  SURVEYS.forEach((s,i)=>{
-    const st=getStatus(s.id);
-    const isDone = (st==='done');
-
-    if(filter==='unfinished' && isDone) return;
-    if(filter==='completed' && !isDone) return;
-
-    const canOpen=(i===unlock)||isDone;
-
-    const item=document.createElement('div');
-    item.className='item'+(s.id===activeId?' active':'')+(canOpen?'':' locked');
-    item.dataset.id=s.id;
-
-    const pillClass = isDone ? 'pill done' : 'pill unfinished';
-    const pillText  = isDone ? 'Completed' : 'Unfinished';
-
-    const titleWithQ = `Q${i+1}: ${s.title}`;
-
-    item.innerHTML=`
-      <div class="left">
-        <div class="title">${titleWithQ}</div>
-        <div class="meta">${s.date||''}</div>
+    <!-- Admin helper (optional) -->
+    <section id="admin" class="admin" style="display:none">
+      <h2 style="margin:0 0 8px">Admin • add a survey (JSON helper)</h2>
+      <div class="grid">
+        <input id="aTitle" placeholder="Title e.g., I-REACCH Micro Survey (Q1) Feel Valued"/>
+        <input id="aMinutes" placeholder="Minutes (e.g., 1)"/>
       </div>
-      <div class="right"><span class="${pillClass}">${pillText}</span></div>`;
+      <div class="grid">
+        <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
+        <input id="aSchool" placeholder="School/College (optional)"/>
+      </div>
+      <input id="aUrl" placeholder="Microsoft Forms embed URL"/>
+      <div class="controls">
+        <button id="aAdd" class="btn">Add to config (in memory)</button>
+        <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
+      </div>
+      <code id="aOut" class="json-out" style="display:none"></code>
+    </section>
+  </main>
 
-    item.onclick=()=>{if(!canOpen)return shake(item);loadSurvey(s.id);};
-    $list.appendChild(item);
-  });
-}
+  <!-- -------------------- JS: runner logic (unchanged) -------------------- -->
+  <script>
+    let SURVEYS=[];
+    async function loadSurveys(){
+      try{
+        const r=await fetch('surveys.json?cb='+Date.now());
+        SURVEYS=await r.json();
+      }catch{ SURVEYS=[]; }
+    }
 
-function shake(el){
-  el.style.transition='transform .08s';
-  el.style.transform='translateX(-4px)';
-  setTimeout(()=>el.style.transform='translateX(4px)',80);
-  setTimeout(()=>{el.style.transform='none';el.style.transition=''},160);
-}
+    const statusKey=id=>`survey-status:${id}`;
+    const getStatus=id=>localStorage.getItem(statusKey(id))||"not";
+    function setStatus(id,s){ localStorage.setItem(statusKey(id),s); renderList(current?.id); updateBtn(); }
 
-/* Load a survey (unfinished/completed only) */
-function loadSurvey(id){
-  const s=SURVEYS.find(x=>x.id===id); if(!s) return; current=s;
+    const nextUnfinishedIndex=()=>SURVEYS.findIndex(s=>getStatus(s.id)!=="done");
 
-  const idx = SURVEYS.findIndex(x=>x.id===id);
-  const titleWithQ = `Q${idx+1}: ${s.title}`;
-  $title.textContent = titleWithQ;
-  $date.textContent  = s.date||'';
+    const $list=document.getElementById('list');
+    const $frame=document.getElementById('formFrame');
+    const $title=document.getElementById('currTitle');
+    const $date=document.getElementById('currDate');
+    const $badge=document.getElementById('currBadge');
+    const $btn=document.getElementById('btnComplete');
+    const $filters=document.getElementById('filters');
 
-  const isDone = (getStatus(id)==='done');
-  $badge.textContent = isDone ? 'Completed' : 'Unfinished';
-  $badge.className   = isDone ? 'pill done' : 'pill unfinished';
+    let current=null, filter="all";
 
-  $frame.src = s.url;
-  renderList(id);
-  updateBtn();
-}
+    /* Filters */
+    [...$filters.querySelectorAll('a')].forEach(a=>{
+      a.onclick=e=>{
+        e.preventDefault();
+        [...$filters.querySelectorAll('a')].forEach(x=>x.classList.remove('active'));
+        a.classList.add('active');
+        filter=a.dataset.filter;
+        renderList(current?.id);
+      };
+    });
 
-function updateBtn(){
-  if(!current){$btn.disabled=true;return}
-  const done=getStatus(current.id)==='done';
-  $btn.textContent=done?'Completed':'Mark as completed';
-  $btn.disabled=done;
-}
+    /* Render list (Q-number prefixes and 2 statuses only) */
+    function renderList(activeId){
+      $list.innerHTML='';
+      const unlock=nextUnfinishedIndex();
 
-$btn.onclick=()=>{
-  if(!current) return;
-  setStatus(current.id,'done');
-  loadSurvey(current.id);
-  const idx=nextUnfinishedIndex();
-  if(idx!==-1) loadSurvey(SURVEYS[idx].id);
-  else alert("All surveys completed — thank you!");
-};
+      SURVEYS.forEach((s,i)=>{
+        const st=getStatus(s.id); // "not" or "done"
+        const isDone = (st==='done');
 
-/* Admin helper (open with ?admin=1) */
-const urlParams=new URLSearchParams(location.search);
-if(urlParams.get("admin")==="1"){
-  const admin=document.getElementById('admin');
-  admin.style.display='block';
-  document.getElementById('aAdd').onclick=()=>{
-    const title=document.getElementById('aTitle').value.trim();
-    const minutes=parseInt(document.getElementById('aMinutes').value.trim()||"1",10);
-    const audience=document.getElementById('aAudience').value.trim();
-    const school=document.getElementById('aSchool').value.trim();
-    const url=document.getElementById('aUrl').value.trim();
-    if(!title||!url){alert("Title and URL are required");return;}
-    SURVEYS.push({id:slugify(title),title,minutes,audience,school:school||"All",url});
-    renderList(current?.id);
-    ['aTitle','aMinutes','aAudience','aSchool','aUrl'].forEach(id=>document.getElementById(id).value="");
-  };
-  document.getElementById('aExport').onclick=()=>{
-    const out=document.getElementById('aOut');
-    out.textContent=JSON.stringify(SURVEYS,null,2);
-    out.style.display="block";
-    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
-  };
-}
+        if(filter==='unfinished' && isDone) return;
+        if(filter==='completed' && !isDone) return;
 
-function slugify(s){
-  return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,60);
-}
+        const canOpen=(i===unlock)||isDone;
 
-(async()=>{await loadSurveys();renderList();if(SURVEYS[0])loadSurvey(SURVEYS[0].id)})();
-</script>
+        const item=document.createElement('div');
+        item.className='item'+(s.id===activeId?' active':'')+(canOpen?'':' locked');
+        item.dataset.id=s.id;
 
+        const pillClass = isDone ? 'pill done' : 'pill unfinished';
+        const pillText  = isDone ? 'Completed' : 'Unfinished';
+        const titleWithQ = `Q${i+1}: ${s.title}`;
+
+        item.innerHTML=`
+          <div class="left">
+            <div class="title">${titleWithQ}</div>
+            <div class="meta">${s.date||''}</div>
+          </div>
+          <div class="right"><span class="${pillClass}">${pillText}</span></div>`;
+
+        item.onclick=()=>{ if(!canOpen) return shake(item); loadSurvey(s.id); };
+        $list.appendChild(item);
+      });
+    }
+
+    function shake(el){
+      el.style.transition='transform .08s';
+      el.style.transform='translateX(-4px)';
+      setTimeout(()=>el.style.transform='translateX(4px)',80);
+      setTimeout(()=>{el.style.transform='none';el.style.transition=''},160);
+    }
+
+    /* Load a survey – only unfinished/completed */
+    function loadSurvey(id){
+      const s=SURVEYS.find(x=>x.id===id); if(!s) return; current=s;
+
+      const idx = SURVEYS.findIndex(x=>x.id===id);
+      const titleWithQ = `Q${idx+1}: ${s.title}`;
+      $title.textContent = titleWithQ;
+      $date.textContent  = s.date||'';
+
+      const isDone = (getStatus(id)==='done');
+      $badge.textContent = isDone ? 'Completed' : 'Unfinished';
+      $badge.className   = isDone ? 'pill done' : 'pill unfinished';
+
+      $frame.src = s.url;
+      renderList(id);
+      updateBtn();
+    }
+
+    function updateBtn(){
+      if(!current){ $btn.disabled=true; return; }
+      const done=getStatus(current.id)==='done';
+      $btn.textContent=done?'Completed':'Mark as completed';
+      $btn.disabled=done;
+    }
+
+    $btn.onclick=()=>{
+      if(!current) return;
+      setStatus(current.id,'done');
+      loadSurvey(current.id);
+      const idx=nextUnfinishedIndex();
+      if(idx!==-1) loadSurvey(SURVEYS[idx].id);
+      else alert("All surveys completed — thank you!");
+    };
+
+    /* Admin helper (?admin=1) */
+    const urlParams=new URLSearchParams(location.search);
+    if(urlParams.get("admin")==="1"){
+      const admin=document.getElementById('admin');
+      admin.style.display='block';
+      document.getElementById('aAdd').onclick=()=>{
+        const title=document.getElementById('aTitle').value.trim();
+        const minutes=parseInt(document.getElementById('aMinutes').value.trim()||"1",10);
+        const audience=document.getElementById('aAudience').value.trim();
+        const school=document.getElementById('aSchool').value.trim();
+        const url=document.getElementById('aUrl').value.trim();
+        if(!title||!url){alert("Title and URL are required");return;}
+        SURVEYS.push({id:slugify(title),title,minutes,audience,school:school||"All",url});
+        renderList(current?.id);
+        ['aTitle','aMinutes','aAudience','aSchool','aUrl'].forEach(id=>document.getElementById(id).value="");
+      };
+      document.getElementById('aExport').onclick=()=>{
+        const out=document.getElementById('aOut');
+        out.textContent=JSON.stringify(SURVEYS,null,2);
+        out.style.display="block";
+        window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+      };
+    }
+
+    function slugify(s){
+      return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,60);
+    }
+
+    (async()=>{ await loadSurveys(); renderList(); if(SURVEYS[0]) loadSurvey(SURVEYS[0].id); })();
+  </script>
 </body>
 </html>
