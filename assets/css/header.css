@@ -1,0 +1,61 @@
+/* ===== Header & Nav (tight, one-line desktop) ===== */
+.site-header{
+  background:#fff;
+  border-bottom:1px solid #e7e6e6;
+}
+.site-header .bar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;   /* logo -> nav */
+  gap:24px;                     /* space between logo and nav group */
+  height:78px;                  /* a bit shorter than before */
+  overflow:visible;
+}
+
+/* Logo smaller */
+.logo img{
+  height:40px;                  /* ↓ from 48px */
+  width:auto;
+  display:block;
+}
+
+/* Nav: smaller text, tighter gaps, one line */
+.nav{
+  display:flex;
+  align-items:center;
+  gap:20px;                     /* tighter link spacing */
+  margin-left:8px;              /* small breathing room after logo */
+  flex-wrap:nowrap;             /* keep one line on desktop */
+  white-space:nowrap;
+}
+.nav a{
+  color:#2f5d98;
+  text-decoration:none;
+  font-weight:600;
+  font-size:16px;               /* ↓ from 18px */
+  line-height:1;
+  padding:10px 0;
+}
+.nav a:hover{ text-decoration:underline; }
+.nav a.active{ font-weight:800; text-decoration:underline; }
+
+/* Mobile toggle appears at narrower widths */
+.nav-toggle{ display:none; background:none; border:0; cursor:pointer; }
+.nav-toggle svg{ width:26px; height:26px; fill:#1a1a1a; }
+
+/* When the viewport is narrow, switch to overlay menu.
+   Raise the breakpoint if you still see wrapping on some laptops. */
+@media (max-width:1100px){
+  .nav{
+    display:none;
+    position:absolute;
+    top:78px; left:0; right:0;
+    background:#fff; border-bottom:1px solid #e7e6e6;
+    padding:12px 24px;
+    flex-direction:column; gap:8px;
+    white-space:normal; flex-wrap:wrap;
+  }
+  .nav.open{ display:flex; }
+  .nav a{ padding:12px 0; font-size:17px; } /* comfy touch targets */
+  .nav-toggle{ display:block; margin-left:auto; }
+}

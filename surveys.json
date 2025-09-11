@@ -1,0 +1,26 @@
+[
+  {
+    "id": "q1-wellbeing",
+    "title": "Wellbeing and workload (Q1)",
+    "minutes": 1,
+    "audience": "All staff",
+    "url": "https://forms.office.com/Pages/ResponsePage.aspx?id=as2-rtQxAUuVzoJ0r-hT2buX6ZV7MhVCmSvPlC6dFa1URE1ONk9LSFhIMzNPWk1NN1dVT0ZWUjE2Vy4u&embed=true",
+    "school": "All"
+  },
+  {
+    "id": "q2-support",
+    "title": "Support from supervisors (Q2)",
+    "minutes": 1,
+    "audience": "PGR students",
+    "url": "https://forms.office.com/Pages/ResponsePage.aspx?id=as2-rtQxAUuVzoJ0r-hT2buX6ZV7MhVCmSvPlC6dFa1UOURES1RIQlRJU0hGNE03TllNOURKUFlQRy4u&embed=true",
+    "school": "All"
+  },
+  {
+    "id": "q3-example",
+    "title": "Example survey placeholder (Q3)",
+    "minutes": 1,
+    "audience": "Staff/PGR",
+    "url": "#",
+    "school": "All"
+  }
+]

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>I-REACCH | Best Practices</title>
+
+  <!-- Reuse your existing site styles -->
+  <link rel="stylesheet" href="assets/css/brand.css" />
+  <link rel="stylesheet" href="assets/css/header.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Page-scoped tuning -->
+  <style>
+    .bp-container{max-width:1200px;margin:32px auto;padding:0 24px}
+    @media (max-width:640px){.bp-container{padding:0 16px}}
+
+    .bp-title{font-size:clamp(1.6rem,2.2vw,2.2rem);font-weight:800;margin:8px 0 6px}
+    .bp-sub{color:#556070;margin:0 0 20px}
+
+    .bp-grid{display:grid;grid-template-columns:380px 1fr;gap:24px}
+    @media (max-width:1000px){.bp-grid{grid-template-columns:1fr}}
+
+    .bp-panel{background:#fff;border:1px solid #e6ecf1;border-radius:16px;
+      box-shadow:0 10px 24px rgba(28,39,51,.04)}
+    .bp-pad{padding:20px}
+
+    .bp-panel h3{margin:0 0 10px;font-size:1.1rem}
+    .bp-panel label{display:block;font-weight:600;margin:14px 0 6px}
+    .bp-input,.bp-select,.bp-textarea{
+      width:100%;padding:12px 14px;border:1px solid #e6ecf1;border-radius:10px;
+      font:inherit;background:#fff}
+    .bp-textarea{min-height:120px;resize:vertical}
+
+    .bp-row{display:flex;gap:10px;align-items:center}
+    .bp-btn{
+      appearance:none;border:0;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;
+      background:linear-gradient(90deg,#4a1ea8,#0aa0ff);color:#fff}
+    .bp-btn.ghost{background:transparent;border:1px solid #e6ecf1;color:#1c2733}
+
+    .bp-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .bp-field{flex:1 1 280px}
+    .bp-field .bp-input,.bp-field .bp-select{width:100%}
+
+    .bp-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media (max-width:1100px){.bp-cards{grid-template-columns:1fr}}
+
+    .bp-card{border:1px solid #e6ecf1;border-radius:16px;background:#fff;padding:18px;
+      display:flex;flex-direction:column;gap:10px}
+    .bp-card h4{margin:0;font-size:1.05rem}
+    .bp-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;
+      background:#eef2f7;color:#556070;font-weight:600;font-size:.86rem}
+    .bp-school{background:#eaf5ff;color:#0c5ea8}
+    .bp-tags{display:flex;gap:8px;flex-wrap:wrap}
+    .bp-chip{background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;
+      font-weight:600;font-size:.82rem}
+    .bp-sep{height:1px;background:#e6ecf1;border-radius:1px;margin:2px 0}
+
+    .bp-cta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .bp-vote{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .bp-vote button{
+      border:1px solid #e6ecf1;background:#fff;color:#1c2733;border-radius:999px;
+      padding:8px 10px;font-weight:700;cursor:pointer}
+    .bp-vote button.adopt{border-color:#2ea44f80}
+    .bp-vote button.consider{border-color:#e3a00890}
+    .bp-vote button.notfor{border-color:#cf3d3d90}
+    .bp-vote button.active.adopt{background:#2ea44f;color:#fff}
+    .bp-vote button.active.consider{background:#e3a008;color:#fff}
+    .bp-vote button.active.notfor{background:#cf3d3d;color:#fff}
+    .bp-count{font-size:.86rem;color:#556070}
+
+    .bp-empty{padding:18px;color:#556070;border:1px dashed #e6ecf1;border-radius:12px;background:#fff}
+    .bp-hint{font-size:.9rem;color:#556070}
+  </style>
+</head>
+<body>
+
+  <!-- Header (copied from index.html for consistency) -->
+  <header class="site-header">
+    <div class="container flex-between">
+      <a href="index.html" class="logo">
+        <img src="assets/img/ireacch-logo.png" alt="I-REACCH">
+      </a>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="micro-surveys.html">Surveys</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="meet-the-team.html">Meet the team</a>
+        <a href="#">Events</a>
+        <a href="#">Disrupting the Default</a>
+        <a href="#">Funding opportunities</a>
+        <a href="#">Blog</a>
+        <a href="best-practices.html">Best practices</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Banner -->
+  <section class="hero">
+    <div class="container">
+      <h1>Best Practices (Open Space)</h1>
+      <p>Share practical ideas and see what peers are adopting across Schools and Colleges.</p>
+    </div>
+  </section>
+
+  <!-- Page Content -->
+  <main class="bp-container">
+    <section class="bp-grid">
+      <!-- Submit -->
+      <aside class="bp-panel">
+        <div class="bp-pad">
+          <h3>Submit a practice</h3>
+
+          <label for="bp-title">Title</label>
+          <input id="bp-title" class="bp-input" type="text" placeholder="e.g., Mentoring circles for new PGRs" />
+
+          <label for="bp-school">School / College</label>
+          <select id="bp-school" class="bp-select">
+            <option value="">Select…</option>
+            <option>College of Social Sciences, Arts & Humanities</option>
+            <option>College of Life Sciences</option>
+            <option>College of Science & Engineering</option>
+            <option>Doctoral College / PGR</option>
+            <option>Central / Professional Services</option>
+          </select>
+
+          <label for="bp-desc">Description</label>
+          <textarea id="bp-desc" class="bp-textarea" placeholder="How does it work? Who benefits? Any tips to adopt?"></textarea>
+
+          <label for="bp-tags">Tags (optional, comma-separated)</label>
+          <input id="bp-tags" class="bp-input" type="text" placeholder="mentoring, onboarding, community" />
+
+          <div class="bp-row" style="margin-top:12px">
+            <button class="bp-btn" id="bp-add">Add practice</button>
+            <button class="bp-btn ghost" id="bp-clear">Clear</button>
+          </div>
+          <p class="bp-hint" style="margin-top:10px">
+            Please avoid personal data. Submissions are lightly moderated before publishing.
+          </p>
+        </div>
+      </aside>
+
+      <!-- Browse -->
+      <section class="bp-panel">
+        <div class="bp-pad">
+          <h3>Browse practices</h3>
+          <div class="bp-toolbar">
+            <div class="bp-field">
+              <input id="q" class="bp-input" type="text" placeholder="Search title or description…" />
+            </div>
+            <div class="bp-field" style="max-width:320px">
+              <select id="filter-school" class="bp-select">
+                <option value="">All Schools / Colleges</option>
+                <option>College of Social Sciences, Arts & Humanities</option>
+                <option>College of Life Sciences</option>
+                <option>College of Science & Engineering</option>
+                <option>Doctoral College / PGR</option>
+                <option>Central / Professional Services</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="cards" class="bp-cards"></div>
+          <div id="empty" class="bp-empty" style="display:none">
+            No practices yet — be the first to share.
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Script -->
+  <script>
+    const seedData = [
+      { id:"p1", title:"Transparent workload board",
+        school:"College of Social Sciences, Arts & Humanities",
+        desc:"Team-visible board mapping roles and time allocations; updated monthly.",
+        tags:["transparency","workload"],
+        votes:{ adopted:3, considering:1, notfor:0 } },
+      { id:"p2", title:"Mentoring circles for new PGRs",
+        school:"Doctoral College / PGR",
+        desc:"Monthly peer circles with a rotating facilitator to share challenges and signpost support.",
+        tags:["mentoring","onboarding","community"],
+        votes:{ adopted:0, considering:0, notfor:0 } }
+    ];
+    const state = { data:[...seedData], query:"", school:"" };
+
+    const cardsEl = document.getElementById("cards");
+    const emptyEl = document.getElementById("empty");
+    const qEl = document.getElementById("q");
+    const filterSchoolEl = document.getElementById("filter-school");
+
+    const titleEl = document.getElementById("bp-title");
+    const schoolEl = document.getElementById("bp-school");
+    const descEl = document.getElementById("bp-desc");
+    const tagsEl = document.getElementById("bp-tags");
+    const addBtn = document.getElementById("bp-add");
+    const clearBtn = document.getElementById("bp-clear");
+
+    const uid = () => "p" + Math.random().toString(36).slice(2,9);
+    const LSkey = id => "bp-vote-" + id;
+    const saveVote = (id,choice) => localStorage.setItem(LSkey(id), choice);
+    const getVote = id => localStorage.getItem(LSkey(id));
+    const norm = s => (s||"").toLowerCase();
+
+    function filtered(){
+      const q = norm(state.query), s = state.school;
+      return state.data.filter(p=>{
+        const text = `${p.title} ${p.desc} ${(p.tags||[]).join(" ")}`.toLowerCase();
+        return (!q || text.includes(q)) && (!s || p.school===s);
+      });
+    }
+
+    function render(){
+      const items = filtered();
+      cardsEl.innerHTML = "";
+      emptyEl.style.display = items.length ? "none" : "block";
+
+      items.forEach(p=>{
+        const userVote = getVote(p.id);
+
+        const card = document.createElement("div");
+        card.className = "bp-card";
+
+        card.innerHTML = `
+          <h4>${escapeHtml(p.title)}</h4>
+          <div class="bp-row" style="gap:8px">
+            <span class="bp-badge bp-school">${escapeHtml(p.school)}</span>
+          </div>
+          <div class="bp-sub" style="margin:0">${escapeHtml(p.desc)}</div>
+          ${p.tags?.length ? `<div class="bp-tags">${p.tags.map(t=>`<span class="bp-chip">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+          <div class="bp-sep"></div>
+        `;
+
+        const line = document.createElement("div");
+        line.className = "bp-cta";
+
+        const vote = document.createElement("div");
+        vote.className = "bp-vote";
+
+        const btnAd = makeVoteBtn("Adopted","adopt", userVote==="adopted", ()=>onVote(p,"adopted"));
+        const btnCo = makeVoteBtn("Considering","consider", userVote==="considering", ()=>onVote(p,"considering"));
+        const btnNo = makeVoteBtn("Not for us","notfor", userVote==="notfor", ()=>onVote(p,"notfor"));
+
+        const count = document.createElement("span");
+        count.className = "bp-count";
+        count.textContent = `· ${p.votes.adopted} adopted · ${p.votes.considering} considering · ${p.votes.notfor} not for us`;
+
+        vote.append(btnAd, btnCo, btnNo, count);
+        line.appendChild(vote);
+        card.appendChild(line);
+
+        cardsEl.appendChild(card);
+      });
+    }
+
+    function makeVoteBtn(label, style, active, onClick){
+      const b = document.createElement("button");
+      b.textContent = label;
+      b.className = style;
+      if(active) b.classList.add("active", style);
+      b.onclick = onClick;
+      return b;
+    }
+
+    function onVote(p, choice){
+      const prev = getVote(p.id);
+      if(prev && p.votes[prev]!=null) p.votes[prev] = Math.max(0, p.votes[prev]-1);
+      p.votes[choice] = (p.votes[choice]||0) + 1;
+      saveVote(p.id, choice);
+      render();
+    }
+
+    function escapeHtml(s){return (s||"").replace(/[&<>\"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+    qEl.addEventListener("input", e=>{state.query=e.target.value;render();});
+    filterSchoolEl.addEventListener("change", e=>{state.school=e.target.value;render();});
+    addBtn.addEventListener("click", ()=>{
+      const title = titleEl.value.trim(), school = schoolEl.value.trim(), desc = descEl.value.trim();
+      if(!title || !school || !desc){ alert("Please fill Title, School/College, and Description."); return; }
+      const tags = tagsEl.value.split(",").map(t=>t.trim()).filter(Boolean);
+      state.data.unshift({ id:uid(), title, school, desc, tags, votes:{adopted:0,considering:0,notfor:0} });
+      titleEl.value = ""; schoolEl.value = ""; descEl.value = ""; tagsEl.value = "";
+      render(); window.scrollTo({top:0,behavior:"smooth"});
+    });
+    clearBtn.addEventListener("click", ()=>{ titleEl.value=schoolEl.value=descEl.value=tagsEl.value=""; titleEl.focus(); });
+
+    render();
+  </script>
+</body>
+</html>

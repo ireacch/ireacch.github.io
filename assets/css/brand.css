@@ -1,0 +1,64 @@
+/* ===== I-REACCH brand-ish foundation ===== */
+:root{
+  /* colours */
+  --ire-white:#ffffff;
+  --ire-bg:#ffffff;
+  --ire-ink:#1a1a1a;
+  --ire-ink-2:#4f4f4f;
+  --ire-link:#3a71b0;
+  --ire-hero:#cfe6e6;        /* pale teal hero band */
+  --ire-border:#e7e6e6;
+  --ire-headline:#5b2ca1;    /* purple headings */
+
+  /* layout */
+  --container:1280px;        /* wide container like the site */
+  --content:960px;           /* readable width for text blocks */
+  --radius:12px;
+  --shadow:0 8px 22px rgba(0,0,0,.06);
+
+  /* type */
+  --font-sans:"Inter","Open Sans",system-ui,-apple-system,Segoe UI,Arial,sans-serif;
+  --fs-body:18px;
+  --lh-body:1.7;
+  --fs-h1: clamp(40px, 4.2vw, 56px);   /* big headline */
+  --fs-h2: clamp(26px, 2.4vw, 34px);
+  --fw-bold:800;
+  --fw-semi:600;
+}
+
+/* base */
+html,body{
+  margin:0;
+  background:var(--ire-bg);
+  color:var(--ire-ink);
+  font-family:var(--font-sans);
+  font-size:var(--fs-body);
+  line-height:var(--lh-body);
+}
+.container{ max-width:1320px; margin:0 auto; padding:0 32px; }
+.content{ max-width:var(--content); }
+
+h1{ font-size:var(--fs-h1); font-weight:var(--fw-bold); color:var(--ire-headline); margin:0 0 14px; line-height:1.15; }
+h2{ font-size:var(--fs-h2); font-weight:var(--fw-bold); margin:0 0 10px; }
+p{ margin:0 0 18px; color:var(--ire-ink-2); }
+
+a{ color:var(--ire-link); text-decoration:none; }
+a:hover{ text-decoration:underline; }
+
+/* components */
+.card{ background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); padding:32px; }
+.btn{
+  display:inline-block; padding:12px 20px; border-radius:999px;
+  color:#fff; text-decoration:none; font-weight:var(--fw-semi);
+  background:linear-gradient(135deg,#5b2ca1,#00b0f0);
+}
+
+/* layout helpers */
+.hero{
+  background:var(--ire-hero);
+  padding:56px 0 36px;        /* vertical rhythm like the site */
+  margin-bottom:36px;
+}
+
+.grid{ display:grid; gap:24px; }
+.grid-3{ grid-template-columns:repeat(3,1fr); }

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>I-REACCH | Dashboard</title>
+
+  <!-- Reuse your site styles -->
+  <link rel="stylesheet" href="assets/css/brand.css" />
+  <link rel="stylesheet" href="assets/css/header.css" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Chart.js for the charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* ---------------- HEADER HARDENING (keep logo/nav consistent) ---------------- */
+    .site-header .brand img{
+      height:44px;             /* same visual size as your other pages */
+      width:auto;
+      display:block;
+    }
+    .site-header .main-nav a{
+      font-size:16px;
+      padding:8px 12px;
+      white-space:nowrap;
+    }
+
+    /* ---------------- PAGE TONE / CONTAINER ---------------- */
+    .hero-slab {
+      background:#cfe4e7;   /* light teal band like homepage */
+      padding:28px 0 20px;
+      margin-bottom:22px;
+    }
+
+    /* Lock content width so layout matches your mock at any zoom */
+    .page-wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
+    @media (max-width:640px){ .page-wrap{padding:0 16px} }
+
+    /* ---------------- CARDS & GRID ---------------- */
+    .card {
+      background:#fff;
+      border:1px solid #e6ecf1;
+      border-radius:16px;
+      box-shadow:0 10px 24px rgba(28,39,51,.04);
+      padding:20px;
+    }
+
+    /* Two-column rows: main area + right rail (fixed width) */
+    .tiles, .panels{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) 380px;  /* main + right */
+      gap:20px;
+      margin-bottom:18px;
+    }
+    /* On very large screens, keep proportions pleasant */
+    @media (min-width:1440px){
+      .tiles, .panels{ grid-template-columns:minmax(0, 740px) 400px; }
+    }
+    /* Stack on small screens */
+    @media (max-width:1100px){ .tiles, .panels{ grid-template-columns:1fr } }
+
+    .kpis {
+      display:flex;flex-wrap:wrap;gap:36px;
+      font-size:clamp(1.15rem,1.6vw,1.35rem);font-weight:800
+    }
+    .kpis span {display:inline-block}
+
+    .h2 {font-weight:800;margin:0 0 10px;font-size:clamp(1.4rem,2.2vw,1.65rem)}
+    .subtle {color:#556070}
+
+    /* Table + two pies: same as before but stable */
+    .mini-grid {display:grid;grid-template-columns:240px 1fr 1fr;gap:18px}
+    @media (max-width:900px){ .mini-grid{grid-template-columns:1fr} }
+
+    .mini-table {border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden}
+    .mini-table th,.mini-table td{
+      border:2px solid #2e4b6a;padding:10px 12px;text-align:center;
+      font-weight:700
+    }
+
+    /* Keep canvases from collapsing – fixes card heights */
+    #aiBar{height:180px !important;}
+    #pieA, #pieB, #lineSentiment{height:220px !important;}
+
+    /* ---------------- AI UI ---------------- */
+    .ai-wrap {display:flex;gap:10px;align-items:center}
+    .ai-input {
+      flex:1 1 auto;
+      border:1px solid #e6ecf1;border-radius:12px;padding:14px 16px;font-size:1rem;
+      background:#fff;
+    }
+    .btn {
+      appearance:none;border:0;border-radius:999px;padding:12px 16px;
+      font-weight:800;cursor:pointer;color:#fff;
+      background:linear-gradient(90deg,#4a1ea8,#0aa0ff);
+    }
+    .btn.ghost {background:transparent;color:#1c2733;border:1px solid #e6ecf1}
+
+    .ai-box {border:1px solid #e6ecf1;border-radius:12px;padding:14px 16px;margin-top:12px;background:#fff}
+    .ai-box h4{margin:.2rem 0 .4rem;font-size:1.05rem}
+    .ai-small{font-size:.9rem;color:#556070}
+  </style>
+</head>
+<body>
+
+  <!-- ✅ SAME header markup as other pages -->
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="index.html">
+        <img src="assets/img/ireacch-logo.png" alt="I-REACCH" />
+      </a>
+      <nav class="main-nav">
+        <a href="index.html">Home</a>
+        <a href="micro-surveys.html">Surveys</a>
+        <a class="active" href="dashboard.html">Dashboard</a>
+        <a href="https://ireacch.le.ac.uk/meet-the-team/">Meet the team</a>
+        <a href="https://ireacch.le.ac.uk/events/">Events</a>
+        <a href="https://ireacch.le.ac.uk/disrupting-the-default/">Disrupting the Default</a>
+        <a href="https://ireacch.le.ac.uk/funding-opportunities/">Funding opportunities</a>
+        <a href="best-practices.html">Best practices</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Title band -->
+  <section class="hero-slab">
+    <div class="page-wrap">
+      <h1 class="h2" style="font-size:clamp(1.8rem,2.6vw,2.2rem)">Dashboard Page <span class="subtle">(Admin)</span></h1>
+    </div>
+  </section>
+
+  <main class="page-wrap">
+
+    <!-- Top tiles: KPIs + AI quick bars -->
+    <section class="tiles">
+      <div class="card">
+        <div class="kpis">
+          <span>Responses = <span id="kpi-resp">196</span></span>
+          <span>Avg. score = <span id="kpi-avg">4.2</span></span>
+          <span>Completion = <span id="kpi-comp">85%</span></span>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h2 class="h2">AI insights</h2>
+        <div class="subtle" id="ai-top-themes">Mentoring, Transparency</div>
+        <canvas id="aiBar"></canvas>
+      </aside>
+    </section>
+
+    <!-- Charts row -->
+    <section class="panels">
+      <div class="card">
+        <h2 class="h2">Overall Response Rate</h2>
+        <div class="mini-grid">
+          <!-- little table -->
+          <table class="mini-table">
+            <thead>
+              <tr><th>Total</th><th>n</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>2</td></tr>
+              <tr><td>2</td><td>4</td></tr>
+              <tr><td>4</td><td>4</td></tr>
+            </tbody>
+          </table>
+
+          <div>
+            <h3 class="subtle" style="margin:.2rem 0 .6rem">Survey distribution A</h3>
+            <canvas id="pieA"></canvas>
+          </div>
+
+          <div>
+            <h3 class="subtle" style="margin:.2rem 0 .6rem">Survey distribution B</h3>
+            <canvas id="pieB"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <aside class="card">
+        <h2 class="h2">Sentiment trend</h2>
+        <div class="ai-small">Monthly % positive (mock data)</div>
+        <canvas id="lineSentiment"></canvas>
+      </aside>
+    </section>
+
+    <!-- AI Ask + summary/prognosis -->
+    <section class="card" style="margin-bottom:36px">
+      <h2 class="h2">AI insights</h2>
+      <div class="ai-wrap">
+        <input id="aiPrompt" class="ai-input" placeholder="Ask AI about your survey results…" />
+        <button id="btnExplain" class="btn">Generate summary</button>
+      </div>
+
+      <div id="aiOut" class="ai-box" style="display:none">
+        <h4>Summary</h4>
+        <div id="aiSummary" class="ai-small"></div>
+
+        <h4 style="margin-top:10px">Prognosis</h4>
+        <div id="aiForecast" class="ai-small"></div>
+
+        <h4 style="margin-top:10px">Next actions</h4>
+        <div id="aiActions" class="ai-small"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* -----------------------------
+       MOCK DATA (replace later)
+    ------------------------------*/
+    const kpis = { responses:196, avgScore:4.2, completion:0.85 };
+
+    // themes and counts detected from free-text (mock)
+    const themeCounts = [
+      {label:"Mentoring",   count:42},
+      {label:"Transparency",count:37},
+      {label:"Workload",    count:29},
+      {label:"Onboarding",  count:21}
+    ];
+
+    // pie distributions
+    const pieAData = [48, 27, 25];
+    const pieBData = [38, 34, 28];
+
+    // monthly % positive (0–1) – used for “prognostics”
+    const sentimentSeries = [
+      {month:"Apr", pos:0.58},
+      {month:"May", pos:0.61},
+      {month:"Jun", pos:0.62},
+      {month:"Jul", pos:0.64},
+      {month:"Aug", pos:0.66}
+    ];
+
+    /* -----------------------------
+       KPIs
+    ------------------------------*/
+    document.getElementById("kpi-resp").textContent = kpis.responses;
+    document.getElementById("kpi-avg").textContent  = kpis.avgScore.toFixed(1);
+    document.getElementById("kpi-comp").textContent = Math.round(kpis.completion*100) + "%";
+
+    /* -----------------------------
+       Charts
+    ------------------------------*/
+    const neutral = [
+      "rgba(71, 118, 230, .9)",
+      "rgba(137, 196, 244, .9)",
+      "rgba(59, 173, 227, .9)",
+      "rgba(130, 177, 255, .9)"
+    ];
+
+    // Bar: top themes
+    new Chart(document.getElementById("aiBar"), {
+      type: "bar",
+      data: {
+        labels: themeCounts.map(t=>t.label),
+        datasets: [{
+          data: themeCounts.map(t=>t.count),
+          backgroundColor: neutral
+        }]
+      },
+      options: {
+        responsive:true,
+        plugins:{legend:{display:false}},
+        scales:{y:{beginAtZero:true, ticks:{precision:0}}}
+      }
+    });
+
+    // Two pies
+    new Chart(document.getElementById("pieA"), {
+      type:"pie",
+      data:{ labels:["Positive","Neutral","Negative"],
+        datasets:[{ data: pieAData, backgroundColor:neutral }]},
+      options:{responsive:true, plugins:{legend:{position:"bottom"}}}
+    });
+
+    new Chart(document.getElementById("pieB"), {
+      type:"pie",
+      data:{ labels:["Positive","Neutral","Negative"],
+        datasets:[{ data: pieBData, backgroundColor:neutral }]},
+      options:{responsive:true, plugins:{legend:{position:"bottom"}}}
+    });
+
+    // Line: sentiment trend
+    new Chart(document.getElementById("lineSentiment"), {
+      type:"line",
+      data:{
+        labels: sentimentSeries.map(s=>s.month),
+        datasets:[{
+          data: sentimentSeries.map(s=>Math.round(s.pos*100)),
+          tension:.35,
+          fill:false,
+          borderColor: neutral[0],
+          pointBackgroundColor: neutral[0]
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{display:false}},
+        scales:{y:{suggestedMin:40,suggestedMax:100,ticks:{callback:v=>v+"%"}}}
+      }
+    });
+
+    /* -----------------------------
+       “AI” SUMMARY + PROGNOSTICS
+       (client-side heuristic, no API)
+    ------------------------------*/
+    const top2 = [...themeCounts].sort((a,b)=>b.count-a.count).slice(0,2).map(t=>t.label);
+    document.getElementById("ai-top-themes").textContent = top2.join(", ");
+
+    function trendForecast(series){ // simple linear slope on [%]
+      const y = series.map(s=>Math.round(s.pos*100));
+      const x = series.map((_,i)=>i+1);
+      const n = x.length;
+      const sum = a => a.reduce((s,v)=>s+v,0);
+      const mean = a => sum(a)/a.length;
+      const mx = mean(x), my = mean(y);
+      const num = sum(x.map((xi,i)=>(xi-mx)*(y[i]-my)));
+      const den = sum(x.map(xi=>Math.pow(xi-mx,2))) || 1;
+      const slope = num/den; // % points per step
+      const next = Math.max(0, Math.min(100, my + slope*(n+1-mx)));
+      return { slope, next };
+    }
+
+    function makeSummary(){
+      const total = kpis.responses;
+      const posA = pieAData[0], posB = pieBData[0];
+      const avgPos = Math.round((posA+posB)/2);
+      const mainThemes = top2.join(" & ");
+
+      return [
+        `We’ve collected ${total} responses (completion ${Math.round(kpis.completion*100)}%).`,
+        `Average score is ${kpis.avgScore.toFixed(1)}.`,
+        `Across surveys, ~${avgPos}% responses are positive.`,
+        `Top themes emerging: ${mainThemes}.`
+      ].join(" ");
+    }
+
+    function makeActions(forecastPct){
+      const actions = [];
+      if (forecastPct < 60) {
+        actions.push("Run a focused ‘You said, we did’ on workload transparency within 2 weeks.");
+        actions.push("Pilot 1–2 mentoring circles and invite early feedback.");
+      } else if (forecastPct < 70) {
+        actions.push("Scale up the mentoring circles to one per School.");
+        actions.push("Publish a monthly progress dashboard highlighting transparency wins.");
+      } else {
+        actions.push("Consolidate: document best-practice playbooks and share case studies.");
+        actions.push("Introduce light-touch pulse surveys to maintain trajectory.");
+      }
+      return actions;
+    }
+
+    document.getElementById("btnExplain").addEventListener("click", () => {
+      const { next, slope } = trendForecast(sentimentSeries); // % next month
+      const dir = slope >= 0 ? "improve" : "decline";
+      const summary  = makeSummary();
+      const actions  = makeActions(next);
+
+      document.getElementById("aiSummary").textContent =
+        summary + ` Sentiment trend continues to ${dir} (${slope.toFixed(1)} pts/mo).`;
+
+      document.getElementById("aiForecast").textContent =
+        `Projected positive sentiment next month ≈ ${Math.round(next)}%. ` +
+        `If current actions persist, we anticipate a ${dir} of about ${Math.abs(slope).toFixed(1)} percentage points.`;
+
+      document.getElementById("aiActions").innerHTML =
+        "<ul style='margin:.2rem 0;padding-left:18px'>" +
+        actions.map(a=>`<li>${a}</li>`).join("") + "</ul>";
+
+      document.getElementById("aiOut").style.display = "block";
+    });
+
+    // Optional: submit prompt on Enter
+    document.getElementById("aiPrompt").addEventListener("keydown", e=>{
+      if(e.key==="Enter"){ e.preventDefault(); document.getElementById("btnExplain").click(); }
+    });
+
+    /* -----------------------------
+       Hooking real data later
+       – Replace MOCKs via:
+         - Microsoft Forms export (CSV/Excel) parsed client-side, or
+         - A small serverless endpoint that aggregates results & returns JSON,
+           then feed those values into kpis/pieAData/pieBData/sentimentSeries.
+    ------------------------------*/
+  </script>
+</body>
+</html>

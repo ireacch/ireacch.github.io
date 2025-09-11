@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Micro Surveys | I-REACCH</title>
+
+  <!-- Site styles -->
+  <link rel="stylesheet" href="assets/css/brand.css">
+  <link rel="stylesheet" href="assets/css/header.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <style>
+    :root{
+      --accent:   #4a6cf7;
+      --accent-2: #9b51e0;
+      --bg-soft:  #f5f8ff;
+      --border:   #e9eef6;
+      --text:     #1b2a41;
+      --muted:    #66788a;
+      --pill-bg:  #eef4ff;
+      --pill-tx:  #2f5d98;
+      --done-bg:  #e7f8ec;
+      --done-tx:  #1f7a41;
+    }
+
+    .runner{display:grid;grid-template-columns:320px 1fr;gap:20px}
+    @media (max-width:980px){.runner{grid-template-columns:1fr}}
+
+    .panel{background:#fff;border:1px solid var(--border);border-radius:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,.06);overflow:hidden}
+    .panel .hd{padding:14px 16px;border-bottom:1px solid var(--border)}
+    .panel .bd{padding:14px 16px}
+
+    /* left header */
+    .side-title{margin:0 0 10px;font-size:17px;font-weight:800;color:var(--text)}
+    .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0 6px}
+    .filters a{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-height:28px; padding:4px 10px; border-radius:8px;
+      font-weight:700; font-size:14px; line-height:1; text-decoration:none;
+      color:var(--muted); background:transparent; border:1px solid transparent;
+      transition:background .15s ease,border-color .15s ease,color .15s ease;
+    }
+    .filters a:hover{background:#f7faff}
+    .filters a.active{
+      color:var(--accent); background:var(--bg-soft); border-color:var(--border);
+    }
+    .filters .sep{color:#c6cbd6;margin:0 2px}
+
+    .list{display:flex;flex-direction:column;gap:12px}
+    .item{display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;
+      cursor:pointer}
+    .item:hover{background:var(--bg-soft)}
+    .item.locked{opacity:.55}
+    .item.active{box-shadow:0 0 0 3px var(--accent);border-color:transparent;background:#fff}
+
+    /* slightly bigger for clarity */
+    .title{font-weight:700;color:var(--text);font-size:16px;line-height:1.28}
+    .meta{font-size:13px;color:var(--muted);margin-top:4px}
+    .left{display:flex;flex-direction:column}
+    .right{display:flex;align-items:center;gap:8px}
+
+    /* status pills */
+    .pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
+      background:var(--pill-bg);color:var(--pill-tx);border:1px solid var(--border)}
+    .pill.done{background:var(--done-bg);color:var(--done-tx)}
+    /* warm red for UNFINISHED */
+    .pill.unfinished{background:#ff6b6b;color:#fff;border-color:#ff6b6b}
+
+    .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+    .h2{margin:0;color:var(--text);font-size:18px;font-weight:800}
+    .muted{color:var(--muted);font-size:12px}
+    .status .pill{font-size:12px}
+
+    iframe{width:100%;height:600px;border:0;border-radius:12px;background:#fff}
+
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{appearance:none;border:0;border-radius:999px;padding:10px 16px;font-weight:800;color:#fff;
+      background:linear-gradient(135deg,var(--accent-2),var(--accent));cursor:pointer}
+    .btn[disabled]{opacity:.45;cursor:not-allowed}
+
+    .admin{margin-top:26px;border-top:1px dashed var(--border);padding-top:16px}
+    .admin input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin:6px 0}
+    .admin .grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
+    code.json-out{display:block;white-space:pre-wrap;background:#0f172a;color:#e2e8f0;padding:10px;border-radius:10px;margin-top:10px;font-size:.85rem}
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="logo" href="index.html"><img src="assets/img/ireacch-logo.png" alt="I-REACCH"/></a>
+    <nav class="nav" aria-label="Primary">
+      <a href="index.html">Home</a>
+      <a class="active" href="micro-surveys.html">Surveys</a>
+      <a href="dashboard.html">Dashboard</a>
+      <a href="best-practices.html">Best practices</a>
+      <a href="https://ireacch.le.ac.uk/meet-the-team/" target="_blank" rel="noopener">Meet the team</a>
+      <a href="https://ireacch.le.ac.uk/events/" target="_blank" rel="noopener">Events</a>
+      <a href="https://ireacch.le.ac.uk/disrupting-the-default/" target="_blank" rel="noopener">Disrupting the Default</a>
+      <a href="https://ireacch.le.ac.uk/funding-opportunities/" target="_blank" rel="noopener">Funding opportunities</a>
+      <a href="https://ireacch.le.ac.uk/blog/" target="_blank" rel="noopener">Blog</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container content">
+    <h1>Micro surveys</h1>
+    <p>Each survey has only one question. Complete them in order — the next unlocks automatically.</p>
+  </div>
+</section>
+
+<main class="container content" style="padding-bottom:64px">
+  <div class="runner">
+    <!-- LEFT LIST -->
+    <aside class="panel">
+      <div class="hd">
+        <h3 class="side-title">Survey List</h3>
+        <nav class="filters" id="filters" aria-label="Filter surveys">
+          <a href="#" data-filter="all" class="active">All</a><span class="sep">|</span>
+          <a href="#" data-filter="unfinished">Unfinished</a><span class="sep">|</span>
+          <a href="#" data-filter="completed">Completed</a>
+        </nav>
+      </div>
+      <div class="bd"><div id="list" class="list"></div></div>
+    </aside>
+
+    <!-- RIGHT PANEL -->
+    <section class="panel">
+      <div class="hd">
+        <div class="head-row">
+          <div>
+            <h2 class="h2" id="currTitle">Select a micro survey</h2>
+            <div class="muted" id="currDate"></div>
+          </div>
+          <div class="status"><span id="currBadge" class="pill">Unfinished</span></div>
+        </div>
+      </div>
+
+      <div class="bd">
+        <iframe id="formFrame" title="Survey"></iframe>
+        <div class="controls">
+          <button id="btnComplete" class="btn">Mark as completed</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Admin helper (open with ?admin=1) -->
+  <section id="admin" class="admin" style="display:none">
+    <h2 style="margin:0 0 8px">Admin • add a survey (JSON helper)</h2>
+    <div class="grid">
+      <input id="aTitle" placeholder="Title e.g., I-REACCH Micro Survey (Q1) Feel Valued"/>
+      <input id="aMinutes" placeholder="Minutes (e.g., 1)"/>
+    </div>
+    <div class="grid">
+      <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
+      <input id="aSchool" placeholder="School/College (optional)"/>
+    </div>
+    <input id="aUrl" placeholder="Microsoft Forms embed URL"/>
+    <div class="controls">
+      <button id="aAdd" class="btn">Add to config (in memory)</button>
+      <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
+    </div>
+    <code id="aOut" class="json-out" style="display:none"></code>
+  </section>
+</main>
+
+<script>
+let SURVEYS=[];
+async function loadSurveys(){
+  try{const r=await fetch('surveys.json?cb='+Date.now());SURVEYS=await r.json();}
+  catch{SURVEYS=[];}
+}
+
+const statusKey=id=>`survey-status:${id}`;
+const getStatus=id=>localStorage.getItem(statusKey(id))||"not";
+function setStatus(id,s){localStorage.setItem(statusKey(id),s);renderList(current?.id);updateBtn();}
+
+const nextUnfinishedIndex=()=>SURVEYS.findIndex(s=>getStatus(s.id)!=="done");
+
+const $list=document.getElementById('list');
+const $frame=document.getElementById('formFrame');
+const $title=document.getElementById('currTitle');
+const $date=document.getElementById('currDate');
+const $badge=document.getElementById('currBadge');
+const $btn=document.getElementById('btnComplete');
+const $filters=document.getElementById('filters');
+
+let current=null,filter="all";
+
+/* Filters */
+[...$filters.querySelectorAll('a')].forEach(a=>{
+  a.onclick=e=>{
+    e.preventDefault();
+    [...$filters.querySelectorAll('a')].forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    filter=a.dataset.filter;
+    renderList(current?.id);
+  };
+});
+
+/* Render list with Q-number prefixes and 2 statuses only */
+function renderList(activeId){
+  $list.innerHTML='';
+  const unlock=nextUnfinishedIndex();
+
+  SURVEYS.forEach((s,i)=>{
+    const st=getStatus(s.id); // "not" or "done"
+    const isDone = (st==='done');
+
+    if(filter==='unfinished' && isDone) return;
+    if(filter==='completed' && !isDone) return;
+
+    const canOpen=(i===unlock)||isDone;
+
+    const item=document.createElement('div');
+    item.className='item'+(s.id===activeId?' active':'')+(canOpen?'':' locked');
+    item.dataset.id=s.id;
+
+    const pillClass = isDone ? 'pill done' : 'pill unfinished';
+    const pillText  = isDone ? 'Completed' : 'Unfinished';
+
+    const titleWithQ = `Q${i+1}: ${s.title}`;
+
+    item.innerHTML=`
+      <div class="left">
+        <div class="title">${titleWithQ}</div>
+        <div class="meta">${s.date||''}</div>
+      </div>
+      <div class="right"><span class="${pillClass}">${pillText}</span></div>`;
+
+    item.onclick=()=>{if(!canOpen)return shake(item);loadSurvey(s.id);};
+    $list.appendChild(item);
+  });
+}
+
+function shake(el){
+  el.style.transition='transform .08s';
+  el.style.transform='translateX(-4px)';
+  setTimeout(()=>el.style.transform='translateX(4px)',80);
+  setTimeout(()=>{el.style.transform='none';el.style.transition=''},160);
+}
+
+/* Load a survey – no intermediate "progress" status; only unfinished/completed */
+function loadSurvey(id){
+  const s=SURVEYS.find(x=>x.id===id); if(!s) return; current=s;
+
+  const idx = SURVEYS.findIndex(x=>x.id===id);
+  const titleWithQ = `Q${idx+1}: ${s.title}`;
+  $title.textContent = titleWithQ;
+  $date.textContent  = s.date||'';
+
+  const isDone = (getStatus(id)==='done');
+  $badge.textContent = isDone ? 'Completed' : 'Unfinished';
+  $badge.className   = isDone ? 'pill done' : 'pill unfinished';
+
+  $frame.src = s.url;
+  renderList(id);
+  updateBtn();
+}
+
+function updateBtn(){
+  if(!current){$btn.disabled=true;return}
+  const done=getStatus(current.id)==='done';
+  $btn.textContent=done?'Completed':'Mark as completed';
+  $btn.disabled=done;
+}
+
+$btn.onclick=()=>{
+  if(!current) return;
+  setStatus(current.id,'done');
+  loadSurvey(current.id);
+  const idx=nextUnfinishedIndex();
+  if(idx!==-1) loadSurvey(SURVEYS[idx].id);
+  else alert("All surveys completed — thank you!");
+};
+
+/* Admin helper (open with ?admin=1) */
+const urlParams=new URLSearchParams(location.search);
+if(urlParams.get("admin")==="1"){
+  const admin=document.getElementById('admin');
+  admin.style.display='block';
+  document.getElementById('aAdd').onclick=()=>{
+    const title=document.getElementById('aTitle').value.trim();
+    const minutes=parseInt(document.getElementById('aMinutes').value.trim()||"1",10);
+    const audience=document.getElementById('aAudience').value.trim();
+    const school=document.getElementById('aSchool').value.trim();
+    const url=document.getElementById('aUrl').value.trim();
+    if(!title||!url){alert("Title and URL are required");return;}
+    SURVEYS.push({id:slugify(title),title,minutes,audience,school:school||"All",url});
+    renderList(current?.id);
+    ['aTitle','aMinutes','aAudience','aSchool','aUrl'].forEach(id=>document.getElementById(id).value="");
+  };
+  document.getElementById('aExport').onclick=()=>{
+    const out=document.getElementById('aOut');
+    out.textContent=JSON.stringify(SURVEYS,null,2);
+    out.style.display="block";
+    window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+  };
+}
+
+function slugify(s){
+  return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,60);
+}
+
+(async()=>{await loadSurveys();renderList();if(SURVEYS[0])loadSurvey(SURVEYS[0].id)})();
+</script>
+
+</body>
+</html>
