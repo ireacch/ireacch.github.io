@@ -22,8 +22,38 @@
       --pill-tx:  #2f5d98;
       --done-bg:  #e7f8ec;
       --done-tx:  #1f7a41;
+      --red:      #ff6b6b;     /* unfinished */
+      --red-d:    #e25555;
     }
 
+    /* ===== Compact title row + overview card ===== */
+    .page-head{border-bottom:1px solid var(--border);background:#f0f6f9}
+    .page-head__inner{
+      max-width:1200px;margin:0 auto;padding:10px 16px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px
+    }
+    .page-head h1{margin:0;font-size:1.1rem;font-weight:900;color:#2c5aa0}
+    .backlink{color:#2c5aa0;text-decoration:none;font-weight:700}
+    .backlink:hover{text-decoration:underline}
+
+    .overview{max-width:1200px;margin:22px auto 16px;padding:0 16px}
+    .ov-card{
+      background:#fff;border:1px solid var(--border);border-radius:16px;
+      box-shadow:0 10px 24px rgba(18,47,76,.06);padding:18px
+    }
+    .ov-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;align-items:start}
+    @media (max-width:980px){.ov-grid{grid-template-columns:1fr}}
+
+    .ov-title{margin:0 0 8px;font-weight:900;font-size:1.1rem;color:var(--text)}
+    .ov-section{margin:.7rem 0}
+    .ov-section h4{margin:.1rem 0 .3rem;font-size:.98rem;font-weight:900;color:var(--text)}
+    .ov-section p{margin:.2rem 0;color:var(--muted)}
+    .ov-section a{color:#2c5aa0;font-weight:700;text-decoration:none}
+    .ov-section a:hover{text-decoration:underline}
+    .ov-img{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff;aspect-ratio:4/3;display:block}
+    .ov-img img{width:100%;height:100%;object-fit:cover}
+
+    /* ===== Survey runner (your existing styles) ===== */
     .runner{display:grid;grid-template-columns:320px 1fr;gap:20px}
     @media (max-width:980px){.runner{grid-template-columns:1fr}}
 
@@ -32,42 +62,35 @@
     .panel .hd{padding:14px 16px;border-bottom:1px solid var(--border)}
     .panel .bd{padding:14px 16px}
 
-    /* left header */
     .side-title{margin:0 0 10px;font-size:17px;font-weight:800;color:var(--text)}
     .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:2px 0 6px}
     .filters a{
       display:inline-flex;align-items:center;justify-content:center;
-      min-height:28px; padding:4px 10px; border-radius:8px;
-      font-weight:700; font-size:14px; line-height:1; text-decoration:none;
-      color:var(--muted); background:transparent; border:1px solid transparent;
-      transition:background .15s ease,border-color .15s ease,color .15s ease;
+      min-height:28px;padding:4px 10px;border-radius:8px;
+      font-weight:700;font-size:14px;line-height:1;text-decoration:none;
+      color:var(--muted);background:transparent;border:1px solid transparent;
+      transition:background .15s ease,border-color .15s ease,color .15s ease
     }
     .filters a:hover{background:#f7faff}
-    .filters a.active{
-      color:var(--accent); background:var(--bg-soft); border-color:var(--border);
-    }
+    .filters a.active{color:var(--accent);background:var(--bg-soft);border-color:var(--border)}
     .filters .sep{color:#c6cbd6;margin:0 2px}
 
     .list{display:flex;flex-direction:column;gap:12px}
     .item{display:flex;align-items:center;justify-content:space-between;gap:10px;
-      padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;
-      cursor:pointer}
+      padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;cursor:pointer}
     .item:hover{background:var(--bg-soft)}
     .item.locked{opacity:.55}
     .item.active{box-shadow:0 0 0 3px var(--accent);border-color:transparent;background:#fff}
 
-    /* slightly bigger for clarity */
     .title{font-weight:700;color:var(--text);font-size:16px;line-height:1.28}
     .meta{font-size:13px;color:var(--muted);margin-top:4px}
     .left{display:flex;flex-direction:column}
     .right{display:flex;align-items:center;gap:8px}
 
-    /* status pills */
     .pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;
       background:var(--pill-bg);color:var(--pill-tx);border:1px solid var(--border)}
     .pill.done{background:var(--done-bg);color:var(--done-tx)}
-    /* warm red for UNFINISHED */
-    .pill.unfinished{background:#ff6b6b;color:#fff;border-color:#ff6b6b}
+    .pill.unfinished{background:var(--red);color:#fff;border-color:var(--red-d)}
 
     .head-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
     .h2{margin:0;color:var(--text);font-size:18px;font-weight:800}
@@ -85,6 +108,9 @@
     .admin input{width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;margin:6px 0}
     .admin .grid{display:grid;grid-template-columns:2fr 1fr;gap:10px}
     code.json-out{display:block;white-space:pre-wrap;background:#0f172a;color:#e2e8f0;padding:10px;border-radius:10px;margin-top:10px;font-size:.85rem}
+
+    /* keep main content width aligned with overview */
+    .container.content{max-width:1200px}
   </style>
 </head>
 <body>
@@ -106,13 +132,51 @@
   </div>
 </header>
 
-<section class="hero">
-  <div class="container content">
-    <h1>Micro surveys</h1>
-    <p>Each survey has only one question. Complete them in order — the next unlocks automatically.</p>
+<!-- Compact heading -->
+<div class="page-head">
+  <div class="page-head__inner">
+    <h1>Micro Survey Overview</h1>
+    <a class="backlink" href="https://ireacch.le.ac.uk/" target="_blank" rel="noopener">Back to official website</a>
+  </div>
+</div>
+
+<!-- Overview with your exact copy -->
+<section class="overview">
+  <div class="ov-card">
+    <div class="ov-grid">
+      <div>
+        <h3 class="ov-title">Speak up for research culture: I-REACCH Micro Survey</h3>
+        <p class="ov-section" style="margin-top:.3rem">
+          The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester. These anonymous micro-surveys are designed to capture perceptions and establish a baseline for evaluating I-REACCH’s interventions.
+        </p>
+
+        <div class="ov-section">
+          <h4>Why take part in the micro-surveys?</h4>
+          <p>Help shape a more inclusive and supportive research culture at Leicester – one click at a time!</p>
+          <p>Each weekly I-REACCH micro-survey has just one question and takes less than a minute. It’s quick, anonymous, and open to all research staff, research-enabling staff, and PGRs.</p>
+        </div>
+
+        <div class="ov-section">
+          <h4>What will happen to your responses?</h4>
+          <p>
+            The survey is totally anonymous. You may be asked to log in with your University of Leicester email; the system won't collect your name or your email address. Your anonymous responses are analysed by the I-REACCH evaluation team to help us understand what’s working and what needs to change. Your voice helps steer real improvements. No fuss, no hassle.
+          </p>
+        </div>
+
+        <div class="ov-section">
+          <p>If you would like to find out more before deciding to participate, please <a href="#" id="contactLink">contact us</a>.</p>
+          <p><strong>By completing the survey, you confirm that you have read the information above and consent to take part in the study.</strong></p>
+        </div>
+      </div>
+
+      <figure class="ov-img">
+        <img src="assets/img/speak-up.png" alt="Speak up for research culture">
+      </figure>
+    </div>
   </div>
 </section>
 
+<!-- Survey runner (unchanged behaviour) -->
 <main class="container content" style="padding-bottom:64px">
   <div class="runner">
     <!-- LEFT LIST -->
@@ -136,7 +200,7 @@
             <h2 class="h2" id="currTitle">Select a micro survey</h2>
             <div class="muted" id="currDate"></div>
           </div>
-          <div class="status"><span id="currBadge" class="pill">Unfinished</span></div>
+          <div class="status"><span id="currBadge" class="pill unfinished">Unfinished</span></div>
         </div>
       </div>
 
@@ -203,13 +267,13 @@ let current=null,filter="all";
   };
 });
 
-/* Render list with Q-number prefixes and 2 statuses only */
+/* Render list with Q-number prefixes and two statuses */
 function renderList(activeId){
   $list.innerHTML='';
   const unlock=nextUnfinishedIndex();
 
   SURVEYS.forEach((s,i)=>{
-    const st=getStatus(s.id); // "not" or "done"
+    const st=getStatus(s.id);
     const isDone = (st==='done');
 
     if(filter==='unfinished' && isDone) return;
@@ -245,7 +309,7 @@ function shake(el){
   setTimeout(()=>{el.style.transform='none';el.style.transition=''},160);
 }
 
-/* Load a survey – no intermediate "progress" status; only unfinished/completed */
+/* Load a survey (unfinished/completed only) */
 function loadSurvey(id){
   const s=SURVEYS.find(x=>x.id===id); if(!s) return; current=s;
 
