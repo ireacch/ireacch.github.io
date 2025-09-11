@@ -30,7 +30,7 @@
     /* --------- TOP BANNER (replaces your full nav) ---------- */
     .overview-bar{
       background:#cfe4e7;                /* light blue band */
-      padding:10px 0;
+      padding:22px 0;                    /* ⬆ taller banner */
       border-bottom:1px solid #c3d6d9;
     }
     .overview-inner{
@@ -40,20 +40,23 @@
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:12px;
+      gap:16px;                          /* a bit more spacing */
     }
     .brand-wrap{
       display:flex; align-items:center; gap:14px;
     }
     .brand-wrap img{
-      height:40px; width:auto; display:block;
+      height:48px;                       /* ⬆ larger logo */
+      width:auto; display:block;
     }
     .page-title{
-      font-size:20px; font-weight:800; color:var(--text);
+      font-size:22px;                    /* ⬆ larger title */
+      font-weight:800; color:var(--text);
     }
     .back-link{
-      font-weight:700; font-size:14px; color:#245b74;
-      text-decoration:none; padding:6px 10px; border-radius:8px;
+      font-weight:700; font-size:15px;   /* ⬆ slightly larger link */
+      color:#245b74;
+      text-decoration:none; padding:8px 12px; border-radius:8px;
     }
     .back-link:hover{ background:rgba(0,0,0,.05); }
 
@@ -71,10 +74,18 @@
       overflow:hidden; margin-bottom:20px;
     }
     .intro-grid{
-      display:grid; grid-template-columns:1fr 360px; gap:18px;
-      padding:16px;
+      display:grid;
+      grid-template-columns:1fr 360px;
+      gap:24px;                         /* ⬆ more space */
+      padding:20px;                     /* ⬆ more breathing room */
+    }
+    @media (min-width:1100px){
+      .intro-grid{
+        grid-template-columns:1fr 480px; /* ⬆ wider image column on large screens */
+      }
     }
     @media (max-width:980px){ .intro-grid{ grid-template-columns:1fr; } }
+
     .intro-card h2{
       margin:0 0 8px; font-size:16px; color:var(--text);
     }
@@ -84,7 +95,9 @@
       display:flex; align-items:center; justify-content:center;
     }
     .intro-figure img{
-      max-width:100%; height:auto; border-radius:10px;
+      max-width:460px;                  /* ⬆ bigger poster but still < text width */
+      width:100%;
+      height:auto; border-radius:10px;
       border:1px solid var(--border);
       box-shadow:0 6px 16px rgba(28,39,51,.08);
     }
