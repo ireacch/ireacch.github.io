@@ -11,7 +11,6 @@
   <link rel="stylesheet" href="assets/css/style.css">
 
   <style>
-    /* --------- Theme tokens (kept consistent with your design) ---------- */
     :root{
       --accent:   #4a6cf7;
       --accent-2: #9b51e0;
@@ -27,114 +26,46 @@
       --page-max: 1200px;
     }
 
-    /* --------- TOP BANNER (replaces your full nav) ---------- */
-    .overview-bar{
-      background:#cfe4e7;                /* light blue band */
-      padding:22px 0;                    /* ⬆ taller banner */
-      border-bottom:1px solid #c3d6d9;
-    }
-    .overview-inner{
-      max-width:var(--page-max);
-      margin:0 auto;
-      padding:0 24px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;                          /* a bit more spacing */
-    }
-    .brand-wrap{
-      display:flex; align-items:center; gap:14px;
-    }
-    .brand-wrap img{
-      height:48px;                       /* ⬆ larger logo */
-      width:auto; display:block;
-    }
-    .page-title{
-      font-size:22px;                    /* ⬆ larger title */
-      font-weight:800; color:var(--text);
-    }
-    .back-link{
-      font-weight:700; font-size:15px;   /* ⬆ slightly larger link */
-      color:#245b74;
-      text-decoration:none; padding:8px 12px; border-radius:8px;
-    }
+    /* TOP BANNER */
+    .overview-bar{ background:#cfe4e7; padding:22px 0; border-bottom:1px solid #c3d6d9; }
+    .overview-inner{ max-width:var(--page-max); margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand-wrap{ display:flex; align-items:center; gap:14px; }
+    .brand-wrap img{ height:48px; width:auto; display:block; }
+    .page-title{ font-size:22px; font-weight:800; color:var(--text); }
+    .back-link{ font-weight:700; font-size:15px; color:#245b74; text-decoration:none; padding:8px 12px; border-radius:8px; }
     .back-link:hover{ background:rgba(0,0,0,.05); }
 
-    /* --------- PAGE WRAP ---------- */
-    .page{
-      max-width:var(--page-max);
-      margin:18px auto 48px;
-      padding:0 24px;
-    }
+    .page{ max-width:var(--page-max); margin:18px auto 48px; padding:0 24px; }
 
-    /* --------- INTRO CARD ---------- */
-    .intro-card{
-      background:#fff; border:1px solid var(--border); border-radius:14px;
-      box-shadow:0 6px 18px rgba(28,39,51,.06);
-      overflow:hidden; margin-bottom:20px;
-    }
-    .intro-grid{
-      display:grid;
-      grid-template-columns:1fr 360px;
-      gap:24px;                         /* ⬆ more space */
-      padding:20px;                     /* ⬆ more breathing room */
-    }
-    @media (min-width:1100px){
-      .intro-grid{
-        grid-template-columns:1fr 480px; /* ⬆ wider image column on large screens */
-      }
-    }
+    /* INTRO */
+    .intro-card{ background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 6px 18px rgba(28,39,51,.06); overflow:hidden; margin-bottom:20px; }
+    .intro-grid{ display:grid; grid-template-columns:1fr 360px; gap:24px; padding:20px; }
+    @media (min-width:1100px){ .intro-grid{ grid-template-columns:1fr 480px; } }
     @media (max-width:980px){ .intro-grid{ grid-template-columns:1fr; } }
-
-    .intro-card h2{
-      margin:0 0 8px; font-size:16px; color:var(--text);
-    }
+    .intro-card h2{ margin:0 0 8px; font-size:16px; color:var(--text); }
     .intro-card p{ margin:.35rem 0; color:var(--text); }
-    .intro-card b{ font-weight:800; }
-    .intro-figure{
-      display:flex; align-items:center; justify-content:center;
-    }
-    .intro-figure img{
-      max-width:460px;                  /* ⬆ bigger poster but still < text width */
-      width:100%;
-      height:auto; border-radius:10px;
-      border:1px solid var(--border);
-      box-shadow:0 6px 16px rgba(28,39,51,.08);
-    }
+    .intro-figure{ display:flex; align-items:center; justify-content:center; }
+    .intro-figure img{ max-width:460px; width:100%; height:auto; border-radius:10px; border:1px solid var(--border); box-shadow:0 6px 16px rgba(28,39,51,.08); }
 
-    /* --------- MAIN TWO COLUMNS ---------- */
+    /* MAIN LAYOUT */
     .runner{ display:grid; grid-template-columns:320px 1fr; gap:20px; }
     @media (max-width:980px){ .runner{ grid-template-columns:1fr; } }
 
-    .panel{
-      background:#fff; border:1px solid var(--border); border-radius:14px;
-      box-shadow:0 6px 18px rgba(28,39,51,.06); overflow:hidden;
-    }
+    .panel{ background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 6px 18px rgba(28,39,51,.06); overflow:hidden; }
     .panel .hd{ padding:14px 16px; border-bottom:1px solid var(--border); }
     .panel .bd{ padding:14px 16px; }
 
-    /* LEFT: Survey list header + filters (link style) */
+    /* LEFT LIST */
     .side-title{ margin:0 0 10px; font-size:17px; font-weight:800; color:var(--text); }
     .filters{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:0; }
-    .filters a{
-      display:inline-block; padding:4px 8px; border-radius:6px;
-      font-weight:700; font-size:14px; line-height:1; text-decoration:none;
-      color:var(--muted); background:transparent; border:1px solid transparent;
-      transition:background .15s ease,border-color .15s ease,color .15s ease;
-    }
+    .filters a{ display:inline-block; padding:4px 8px; border-radius:6px; font-weight:700; font-size:14px; line-height:1; text-decoration:none; color:var(--muted); background:transparent; border:1px solid transparent; transition:background .15s ease,border-color .15s ease,color .15s ease; }
     .filters a:hover{ background:#f7faff; }
     .filters a.active{ color:var(--accent); background:var(--bg-soft); border-color:var(--border); }
     .filters .sep{ color:#c6cbd6; }
 
-    /* Survey list items */
     .list{ display:flex; flex-direction:column; gap:12px; }
-    .item{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:12px 14px; border:1px solid var(--border); border-radius:12px;
-      background:#fff; cursor:pointer;
-    }
+    .item{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:#fff; cursor:pointer; }
     .item:hover{ background:var(--bg-soft); }
-    .item.locked{ opacity:.55; }
     .item.active{ box-shadow:0 0 0 3px var(--accent); border-color:transparent; background:#fff; }
 
     .title{ font-weight:700; color:var(--text); font-size:16px; line-height:1.28; }
@@ -142,30 +73,21 @@
     .left{ display:flex; flex-direction:column; }
     .right{ display:flex; align-items:center; gap:8px; }
 
-    .pill{
-      font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px;
-      background:var(--pill-bg); color:var(--pill-tx); border:1px solid var(--border);
-    }
+    .pill{ font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px; background:var(--pill-bg); color:var(--pill-tx); border:1px solid var(--border); }
     .pill.done{ background:var(--done-bg); color:var(--done-tx); }
     .pill.unfinished{ background:var(--red-pill); color:#fff; border-color:var(--red-pill); }
 
-    /* RIGHT: survey panel */
+    /* RIGHT PANEL */
     .head-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
     .h2{ margin:0; color:var(--text); font-size:18px; font-weight:800; }
     .muted{ color:var(--muted); font-size:12px; }
     .status .pill{ font-size:12px; }
-
     iframe{ width:100%; height:600px; border:0; border-radius:12px; background:#fff; }
 
     .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-    .btn{
-      appearance:none; border:0; border-radius:999px; padding:10px 16px;
-      font-weight:800; color:#fff;
-      background:linear-gradient(135deg,var(--accent-2),var(--accent)); cursor:pointer;
-    }
+    .btn{ appearance:none; border:0; border-radius:999px; padding:10px 16px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--accent-2),var(--accent)); cursor:pointer; }
     .btn[disabled]{ opacity:.45; cursor:not-allowed; }
 
-    /* Admin helper (unchanged) */
     .admin{ margin-top:26px; border-top:1px dashed var(--border); padding-top:16px; }
     .admin input{ width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0; }
     .admin .grid{ display:grid; grid-template-columns:2fr 1fr; gap:10px; }
@@ -255,7 +177,7 @@
         <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
         <input id="aSchool" placeholder="School/College (optional)"/>
       </div>
-      <input id="aUrl" placeholder="Microsoft Forms embed URL"/>
+        <input id="aUrl" placeholder="Microsoft Forms embed URL"/>
       <div class="controls">
         <button id="aAdd" class="btn">Add to config (in memory)</button>
         <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
@@ -264,94 +186,119 @@
     </section>
   </main>
 
-  <!-- -------------------- JS: runner logic (unchanged) -------------------- -->
+  <!-- JS -->
   <script>
-    let SURVEYS=[];
+    /* -------------------- Load surveys + LIVE submission dates -------------------- */
+    let SURVEYS = [];
+    const LIVE = { updatedAt: null, surveys: {} }; // filled from data/submissions.json
+
     async function loadSurveys(){
       try{
-        const r=await fetch('surveys.json?cb='+Date.now());
-        SURVEYS=await r.json();
-      }catch{ SURVEYS=[]; }
+        const r = await fetch('surveys.json?cb=' + Date.now());
+        SURVEYS = await r.json();
+      }catch{ SURVEYS = []; }
+    }
+    async function loadLive(){
+      try{
+        const r = await fetch('data/submissions.json?cb=' + Date.now());
+        const j = await r.json();
+        LIVE.updatedAt = j.updatedAt || null;
+        LIVE.surveys   = j.surveys   || {};
+      }catch{ /* keep LIVE empty; page still works */ }
     }
 
-    const statusKey=id=>`survey-status:${id}`;
-    const getStatus=id=>localStorage.getItem(statusKey(id))||"not";
-    function setStatus(id,s){ localStorage.setItem(statusKey(id),s); renderList(current?.id); updateBtn(); }
+    /* -------------------- Local completion status -------------------- */
+    const statusKey = id => `survey-status:${id}`;          // "not" | "done"
+    const whenKey   = id => `survey-completed-at:${id}`;    // ISO string
 
-    const nextUnfinishedIndex=()=>SURVEYS.findIndex(s=>getStatus(s.id)!=="done");
+    const getStatus = id => localStorage.getItem(statusKey(id)) || "not";
+    function setStatus(id, s){
+      localStorage.setItem(statusKey(id), s);
+      if(s === 'done') localStorage.setItem(whenKey(id), new Date().toISOString());
+      renderList(current?.id);
+      updateBtn();
+    }
 
-    const $list=document.getElementById('list');
-    const $frame=document.getElementById('formFrame');
-    const $title=document.getElementById('currTitle');
-    const $date=document.getElementById('currDate');
-    const $badge=document.getElementById('currBadge');
-    const $btn=document.getElementById('btnComplete');
-    const $filters=document.getElementById('filters');
+    /* -------------------- UI refs -------------------- */
+    const $list   = document.getElementById('list');
+    const $frame  = document.getElementById('formFrame');
+    const $title  = document.getElementById('currTitle');
+    const $date   = document.getElementById('currDate');
+    const $badge  = document.getElementById('currBadge');
+    const $btn    = document.getElementById('btnComplete');
+    const $filters= document.getElementById('filters');
 
-    let current=null, filter="all";
+    let current = null, filter = "all";
 
     /* Filters */
     [...$filters.querySelectorAll('a')].forEach(a=>{
-      a.onclick=e=>{
+      a.onclick = e => {
         e.preventDefault();
         [...$filters.querySelectorAll('a')].forEach(x=>x.classList.remove('active'));
         a.classList.add('active');
-        filter=a.dataset.filter;
+        filter = a.dataset.filter;
         renderList(current?.id);
       };
     });
 
-    /* Render list (Q-number prefixes and 2 statuses only) */
+    /* Date formatting + choose which date to display */
+    const fmt = iso => {
+      if(!iso) return '';
+      const d = new Date(iso);
+      const dd = String(d.getDate()).padStart(2,'0');
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const yy = d.getFullYear();
+      return `${dd}.${mm}.${yy}`;
+    };
+    function getDisplayDate(id, fallbackDate){
+      // 1) live repo date, 2) local device completion date, 3) static date from surveys.json
+      const live = LIVE.surveys?.[id]?.lastSubmittedAt || null;
+      const local= localStorage.getItem(whenKey(id));
+      return fmt(live || local || fallbackDate || null);
+    }
+
+    /* Render list (no locking; user can open any survey) */
     function renderList(activeId){
-      $list.innerHTML='';
-      const unlock=nextUnfinishedIndex();
+      $list.innerHTML = '';
 
-      SURVEYS.forEach((s,i)=>{
-        const st=getStatus(s.id); // "not" or "done"
-        const isDone = (st==='done');
+      SURVEYS.forEach((s, i) => {
+        const isDone = (getStatus(s.id) === 'done');
 
-        if(filter==='unfinished' && isDone) return;
-        if(filter==='completed' && !isDone) return;
+        if(filter === 'unfinished' && isDone) return;
+        if(filter === 'completed' && !isDone) return;
 
-        const canOpen=(i===unlock)||isDone;
-
-        const item=document.createElement('div');
-        item.className='item'+(s.id===activeId?' active':'')+(canOpen?'':' locked');
-        item.dataset.id=s.id;
+        const item = document.createElement('div');
+        item.className = 'item' + (s.id === activeId ? ' active' : '');
+        item.dataset.id = s.id;
 
         const pillClass = isDone ? 'pill done' : 'pill unfinished';
         const pillText  = isDone ? 'Completed' : 'Unfinished';
         const titleWithQ = `Q${i+1}: ${s.title}`;
+        const dateText = getDisplayDate(s.id, s.date);
 
-        item.innerHTML=`
+        item.innerHTML = `
           <div class="left">
             <div class="title">${titleWithQ}</div>
-            <div class="meta">${s.date||''}</div>
+            <div class="meta">${dateText}</div>
           </div>
           <div class="right"><span class="${pillClass}">${pillText}</span></div>`;
 
-        item.onclick=()=>{ if(!canOpen) return shake(item); loadSurvey(s.id); };
+        item.onclick = () => loadSurvey(s.id);   // no gating
         $list.appendChild(item);
       });
     }
 
-    function shake(el){
-      el.style.transition='transform .08s';
-      el.style.transform='translateX(-4px)';
-      setTimeout(()=>el.style.transform='translateX(4px)',80);
-      setTimeout(()=>{el.style.transform='none';el.style.transition=''},160);
-    }
-
-    /* Load a survey – only unfinished/completed */
+    /* Load a survey */
     function loadSurvey(id){
-      const s=SURVEYS.find(x=>x.id===id); if(!s) return; current=s;
+      const s = SURVEYS.find(x => x.id === id); if(!s) return;
+      current = s;
 
       const idx = SURVEYS.findIndex(x=>x.id===id);
       const titleWithQ = `Q${idx+1}: ${s.title}`;
       $title.textContent = titleWithQ;
-      $date.textContent  = s.date||'';
 
-      const isDone = (getStatus(id)==='done');
+      $date.textContent  = getDisplayDate(s.id, s.date);
+      const isDone = (getStatus(id) === 'done');
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
@@ -361,25 +308,22 @@
     }
 
     function updateBtn(){
-      if(!current){ $btn.disabled=true; return; }
-      const done=getStatus(current.id)==='done';
-      $btn.textContent=done?'Completed':'Mark as completed';
-      $btn.disabled=done;
+      if(!current){ $btn.disabled = true; return; }
+      const done = getStatus(current.id) === 'done';
+      $btn.textContent = done ? 'Completed' : 'Mark as completed';
+      $btn.disabled = done;
     }
 
-    $btn.onclick=()=>{
+    $btn.onclick = () => {
       if(!current) return;
       setStatus(current.id,'done');
       loadSurvey(current.id);
-      const idx=nextUnfinishedIndex();
-      if(idx!==-1) loadSurvey(SURVEYS[idx].id);
-      else alert("All surveys completed — thank you!");
     };
 
     /* Admin helper (?admin=1) */
-    const urlParams=new URLSearchParams(location.search);
+    const urlParams = new URLSearchParams(location.search);
     if(urlParams.get("admin")==="1"){
-      const admin=document.getElementById('admin');
+      const admin = document.getElementById('admin');
       admin.style.display='block';
       document.getElementById('aAdd').onclick=()=>{
         const title=document.getElementById('aTitle').value.trim();
@@ -399,12 +343,16 @@
         window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
       };
     }
-
     function slugify(s){
       return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,60);
     }
 
-    (async()=>{ await loadSurveys(); renderList(); if(SURVEYS[0]) loadSurvey(SURVEYS[0].id); })();
+    /* Boot: load surveys + live data, then render */
+    (async()=>{
+      await Promise.all([loadSurveys(), loadLive()]);
+      renderList();
+      if(SURVEYS[0]) loadSurvey(SURVEYS[0].id);
+    })();
   </script>
 </body>
 </html>
