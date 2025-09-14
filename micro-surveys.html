@@ -257,6 +257,20 @@
       return fmt(live || local || fallbackDate || null);
     }
 
+    /* Helper to pick the label we show for a survey */
+    function labelForList(s, index){
+      // If surveys.json provides displayTitle, use it; else build "Q{index+1}: {title}"
+      return s.displayTitle && s.displayTitle.trim().length
+        ? s.displayTitle
+        : `Q${index+1}: ${s.title}`;
+    }
+    function labelForPanel(s){
+      const idx = SURVEYS.findIndex(x=>x.id===s.id);
+      return s.displayTitle && s.displayTitle.trim().length
+        ? s.displayTitle
+        : `Q${idx+1}: ${s.title}`;
+    }
+
     /* Render list (no locking; user can open any survey) */
     function renderList(activeId){
       $list.innerHTML = '';
@@ -273,12 +287,12 @@
 
         const pillClass = isDone ? 'pill done' : 'pill unfinished';
         const pillText  = isDone ? 'Completed' : 'Unfinished';
-        const titleWithQ = `Q${i+1}: ${s.title}`;
+        const titleForList = labelForList(s, i);
         const dateText = getDisplayDate(s.id, s.date);
 
         item.innerHTML = `
           <div class="left">
-            <div class="title">${titleWithQ}</div>
+            <div class="title">${titleForList}</div>
             <div class="meta">${dateText}</div>
           </div>
           <div class="right"><span class="${pillClass}">${pillText}</span></div>`;
@@ -293,11 +307,9 @@
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
 
-      const idx = SURVEYS.findIndex(x=>x.id===id);
-      const titleWithQ = `Q${idx+1}: ${s.title}`;
-      $title.textContent = titleWithQ;
-
+      $title.textContent = labelForPanel(s);
       $date.textContent  = getDisplayDate(s.id, s.date);
+
       const isDone = (getStatus(id) === 'done');
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
