@@ -1,197 +1,135 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>I-REACCH | Dashboard</title>
 
   <!-- Reuse your site styles -->
-  <link rel="stylesheet" href="assets/css/brand.css" />
-  <link rel="stylesheet" href="assets/css/header.css" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="assets/css/brand.css"/>
+  <link rel="stylesheet" href="assets/css/header.css"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
 
-  <!-- Chart.js for the charts -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <style>
-    /* ---------------- HEADER HARDENING (keep logo/nav consistent) ---------------- */
-    .site-header .brand img{
-      height:44px;             /* same visual size as your other pages */
-      width:auto;
-      display:block;
-    }
-    .site-header .main-nav a{
-      font-size:16px;
-      padding:8px 12px;
-      white-space:nowrap;
+    :root{
+      --page-max: 1200px;
+      --border:#e6ecf1; --text:#1b2a41; --muted:#556070;
+      --band:#cfe4e7; --white:#fff;
+      --grad-a:#4a1ea8; --grad-b:#0aa0ff;
     }
 
-    /* ---------------- PAGE TONE / CONTAINER ---------------- */
-    .hero-slab {
-      background:#cfe4e7;   /* light teal band like homepage */
-      padding:28px 0 20px;
-      margin-bottom:22px;
+    /* Light blue banner to match your “Overview” page */
+    .hero-slab{background:var(--band);padding:28px 0 22px;border-bottom:1px solid #c3d6d9}
+    .wrap{max-width:var(--page-max);margin:0 auto;padding:0 24px}
+    @media (max-width:640px){.wrap{padding:0 16px}}
+
+    .h1{font-weight:800;margin:0;font-size:clamp(1.6rem,2.6vw,2.1rem)}
+    .sub{color:var(--muted);margin-top:6px}
+
+    .grid-2{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
+    .panel{
+      background:var(--white);border:1px solid var(--border);border-radius:16px;
+      box-shadow:0 10px 24px rgba(28,39,51,.04)
     }
+    .pad{padding:18px}
 
-    /* Lock content width so layout matches your mock at any zoom */
-    .page-wrap{max-width:1120px;margin:0 auto;padding:0 24px;}
-    @media (max-width:640px){ .page-wrap{padding:0 16px} }
-
-    /* ---------------- CARDS & GRID ---------------- */
-    .card {
-      background:#fff;
-      border:1px solid #e6ecf1;
-      border-radius:16px;
-      box-shadow:0 10px 24px rgba(28,39,51,.04);
-      padding:20px;
+    .kpis{display:flex;gap:22px;flex-wrap:wrap;font-weight:800}
+    .kpis .v{font-size:clamp(1.15rem,2vw,1.35rem)}
+    .muted{color:var(--muted)}
+    .btn{
+      appearance:none;border:0;border-radius:999px;padding:10px 14px;font-weight:800;color:#fff;
+      background:linear-gradient(90deg,var(--grad-a),var(--grad-b));cursor:pointer
     }
+    .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .h2{font-weight:800;margin:0 0 10px;font-size:clamp(1.3rem,2.2vw,1.6rem)}
 
-    /* Two-column rows: main area + right rail (fixed width) */
-    .tiles, .panels{
-      display:grid;
-      grid-template-columns:minmax(0, 1fr) 380px;  /* main + right */
-      gap:20px;
-      margin-bottom:18px;
-    }
-    /* On very large screens, keep proportions pleasant */
-    @media (min-width:1440px){
-      .tiles, .panels{ grid-template-columns:minmax(0, 740px) 400px; }
-    }
-    /* Stack on small screens */
-    @media (max-width:1100px){ .tiles, .panels{ grid-template-columns:1fr } }
+    .mini-grid{display:grid;grid-template-columns:240px 1fr 1fr;gap:18px}
+    @media (max-width:980px){.mini-grid{grid-template-columns:1fr}}
+    .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden}
+    .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:10px 12px;text-align:center;font-weight:700}
 
-    .kpis {
-      display:flex;flex-wrap:wrap;gap:36px;
-      font-size:clamp(1.15rem,1.6vw,1.35rem);font-weight:800
-    }
-    .kpis span {display:inline-block}
-
-    .h2 {font-weight:800;margin:0 0 10px;font-size:clamp(1.4rem,2.2vw,1.65rem)}
-    .subtle {color:#556070}
-
-    /* Table + two pies: same as before but stable */
-    .mini-grid {display:grid;grid-template-columns:240px 1fr 1fr;gap:18px}
-    @media (max-width:900px){ .mini-grid{grid-template-columns:1fr} }
-
-    .mini-table {border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden}
-    .mini-table th,.mini-table td{
-      border:2px solid #2e4b6a;padding:10px 12px;text-align:center;
-      font-weight:700
-    }
-
-    /* Keep canvases from collapsing – fixes card heights */
-    #aiBar{height:180px !important;}
-    #pieA, #pieB, #lineSentiment{height:220px !important;}
-
-    /* ---------------- AI UI ---------------- */
-    .ai-wrap {display:flex;gap:10px;align-items:center}
-    .ai-input {
-      flex:1 1 auto;
-      border:1px solid #e6ecf1;border-radius:12px;padding:14px 16px;font-size:1rem;
-      background:#fff;
-    }
-    .btn {
-      appearance:none;border:0;border-radius:999px;padding:12px 16px;
-      font-weight:800;cursor:pointer;color:#fff;
-      background:linear-gradient(90deg,#4a1ea8,#0aa0ff);
-    }
-    .btn.ghost {background:transparent;color:#1c2733;border:1px solid #e6ecf1}
-
-    .ai-box {border:1px solid #e6ecf1;border-radius:12px;padding:14px 16px;margin-top:12px;background:#fff}
-    .ai-box h4{margin:.2rem 0 .4rem;font-size:1.05rem}
-    .ai-small{font-size:.9rem;color:#556070}
+    .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
+    .ai-box h4{margin:.2rem 0 .4rem}
+    .ai-small{color:var(--muted);font-size:.95rem}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .spacer{height:10px}
+    canvas{max-width:100%}
+    .pill{font-size:.85rem;background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;font-weight:700}
   </style>
 </head>
 <body>
 
-  <!-- ✅ SAME header markup as other pages -->
-  <header class="site-header">
-    <div class="site-header__inner">
-      <a class="brand" href="index.html">
-        <img src="assets/img/ireacch-logo.png" alt="I-REACCH" />
-      </a>
-      <nav class="main-nav">
-        <a href="index.html">Home</a>
-        <a href="micro-surveys.html">Surveys</a>
-        <a class="active" href="dashboard.html">Dashboard</a>
-        <a href="https://ireacch.le.ac.uk/meet-the-team/">Meet the team</a>
-        <a href="https://ireacch.le.ac.uk/events/">Events</a>
-        <a href="https://ireacch.le.ac.uk/disrupting-the-default/">Disrupting the Default</a>
-        <a href="https://ireacch.le.ac.uk/funding-opportunities/">Funding opportunities</a>
-        <a href="best-practices.html">Best practices</a>
-      </nav>
+  <!-- Top nav (keep it identical to other pages if you want), or a slim banner -->
+  <header class="hero-slab">
+    <div class="wrap">
+      <h1 class="h1">Dashboard <span class="pill">beta</span></h1>
+      <div class="sub">Live view of micro-survey responses (from CSV exports in your repo) + AI insights.</div>
     </div>
   </header>
 
-  <!-- Title band -->
-  <section class="hero-slab">
-    <div class="page-wrap">
-      <h1 class="h2" style="font-size:clamp(1.8rem,2.6vw,2.2rem)">Dashboard Page <span class="subtle">(Admin)</span></h1>
-    </div>
-  </section>
-
-  <main class="page-wrap">
-
-    <!-- Top tiles: KPIs + AI quick bars -->
-    <section class="tiles">
-      <div class="card">
-        <div class="kpis">
-          <span>Responses = <span id="kpi-resp">196</span></span>
-          <span>Avg. score = <span id="kpi-avg">4.2</span></span>
-          <span>Completion = <span id="kpi-comp">85%</span></span>
+  <main class="wrap" style="margin:20px auto 40px">
+    <!-- KPI + AI quick bar -->
+    <section class="grid-2" style="margin-bottom:18px">
+      <div class="panel pad">
+        <div class="row" style="justify-content:space-between">
+          <div class="kpis">
+            <div class="v">Responses = <span id="kpi-resp">–</span></div>
+            <div class="v">Avg. score = <span id="kpi-avg">–</span></div>
+            <div class="v">Positive = <span id="kpi-pos">–</span></div>
+          </div>
+          <div class="row">
+            <select id="surveySelect" class="pill"></select>
+            <button id="btnRefresh" class="btn ghost">Reload data</button>
+          </div>
         </div>
       </div>
 
-      <aside class="card">
-        <h2 class="h2">AI insights</h2>
-        <div class="subtle" id="ai-top-themes">Mentoring, Transparency</div>
-        <canvas id="aiBar"></canvas>
+      <aside class="panel pad">
+        <h2 class="h2">Top themes</h2>
+        <div class="sub" id="ai-top-themes">–</div>
+        <canvas id="aiBar" height="160"></canvas>
       </aside>
     </section>
 
-    <!-- Charts row -->
-    <section class="panels">
-      <div class="card">
-        <h2 class="h2">Overall Response Rate</h2>
+    <!-- Charts -->
+    <section class="grid-2" style="margin-bottom:18px">
+      <div class="panel pad">
+        <h2 class="h2">Overall distribution</h2>
         <div class="mini-grid">
-          <!-- little table -->
           <table class="mini-table">
-            <thead>
-              <tr><th>Total</th><th>n</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>1</td><td>2</td></tr>
-              <tr><td>2</td><td>4</td></tr>
-              <tr><td>4</td><td>4</td></tr>
-            </tbody>
+            <thead><tr><th>Score</th><th>Count</th></tr></thead>
+            <tbody id="scoreTable"></tbody>
           </table>
-
           <div>
-            <h3 class="subtle" style="margin:.2rem 0 .6rem">Survey distribution A</h3>
-            <canvas id="pieA"></canvas>
+            <h3 class="muted" style="margin:.2rem 0 .6rem">Current survey</h3>
+            <canvas id="pieCurrent" height="200"></canvas>
           </div>
-
           <div>
-            <h3 class="subtle" style="margin:.2rem 0 .6rem">Survey distribution B</h3>
-            <canvas id="pieB"></canvas>
+            <h3 class="muted" style="margin:.2rem 0 .6rem">All surveys (combined)</h3>
+            <canvas id="pieAll" height="200"></canvas>
           </div>
         </div>
       </div>
 
-      <aside class="card">
-        <h2 class="h2">Sentiment trend</h2>
-        <div class="ai-small">Monthly % positive (mock data)</div>
-        <canvas id="lineSentiment"></canvas>
+      <aside class="panel pad">
+        <h2 class="h2">Positive trend</h2>
+        <div class="ai-small">Monthly % positive (>=4 on a 1–5 scale)</div>
+        <canvas id="lineTrend" height="210"></canvas>
       </aside>
     </section>
 
-    <!-- AI Ask + summary/prognosis -->
-    <section class="card" style="margin-bottom:36px">
+    <!-- AI Insights -->
+    <section class="panel pad">
       <h2 class="h2">AI insights</h2>
-      <div class="ai-wrap">
-        <input id="aiPrompt" class="ai-input" placeholder="Ask AI about your survey results…" />
-        <button id="btnExplain" class="btn">Generate summary</button>
+      <div class="row">
+        <input id="aiPrompt" class="pill" style="padding:10px 12px;width:min(680px,100%)" placeholder="Ask AI about these results (e.g., ‘key risks by theme?’)"/>
+        <button id="btnExplain" class="btn">Generate insights</button>
       </div>
+      <div class="spacer"></div>
 
       <div id="aiOut" class="ai-box" style="display:none">
         <h4>Summary</h4>
@@ -204,187 +142,364 @@
         <div id="aiActions" class="ai-small"></div>
       </div>
     </section>
-
   </main>
 
   <script>
-    /* -----------------------------
-       MOCK DATA (replace later)
-    ------------------------------*/
-    const kpis = { responses:196, avgScore:4.2, completion:0.85 };
+    /* -------------------------------------------------------
+       1) What this page expects (all in your repo, same origin)
 
-    // themes and counts detected from free-text (mock)
-    const themeCounts = [
-      {label:"Mentoring",   count:42},
-      {label:"Transparency",count:37},
-      {label:"Workload",    count:29},
-      {label:"Onboarding",  count:21}
-    ];
+       data/datasets.json  (INDEX of CSVs)
+       {
+         "surveys": [
+           {
+             "id": "q1-wellbeing",
+             "title": "Q1: Feel valued in your job at the moment",
+             "csv": "data/csv/q1.csv",
+             "answerColumn": "Your answer",        // (optional) exact column name for 1–5 scores
+             "textColumn": "Any comments",         // (optional) free text column name
+             "publishedAt": "2025-02-10"           // (optional) used for context only
+           },
+           {
+             "id": "q2-support",
+             "title": "Q2: Confidence in career planning",
+             "csv": "data/csv/q2.csv",
+             "answerColumn": "",                   // leave blank to auto-detect numeric column
+             "textColumn": "",
+             "publishedAt": "2025-02-17"
+           }
+         ]
+       }
 
-    // pie distributions
-    const pieAData = [48, 27, 25];
-    const pieBData = [38, 34, 28];
+       Each CSV is a Microsoft Forms export.
+       We auto-detect the first numeric 1–5 column if answerColumn is missing.
+       Timestamp column is used for trend if present (MS Forms usually has it).
+       ------------------------------------------------------- */
 
-    // monthly % positive (0–1) – used for “prognostics”
-    const sentimentSeries = [
-      {month:"Apr", pos:0.58},
-      {month:"May", pos:0.61},
-      {month:"Jun", pos:0.62},
-      {month:"Jul", pos:0.64},
-      {month:"Aug", pos:0.66}
-    ];
-
-    /* -----------------------------
-       KPIs
-    ------------------------------*/
-    document.getElementById("kpi-resp").textContent = kpis.responses;
-    document.getElementById("kpi-avg").textContent  = kpis.avgScore.toFixed(1);
-    document.getElementById("kpi-comp").textContent = Math.round(kpis.completion*100) + "%";
-
-    /* -----------------------------
-       Charts
-    ------------------------------*/
+    /* ----------------------- Utilities ----------------------- */
+    const $ = sel => document.querySelector(sel);
     const neutral = [
-      "rgba(71, 118, 230, .9)",
-      "rgba(137, 196, 244, .9)",
-      "rgba(59, 173, 227, .9)",
-      "rgba(130, 177, 255, .9)"
+      "rgba(71,118,230,.9)","rgba(137,196,244,.9)","rgba(59,173,227,.9)","rgba(130,177,255,.9)"
     ];
 
-    // Bar: top themes
-    new Chart(document.getElementById("aiBar"), {
-      type: "bar",
-      data: {
-        labels: themeCounts.map(t=>t.label),
-        datasets: [{
-          data: themeCounts.map(t=>t.count),
-          backgroundColor: neutral
-        }]
-      },
-      options: {
-        responsive:true,
-        plugins:{legend:{display:false}},
-        scales:{y:{beginAtZero:true, ticks:{precision:0}}}
+    async function fetchJSON(url){ const r = await fetch(url+'?cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.json(); }
+    async function fetchText(url){ const r = await fetch(url+'?cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.text(); }
+
+    // Very small CSV parser (handles simple Forms exports)
+    function parseCSV(text){
+      // Try to handle quoted commas
+      const rows = [];
+      let i=0, cell='', row=[], inQ=false;
+      const pushCell = ()=>{ row.push(cell); cell=''; };
+      const pushRow = ()=>{ rows.push(row); row=[]; };
+      while(i<text.length){
+        const ch = text[i];
+        if(inQ){
+          if(ch === '"'){
+            if(text[i+1] === '"'){ cell+='"'; i++; } else { inQ=false; }
+          } else { cell += ch; }
+        }else{
+          if(ch === '"'){ inQ=true; }
+          else if(ch === ','){ pushCell(); }
+          else if(ch === '\n' || ch === '\r'){ if(cell.length || row.length){ pushCell(); pushRow(); } while(text[i+1]==='\n' || text[i+1]==='\r') i++; }
+          else { cell += ch; }
+        }
+        i++;
       }
-    });
+      if(cell.length || row.length){ pushCell(); pushRow(); }
+      const header = rows.shift() || [];
+      return rows.map(r=>Object.fromEntries(header.map((h,idx)=>[h.trim(), (r[idx]??'').trim()])));
+    }
 
-    // Two pies
-    new Chart(document.getElementById("pieA"), {
-      type:"pie",
-      data:{ labels:["Positive","Neutral","Negative"],
-        datasets:[{ data: pieAData, backgroundColor:neutral }]},
-      options:{responsive:true, plugins:{legend:{position:"bottom"}}}
-    });
+    function isNum(v){ return v!=='' && !isNaN(+v); }
+    function toMonthKey(iso){ const d=new Date(iso); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
-    new Chart(document.getElementById("pieB"), {
-      type:"pie",
-      data:{ labels:["Positive","Neutral","Negative"],
-        datasets:[{ data: pieBData, backgroundColor:neutral }]},
-      options:{responsive:true, plugins:{legend:{position:"bottom"}}}
-    });
+    /* ----------------------- Load datasets ----------------------- */
+    let DATASET_INDEX = { surveys: [] };
+    let ALL_SURVEYS = [];  // {id,title,rows,scoreCol,textCol,timestamps}
 
-    // Line: sentiment trend
-    new Chart(document.getElementById("lineSentiment"), {
-      type:"line",
-      data:{
-        labels: sentimentSeries.map(s=>s.month),
-        datasets:[{
-          data: sentimentSeries.map(s=>Math.round(s.pos*100)),
-          tension:.35,
-          fill:false,
-          borderColor: neutral[0],
-          pointBackgroundColor: neutral[0]
-        }]
-      },
-      options:{
-        responsive:true,
-        plugins:{legend:{display:false}},
-        scales:{y:{suggestedMin:40,suggestedMax:100,ticks:{callback:v=>v+"%"}}}
+    async function loadAll(){
+      DATASET_INDEX = await fetchJSON('data/datasets.json');
+
+      const loaded = [];
+      for(const def of (DATASET_INDEX.surveys||[])){
+        try{
+          const text = await fetchText(def.csv);
+          const rows = parseCSV(text);
+
+          // pick columns
+          let scoreCol = def.answerColumn && def.answerColumn.trim() ? def.answerColumn.trim() : null;
+          if(!scoreCol){
+            // auto-detect first 1–5 numeric column
+            const headers = rows.length ? Object.keys(rows[0]) : [];
+            for(const h of headers){
+              const vals = rows.map(r=>r[h]).filter(isNum).map(Number);
+              if(vals.length>=3){ const uniq=[...new Set(vals)]; if(uniq.every(v=>v>=1 && v<=5)) { scoreCol = h; break; } }
+            }
+          }
+          let textCol = def.textColumn && def.textColumn.trim() ? def.textColumn.trim() : null;
+          if(!textCol){
+            const headers = rows.length ? Object.keys(rows[0]) : [];
+            textCol = headers.find(h=>/comment|free|text/i.test(h)) || null;
+          }
+
+          loaded.push({
+            id: def.id,
+            title: def.title || def.id,
+            publishedAt: def.publishedAt || '',
+            csv: def.csv,
+            rows,
+            scoreCol,
+            textCol
+          });
+        }catch(e){
+          console.error('Failed to load', def, e);
+        }
       }
-    });
+      ALL_SURVEYS = loaded;
+    }
 
-    /* -----------------------------
-       “AI” SUMMARY + PROGNOSTICS
-       (client-side heuristic, no API)
-    ------------------------------*/
-    const top2 = [...themeCounts].sort((a,b)=>b.count-a.count).slice(0,2).map(t=>t.label);
-    document.getElementById("ai-top-themes").textContent = top2.join(", ");
+    /* ----------------------- Aggregations ----------------------- */
+    function summarise(survey){
+      const scores = [];
+      const texts  = [];
+      const months = {}; // key -> {pos,total}
+      const tsCol  = Object.keys(survey.rows[0]||{}).find(h=>/timestamp|date/i.test(h)) || null;
 
-    function trendForecast(series){ // simple linear slope on [%]
-      const y = series.map(s=>Math.round(s.pos*100));
+      for(const r of survey.rows){
+        const raw = survey.scoreCol ? r[survey.scoreCol] : null;
+        if(isNum(raw)){ scores.push(+raw); }
+        if(survey.textCol && r[survey.textCol]){ texts.push(r[survey.textCol]); }
+        if(tsCol && isNum(raw)){
+          const key = toMonthKey(r[tsCol]);
+          if(!months[key]) months[key] = {pos:0,total:0};
+          months[key].total++;
+          if(+raw >= 4) months[key].pos++;
+        }
+      }
+
+      const total = scores.length;
+      const avg = total ? (scores.reduce((a,b)=>a+b,0)/total) : 0;
+      const posPct = total ? Math.round(100 * scores.filter(v=>v>=4).length / total) : 0;
+
+      // distribution counts 1..5
+      const dist = [1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length}));
+
+      // trend series sorted by month
+      const trend = Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0]))
+        .map(([m, o])=>({month:m, pct: Math.round(100*o.pos/o.total)}));
+
+      return { total, avg, posPct, dist, trend, texts };
+    }
+
+    function combineSummary(summaries){
+      const sum = { total:0, sumScores:0, pos:0, dist:[0,0,0,0,0], months:{} };
+      summaries.forEach(s=>{
+        sum.total += s.total;
+        sum.sumScores += s.avg * s.total;
+        sum.pos += Math.round(s.posPct/100 * s.total);
+        s.dist.forEach((d,i)=>{ sum.dist[i]+=d.n; });
+        s.trend.forEach(t=>{
+          if(!sum.months[t.month]) sum.months[t.month] = {pos:0,total:0};
+          sum.months[t.month].pos += Math.round(t.pct/100 * (s.total||0));
+          sum.months[t.month].total += (s.total||0);
+        });
+      });
+      const avg = sum.total ? (sum.sumScores/sum.total) : 0;
+      const posPct = sum.total ? Math.round(100*sum.pos/sum.total) : 0;
+      const dist = [1,2,3,4,5].map((v,i)=>({score:v,n:sum.dist[i]}));
+      const trend = Object.entries(sum.months).sort((a,b)=>a[0].localeCompare(b[0]))
+        .map(([m,o])=>({month:m,pct: o.total?Math.round(100*o.pos/o.total):0}));
+      return { total:sum.total, avg, posPct, dist, trend };
+    }
+
+    /* ----------------------- “AI” insights (client-only) ----------------------- */
+    function topKeywords(texts, n=6){
+      const stop = new Set(["the","and","to","of","in","for","a","on","is","are","it","with","that","this","at","as","be","or","we","our","your","i","have","has","was","were","from","by","an"]);
+      const freq = {};
+      texts.forEach(t=>{
+        t.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).forEach(w=>{
+          if(!w || stop.has(w) || w.length<3) return;
+          freq[w] = (freq[w]||0)+1;
+        });
+      });
+      return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([w,c])=>({label:w,count:c}));
+    }
+
+    function slopeAndNext(series){ // series: [{month, pct}]
+      if(!series.length){ return {slope:0,next:0}; }
+      const y = series.map(s=>s.pct);
       const x = series.map((_,i)=>i+1);
       const n = x.length;
       const sum = a => a.reduce((s,v)=>s+v,0);
-      const mean = a => sum(a)/a.length;
-      const mx = mean(x), my = mean(y);
+      const mx = sum(x)/n, my = sum(y)/n;
       const num = sum(x.map((xi,i)=>(xi-mx)*(y[i]-my)));
       const den = sum(x.map(xi=>Math.pow(xi-mx,2))) || 1;
       const slope = num/den; // % points per step
-      const next = Math.max(0, Math.min(100, my + slope*(n+1-mx)));
+      const next = Math.max(0, Math.min(100, Math.round(my + slope*(n+1-mx))));
       return { slope, next };
     }
 
-    function makeSummary(){
-      const total = kpis.responses;
-      const posA = pieAData[0], posB = pieBData[0];
-      const avgPos = Math.round((posA+posB)/2);
-      const mainThemes = top2.join(" & ");
-
+    function actionIdeas(nextPct){
+      if(nextPct < 55) return [
+        "Run a focused ‘You said, we did’ on top pain points within 2 weeks.",
+        "Timebox a pilot (4–6 weeks) addressing the most cited barrier.",
+      ];
+      if(nextPct < 70) return [
+        "Scale the most effective pilot to more Schools.",
+        "Publish a monthly culture dashboard with quick wins.",
+      ];
       return [
-        `We’ve collected ${total} responses (completion ${Math.round(kpis.completion*100)}%).`,
-        `Average score is ${kpis.avgScore.toFixed(1)}.`,
-        `Across surveys, ~${avgPos}% responses are positive.`,
-        `Top themes emerging: ${mainThemes}.`
-      ].join(" ");
+        "Consolidate: document playbooks and case studies.",
+        "Introduce light-touch pulse checks to sustain momentum.",
+      ];
     }
 
-    function makeActions(forecastPct){
-      const actions = [];
-      if (forecastPct < 60) {
-        actions.push("Run a focused ‘You said, we did’ on workload transparency within 2 weeks.");
-        actions.push("Pilot 1–2 mentoring circles and invite early feedback.");
-      } else if (forecastPct < 70) {
-        actions.push("Scale up the mentoring circles to one per School.");
-        actions.push("Publish a monthly progress dashboard highlighting transparency wins.");
-      } else {
-        actions.push("Consolidate: document best-practice playbooks and share case studies.");
-        actions.push("Introduce light-touch pulse surveys to maintain trajectory.");
-      }
-      return actions;
+    /* ----------------------- Charts + UI wiring ----------------------- */
+    let chartBar, chartPieCurrent, chartPieAll, chartTrend;
+
+    function drawBar(labels, counts){
+      const ctx = document.getElementById('aiBar');
+      if(chartBar) chartBar.destroy();
+      chartBar = new Chart(ctx, {
+        type:'bar',
+        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
+        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
+      });
     }
 
-    document.getElementById("btnExplain").addEventListener("click", () => {
-      const { next, slope } = trendForecast(sentimentSeries); // % next month
-      const dir = slope >= 0 ? "improve" : "decline";
-      const summary  = makeSummary();
-      const actions  = makeActions(next);
+    function drawPie(elId, dataArr){
+      const ctx = document.getElementById(elId);
+      const labels = ["1","2","3","4","5"];
+      const counts = [1,2,3,4,5].map((v,i)=>dataArr[i]?.n||0);
+      const inst = new Chart(ctx,{
+        type:'pie',
+        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
+        options:{ responsive:true, plugins:{legend:{position:"bottom"}}}
+      });
+      return inst;
+    }
 
-      document.getElementById("aiSummary").textContent =
-        summary + ` Sentiment trend continues to ${dir} (${slope.toFixed(1)} pts/mo).`;
+    function drawTrend(series){
+      const ctx = document.getElementById('lineTrend');
+      if(chartTrend) chartTrend.destroy();
+      chartTrend = new Chart(ctx, {
+        type:"line",
+        data:{
+          labels: series.map(s=>s.month),
+          datasets:[{
+            data: series.map(s=>s.pct),
+            tension:.35, fill:false,
+            borderColor: neutral[0], pointBackgroundColor: neutral[0]
+          }]
+        },
+        options:{
+          responsive:true, plugins:{legend:{display:false}},
+          scales:{y:{suggestedMin:0,suggestedMax:100,ticks:{callback:v=>v+"%"}}}
+        }
+      });
+    }
 
-      document.getElementById("aiForecast").textContent =
-        `Projected positive sentiment next month ≈ ${Math.round(next)}%. ` +
-        `If current actions persist, we anticipate a ${dir} of about ${Math.abs(slope).toFixed(1)} percentage points.`;
+    function fillScoreTable(dist){
+      const tb = document.getElementById('scoreTable');
+      tb.innerHTML = dist.map(d=>`<tr><td>${d.score}</td><td>${d.n}</td></tr>`).join('');
+    }
 
-      document.getElementById("aiActions").innerHTML =
+    function updateKpis(sum){
+      document.getElementById('kpi-resp').textContent = sum.total;
+      document.getElementById('kpi-avg').textContent  = sum.avg ? sum.avg.toFixed(2) : "–";
+      document.getElementById('kpi-pos').textContent  = sum.posPct + "%";
+    }
+
+    function buildSurveySelect(){
+      const sel = document.getElementById('surveySelect');
+      sel.innerHTML = "";
+      ALL_SURVEYS.forEach((s,idx)=>{
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.title || s.id;
+        if(idx===0) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function summariseAll(){
+      const per = ALL_SURVEYS.map(s=>({ id:s.id, title:s.title, ...summarise(s) }));
+      const combined = combineSummary(per);
+      return { per, combined };
+    }
+
+    function refreshUI(){
+      const { per, combined } = summariseAll();
+
+      // fill select
+      buildSurveySelect();
+
+      // current survey summary
+      const selId = document.getElementById('surveySelect').value || (ALL_SURVEYS[0]?.id);
+      const cur = per.find(x=>x.id===selId) || per[0];
+
+      updateKpis(cur || combined);
+      fillScoreTable((cur||combined).dist);
+
+      if(chartPieCurrent) chartPieCurrent.destroy();
+      if(chartPieAll) chartPieAll.destroy();
+      chartPieCurrent = drawPie('pieCurrent', (cur||combined).dist);
+      chartPieAll     = drawPie('pieAll', combined.dist);
+
+      // trend (combined for context)
+      drawTrend(combined.trend);
+
+      // top themes from current survey texts
+      const sDef = ALL_SURVEYS.find(s=>s.id===selId);
+      const curTexts = sDef ? summarise(sDef).texts : [];
+      const kws = topKeywords(curTexts, 6);
+      document.getElementById('ai-top-themes').textContent = kws.length ? kws.map(k=>k.label).join(", ") : "—";
+      drawBar(kws.map(k=>k.label), kws.map(k=>k.count));
+      // stash for AI section
+      window.__ai_context__ = { cur: (cur||combined), combined, keywords: kws, texts: curTexts };
+    }
+
+    /* ----------------------- AI box behaviour ----------------------- */
+    document.getElementById('btnExplain').addEventListener('click', ()=>{
+      const ctx = window.__ai_context__ || {};
+      const cur = ctx.cur || { total:0, avg:0, posPct:0, trend:[] };
+      const { slope, next } = slopeAndNext((ctx.combined||{trend:[]}).trend);
+
+      const summary = [
+        `We analysed ${cur.total} responses.`,
+        cur.avg ? `Average score is ${cur.avg.toFixed(2)} (1–5).` : "",
+        `Positive share (scores 4–5) is ${cur.posPct}% for the selected survey.`,
+        ctx.keywords?.length ? `Top themes: ${ctx.keywords.slice(0,3).map(k=>k.label).join(", ")}.` : ""
+      ].filter(Boolean).join(" ");
+
+      const dir = slope >= 0 ? "improving" : "declining";
+      const actions = actionIdeas(next);
+
+      document.getElementById('aiSummary').textContent = summary + ` Overall sentiment is ${dir} at ~${Math.abs(slope).toFixed(1)} pts/month.`;
+      document.getElementById('aiForecast').textContent = `Projected positive rate next month ≈ ${next}%.`;
+      document.getElementById('aiActions').innerHTML =
         "<ul style='margin:.2rem 0;padding-left:18px'>" +
         actions.map(a=>`<li>${a}</li>`).join("") + "</ul>";
 
-      document.getElementById("aiOut").style.display = "block";
+      document.getElementById('aiOut').style.display = "block";
     });
 
-    // Optional: submit prompt on Enter
-    document.getElementById("aiPrompt").addEventListener("keydown", e=>{
-      if(e.key==="Enter"){ e.preventDefault(); document.getElementById("btnExplain").click(); }
-    });
+    document.getElementById('surveySelect').addEventListener('change', refreshUI);
+    document.getElementById('btnRefresh').addEventListener('click', async ()=>{ await loadAll(); refreshUI(); });
 
-    /* -----------------------------
-       Hooking real data later
-       – Replace MOCKs via:
-         - Microsoft Forms export (CSV/Excel) parsed client-side, or
-         - A small serverless endpoint that aggregates results & returns JSON,
-           then feed those values into kpis/pieAData/pieBData/sentimentSeries.
-    ------------------------------*/
+    /* ----------------------- Boot ----------------------- */
+    (async function init(){
+      try{
+        await loadAll();
+        if(!ALL_SURVEYS.length){
+          alert("No datasets found. Add data/datasets.json and CSV files (see code comments).");
+        }
+        refreshUI();
+      }catch(e){
+        console.error(e);
+        alert("Failed to load data. Check datasets.json and CSV paths.");
+      }
+    })();
   </script>
 </body>
 </html>
