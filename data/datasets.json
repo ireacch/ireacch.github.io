@@ -4,8 +4,8 @@
       "id": "q1-wellbeing",
       "title": "Q1: Feel valued in your job at the moment",
       "csv": "data/csv/q1.csv",
-      "answerColumn": "",                 // leave blank to auto-detect 1–5 column
-      "textColumn": "",                   // leave blank to auto-detect comments column
+      "answerColumn": "",
+      "textColumn": "",
       "publishedAt": "2025-02-10"
     },
     {
