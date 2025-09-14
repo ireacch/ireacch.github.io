@@ -1,0 +1,20 @@
+{
+  "surveys": [
+    {
+      "id": "q1-wellbeing",
+      "title": "Q1: Feel valued in your job at the moment",
+      "csv": "data/csv/q1.csv",
+      "answerColumn": "",                 // leave blank to auto-detect 1–5 column
+      "textColumn": "",                   // leave blank to auto-detect comments column
+      "publishedAt": "2025-02-10"
+    },
+    {
+      "id": "q2-support",
+      "title": "Q2: Confidence in career planning",
+      "csv": "data/csv/q2.csv",
+      "answerColumn": "",
+      "textColumn": "",
+      "publishedAt": "2025-02-17"
+    }
+  ]
+}
