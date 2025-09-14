@@ -241,25 +241,34 @@
       };
     });
 
-    /* Date formatting + choose which date to display */
-    const fmt = iso => {
-      if(!iso) return '';
-      const d = new Date(iso);
-      const dd = String(d.getDate()).padStart(2,'0');
-      const mm = String(d.getMonth()+1).padStart(2,'0');
-      const yy = d.getFullYear();
-      return `${dd}.${mm}.${yy}`;
+    /* -------- Date formatting + smart date picking -------- */
+    const fmt = (any) => {
+      if (!any) return '';
+      // Accept ISO, 'YYYY-MM-DD', or show as-is if not parseable
+      const d = new Date(any);
+      if (!isNaN(d)) {
+        const dd = String(d.getDate()).padStart(2,'0');
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const yy = d.getFullYear();
+        return `${dd}.${mm}.${yy}`;
+      }
+      return String(any);
     };
-    function getDisplayDate(id, fallbackDate){
-      // 1) live repo date, 2) local device completion date, 3) static date from surveys.json
-      const live = LIVE.surveys?.[id]?.lastSubmittedAt || null;
-      const local= localStorage.getItem(whenKey(id));
-      return fmt(live || local || fallbackDate || null);
+
+    function getDisplayDate(id, surveyObj){
+      // Prefer live.publishedAt, then live.lastSubmittedAt, then survey.publishedAt/date
+      const live   = LIVE.surveys?.[id] || {};
+      const pick =
+        live.publishedAt ||
+        live.lastSubmittedAt ||
+        surveyObj?.publishedAt ||
+        surveyObj?.date ||
+        null;
+      return fmt(pick);
     }
 
     /* Helper to pick the label we show for a survey */
     function labelForList(s, index){
-      // If surveys.json provides displayTitle, use it; else build "Q{index+1}: {title}"
       return s.displayTitle && s.displayTitle.trim().length
         ? s.displayTitle
         : `Q${index+1}: ${s.title}`;
@@ -288,12 +297,12 @@
         const pillClass = isDone ? 'pill done' : 'pill unfinished';
         const pillText  = isDone ? 'Completed' : 'Unfinished';
         const titleForList = labelForList(s, i);
-        const dateText = getDisplayDate(s.id, s.date);
+        const dateText = getDisplayDate(s.id, s);
 
         item.innerHTML = `
           <div class="left">
             <div class="title">${titleForList}</div>
-            <div class="meta">${dateText}</div>
+            <div class="meta">Published: ${dateText || '—'}</div>
           </div>
           <div class="right"><span class="${pillClass}">${pillText}</span></div>`;
 
@@ -308,7 +317,9 @@
       current = s;
 
       $title.textContent = labelForPanel(s);
-      $date.textContent  = getDisplayDate(s.id, s.date);
+
+      const dateText = getDisplayDate(s.id, s);
+      $date.textContent  = dateText ? `Published: ${dateText}` : '';
 
       const isDone = (getStatus(id) === 'done');
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
