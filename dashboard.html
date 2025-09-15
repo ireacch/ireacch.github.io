@@ -63,19 +63,12 @@
 </head>
 <body>
 
-  <!-- Top nav (keep it identical to other pages if you want), or a slim banner -->
+  <!-- Slim banner -->
   <header class="hero-slab">
     <div class="wrap">
       <h1 class="h1">Dashboard <span class="pill">beta</span></h1>
       <div class="sub">Live view of micro-survey responses (from CSV exports in your repo) + AI insights.</div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 16px">
-  <label for="datasetPicker" style="font-weight:700">Dataset:</label>
-  <select id="datasetPicker" style="padding:8px 10px;border:1px solid #e6ecf1;border-radius:8px">
-    <!-- options auto-filled from datasets.json -->
-  </select>
-</div>
-
   </header>
 
   <main class="wrap" style="margin:20px auto 40px">
@@ -89,6 +82,7 @@
             <div class="v">Positive = <span id="kpi-pos">–</span></div>
           </div>
           <div class="row">
+            <label for="surveySelect" class="pill" style="background:transparent;border:1px solid var(--border)">Dataset</label>
             <select id="surveySelect" class="pill"></select>
             <button id="btnRefresh" class="btn ghost">Reload data</button>
           </div>
@@ -124,7 +118,7 @@
 
       <aside class="panel pad">
         <h2 class="h2">Positive trend</h2>
-        <div class="ai-small">Monthly % positive (>=4 on a 1–5 scale)</div>
+        <div class="ai-small">Monthly % positive (≥4 on a 1–5 scale)</div>
         <canvas id="lineTrend" height="210"></canvas>
       </aside>
     </section>
@@ -153,47 +147,44 @@
 
   <script>
     /* -------------------------------------------------------
-       1) What this page expects (all in your repo, same origin)
+       What this page expects (all same-origin in your repo)
 
        data/datasets.json  (INDEX of CSVs)
        {
          "surveys": [
            {
-             "id": "q1-wellbeing",
+             "id": "q1",
              "title": "Q1: Feel valued in your job at the moment",
-             "csv": "data/csv/q1.csv",
-             "answerColumn": "Your answer",        // (optional) exact column name for 1–5 scores
-             "textColumn": "Any comments",         // (optional) free text column name
-             "publishedAt": "2025-02-10"           // (optional) used for context only
+             "csv": "data/q1.csv",
+             "answerColumn": "Your answer",   // optional: exact score column (1–5)
+             "textColumn": "Any comments",    // optional: free text column
+             "publishedAt": "2025-02-10"      // optional: context only
            },
            {
-             "id": "q2-support",
+             "id": "q2",
              "title": "Q2: Confidence in career planning",
-             "csv": "data/csv/q2.csv",
-             "answerColumn": "",                   // leave blank to auto-detect numeric column
+             "csv": "data/q2.csv",
+             "answerColumn": "",
              "textColumn": "",
              "publishedAt": "2025-02-17"
            }
          ]
        }
 
-       Each CSV is a Microsoft Forms export.
-       We auto-detect the first numeric 1–5 column if answerColumn is missing.
-       Timestamp column is used for trend if present (MS Forms usually has it).
-       ------------------------------------------------------- */
+       Each CSV is a standard Microsoft Forms export.
+       If "answerColumn" is omitted/blank, we auto-detect the first numeric 1–5 column.
+       Timestamp is auto-detected for trend if present (e.g., “Start time”, “Submission time”, etc.)
+    ------------------------------------------------------- */
 
     /* ----------------------- Utilities ----------------------- */
     const $ = sel => document.querySelector(sel);
-    const neutral = [
-      "rgba(71,118,230,.9)","rgba(137,196,244,.9)","rgba(59,173,227,.9)","rgba(130,177,255,.9)"
-    ];
+    const palette = ["rgba(71,118,230,.9)","rgba(137,196,244,.9)","rgba(59,173,227,.9)","rgba(130,177,255,.9)"];
 
     async function fetchJSON(url){ const r = await fetch(url+'?cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.json(); }
     async function fetchText(url){ const r = await fetch(url+'?cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.text(); }
 
-    // Very small CSV parser (handles simple Forms exports)
+    // CSV parser that handles quoted fields
     function parseCSV(text){
-      // Try to handle quoted commas
       const rows = [];
       let i=0, cell='', row=[], inQ=false;
       const pushCell = ()=>{ row.push(cell); cell=''; };
@@ -218,31 +209,35 @@
     }
 
     function isNum(v){ return v!=='' && !isNaN(+v); }
-    function toMonthKey(iso){ const d=new Date(iso); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+    function toMonthKey(iso){ const d=new Date(iso); if(isNaN(d)) return null; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
     /* ----------------------- Load datasets ----------------------- */
-    let DATASET_INDEX = { surveys: [] };
-    let ALL_SURVEYS = [];  // {id,title,rows,scoreCol,textCol,timestamps}
+    let ALL_SURVEYS = [];  // {id,title,rows,scoreCol,textCol,publishedAt}
 
     async function loadAll(){
-      DATASET_INDEX = await fetchJSON('data/datasets.json');
+      const index = await fetchJSON('data/datasets.json');
+      const defs = index.surveys || [];
 
       const loaded = [];
-      for(const def of (DATASET_INDEX.surveys||[])){
+      for(const def of defs){
         try{
           const text = await fetchText(def.csv);
           const rows = parseCSV(text);
 
-          // pick columns
+          // choose score column
           let scoreCol = def.answerColumn && def.answerColumn.trim() ? def.answerColumn.trim() : null;
           if(!scoreCol){
-            // auto-detect first 1–5 numeric column
+            // auto-detect first numeric 1–5 column
             const headers = rows.length ? Object.keys(rows[0]) : [];
             for(const h of headers){
               const vals = rows.map(r=>r[h]).filter(isNum).map(Number);
-              if(vals.length>=3){ const uniq=[...new Set(vals)]; if(uniq.every(v=>v>=1 && v<=5)) { scoreCol = h; break; } }
+              if(vals.length>=3){
+                const uniq=[...new Set(vals)];
+                if(uniq.every(v=>v>=1 && v<=5)){ scoreCol = h; break; }
+              }
             }
           }
+          // choose text column if any
           let textCol = def.textColumn && def.textColumn.trim() ? def.textColumn.trim() : null;
           if(!textCol){
             const headers = rows.length ? Object.keys(rows[0]) : [];
@@ -270,17 +265,21 @@
       const scores = [];
       const texts  = [];
       const months = {}; // key -> {pos,total}
-      const tsCol  = Object.keys(survey.rows[0]||{}).find(h=>/timestamp|date/i.test(h)) || null;
+
+      const headers = Object.keys(survey.rows[0]||{});
+      const tsCol = headers.find(h=>/complete|submit|start|timestamp|date|time/i.test(h)) || null;
 
       for(const r of survey.rows){
         const raw = survey.scoreCol ? r[survey.scoreCol] : null;
         if(isNum(raw)){ scores.push(+raw); }
         if(survey.textCol && r[survey.textCol]){ texts.push(r[survey.textCol]); }
-        if(tsCol && isNum(raw)){
+        if(tsCol && isNum(raw) && r[tsCol]){
           const key = toMonthKey(r[tsCol]);
-          if(!months[key]) months[key] = {pos:0,total:0};
-          months[key].total++;
-          if(+raw >= 4) months[key].pos++;
+          if(key){
+            if(!months[key]) months[key] = {pos:0,total:0};
+            months[key].total++;
+            if(+raw >= 4) months[key].pos++;
+          }
         }
       }
 
@@ -288,12 +287,10 @@
       const avg = total ? (scores.reduce((a,b)=>a+b,0)/total) : 0;
       const posPct = total ? Math.round(100 * scores.filter(v=>v>=4).length / total) : 0;
 
-      // distribution counts 1..5
       const dist = [1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length}));
 
-      // trend series sorted by month
       const trend = Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0]))
-        .map(([m, o])=>({month:m, pct: Math.round(100*o.pos/o.total)}));
+        .map(([m, o])=>({month:m, pct: o.total ? Math.round(100*o.pos/o.total) : 0}));
 
       return { total, avg, posPct, dist, trend, texts };
     }
@@ -307,8 +304,10 @@
         s.dist.forEach((d,i)=>{ sum.dist[i]+=d.n; });
         s.trend.forEach(t=>{
           if(!sum.months[t.month]) sum.months[t.month] = {pos:0,total:0};
-          sum.months[t.month].pos += Math.round(t.pct/100 * (s.total||0));
-          sum.months[t.month].total += (s.total||0);
+          // approximate combine using weights
+          const sample = Math.max(1, s.total);
+          sum.months[t.month].pos += Math.round(t.pct/100 * sample);
+          sum.months[t.month].total += sample;
         });
       });
       const avg = sum.total ? (sum.sumScores/sum.total) : 0;
@@ -331,8 +330,7 @@
       });
       return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([w,c])=>({label:w,count:c}));
     }
-
-    function slopeAndNext(series){ // series: [{month, pct}]
+    function slopeAndNext(series){
       if(!series.length){ return {slope:0,next:0}; }
       const y = series.map(s=>s.pct);
       const x = series.map((_,i)=>i+1);
@@ -341,11 +339,10 @@
       const mx = sum(x)/n, my = sum(y)/n;
       const num = sum(x.map((xi,i)=>(xi-mx)*(y[i]-my)));
       const den = sum(x.map(xi=>Math.pow(xi-mx,2))) || 1;
-      const slope = num/den; // % points per step
+      const slope = num/den; // % pts per step
       const next = Math.max(0, Math.min(100, Math.round(my + slope*(n+1-mx))));
       return { slope, next };
     }
-
     function actionIdeas(nextPct){
       if(nextPct < 55) return [
         "Run a focused ‘You said, we did’ on top pain points within 2 weeks.",
@@ -361,7 +358,7 @@
       ];
     }
 
-    /* ----------------------- Charts + UI wiring ----------------------- */
+    /* ----------------------- Charts & UI ----------------------- */
     let chartBar, chartPieCurrent, chartPieAll, chartTrend;
 
     function drawBar(labels, counts){
@@ -369,23 +366,21 @@
       if(chartBar) chartBar.destroy();
       chartBar = new Chart(ctx, {
         type:'bar',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
+        data:{ labels, datasets:[{ data:counts, backgroundColor:palette }]},
         options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
       });
     }
-
     function drawPie(elId, dataArr){
       const ctx = document.getElementById(elId);
       const labels = ["1","2","3","4","5"];
       const counts = [1,2,3,4,5].map((v,i)=>dataArr[i]?.n||0);
       const inst = new Chart(ctx,{
         type:'pie',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
+        data:{ labels, datasets:[{ data:counts, backgroundColor:palette }]},
         options:{ responsive:true, plugins:{legend:{position:"bottom"}}}
       });
       return inst;
     }
-
     function drawTrend(series){
       const ctx = document.getElementById('lineTrend');
       if(chartTrend) chartTrend.destroy();
@@ -396,7 +391,7 @@
           datasets:[{
             data: series.map(s=>s.pct),
             tension:.35, fill:false,
-            borderColor: neutral[0], pointBackgroundColor: neutral[0]
+            borderColor: palette[0], pointBackgroundColor: palette[0]
           }]
         },
         options:{
@@ -405,18 +400,15 @@
         }
       });
     }
-
     function fillScoreTable(dist){
       const tb = document.getElementById('scoreTable');
       tb.innerHTML = dist.map(d=>`<tr><td>${d.score}</td><td>${d.n}</td></tr>`).join('');
     }
-
     function updateKpis(sum){
       document.getElementById('kpi-resp').textContent = sum.total;
       document.getElementById('kpi-avg').textContent  = sum.avg ? sum.avg.toFixed(2) : "–";
       document.getElementById('kpi-pos').textContent  = sum.posPct + "%";
     }
-
     function buildSurveySelect(){
       const sel = document.getElementById('surveySelect');
       sel.innerHTML = "";
@@ -438,10 +430,8 @@
     function refreshUI(){
       const { per, combined } = summariseAll();
 
-      // fill select
       buildSurveySelect();
 
-      // current survey summary
       const selId = document.getElementById('surveySelect').value || (ALL_SURVEYS[0]?.id);
       const cur = per.find(x=>x.id===selId) || per[0];
 
@@ -453,16 +443,14 @@
       chartPieCurrent = drawPie('pieCurrent', (cur||combined).dist);
       chartPieAll     = drawPie('pieAll', combined.dist);
 
-      // trend (combined for context)
       drawTrend(combined.trend);
 
-      // top themes from current survey texts
       const sDef = ALL_SURVEYS.find(s=>s.id===selId);
       const curTexts = sDef ? summarise(sDef).texts : [];
       const kws = topKeywords(curTexts, 6);
       document.getElementById('ai-top-themes').textContent = kws.length ? kws.map(k=>k.label).join(", ") : "—";
       drawBar(kws.map(k=>k.label), kws.map(k=>k.count));
-      // stash for AI section
+
       window.__ai_context__ = { cur: (cur||combined), combined, keywords: kws, texts: curTexts };
     }
 
