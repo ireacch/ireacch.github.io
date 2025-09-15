@@ -16,130 +16,153 @@
       --border:#e6ecf1; --text:#1b2a41; --muted:#556070;
       --band:#cfe4e7; --white:#fff;
       --grad-a:#4a1ea8; --grad-b:#0aa0ff;
+      --good:#22a06b; --bad:#d14d4d;
     }
     .hero-slab{background:var(--band);padding:28px 0 22px;border-bottom:1px solid #c3d6d9}
     .wrap{max-width:var(--page-max);margin:0 auto;padding:0 24px}
     @media (max-width:640px){.wrap{padding:0 16px}}
     .h1{font-weight:800;margin:0;font-size:clamp(1.6rem,2.6vw,2.1rem)}
     .sub{color:var(--muted);margin-top:6px}
-    .grid-2{display:grid;grid-template-columns:1fr 360px;gap:18px}
-    @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
+
     .panel{background:var(--white);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(28,39,51,.04)}
     .pad{padding:18px}
-    .kpis{display:flex;gap:22px;flex-wrap:wrap;font-weight:800}
-    .kpis .v{font-size:clamp(1.15rem,2vw,1.35rem)}
-    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{font-size:.85rem;background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;font-weight:700}
     .btn{appearance:none;border:0;border-radius:999px;padding:10px 14px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--grad-a),var(--grad-b));cursor:pointer}
     .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
-    .h2{font-weight:800;margin:0 0 10px;font-size:clamp(1.3rem,2.2vw,1.6rem)}
-    .mini-grid{display:grid;grid-template-columns:240px 1fr 1fr;gap:18px}
-    @media (max-width:980px){.mini-grid{grid-template-columns:1fr}}
-    .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden}
-    .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:10px 12px;text-align:center;font-weight:700}
-    .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
-    .ai-box h4{margin:.2rem 0 .4rem}
-    .ai-small{color:var(--muted);font-size:.95rem}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .spacer{height:10px}
-    canvas{max-width:100%}
-    .pill{font-size:.85rem;background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;font-weight:700}
-    select.pill{appearance:auto}
     .hint{font-size:.9rem;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .h2{font-weight:800;margin:0 0 10px;font-size:clamp(1.3rem,2.2vw,1.6rem)}
+
+    .kpis{display:flex;gap:18px;flex-wrap:wrap;font-weight:800}
+    .kpi{display:flex;flex-direction:column}
+    .kpi .v{font-size:clamp(1.05rem,2vw,1.3rem)}
+    .chip{font-weight:800;padding:.15rem .5rem;border-radius:999px}
+    .chip.good{background:#eaf7f1;color:var(--good)}
+    .chip.bad{background:#fdecec;color:var(--bad)}
+
+    .grid-2{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
+    .mini-grid{display:grid;grid-template-columns:260px 1fr;gap:18px}
+    @media (max-width:900px){.mini-grid{grid-template-columns:1fr}}
+    .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden;width:100%}
+    .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:8px 10px;text-align:center;font-weight:700}
+
+    .hide{display:none}
+    canvas{max-width:100%}
+    .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
+    .ai-small{color:var(--muted);font-size:.95rem}
   </style>
 </head>
 <body>
   <header class="hero-slab">
     <div class="wrap">
       <h1 class="h1">Dashboard <span class="pill">beta</span></h1>
-      <div class="sub">Live view of micro-survey responses (from CSV exports in your repo) + client-side insights.</div>
+      <div class="sub">Clear, reproducible summaries of each micro-survey — with optional AI text on top of exact numbers.</div>
     </div>
   </header>
 
   <main class="wrap" style="margin:20px auto 40px">
+    <!-- CONTROLS + KPIs -->
+    <section class="panel pad" style="margin-bottom:18px">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <span class="pill">Dataset</span>
+          <select id="surveySelect" class="pill"></select>
+          <label class="pill" style="display:flex;gap:8px;align-items:center">
+            <input type="checkbox" id="compareToggle"> compare
+          </label>
+          <select id="compareSelect" class="pill" disabled></select>
+        </div>
+        <div class="row">
+          <button id="btnRefresh" class="btn ghost">Reload data</button>
+        </div>
+      </div>
+
+      <div class="kpis" style="margin-top:12px">
+        <div class="kpi"><div class="muted">Responses</div><div class="v" id="kpi-total">–</div></div>
+        <div class="kpi"><div class="muted">Scored</div><div class="v" id="kpi-scored">–</div></div>
+        <div class="kpi"><div class="muted">Avg.</div><div class="v" id="kpi-avg">–</div></div>
+        <div class="kpi"><div class="muted">Median</div><div class="v" id="kpi-med">–</div></div>
+        <div class="kpi"><div class="muted">Positive (4–5)</div><div class="v" id="kpi-pos">–</div></div>
+        <div class="kpi"><div class="muted">Negative (1–2)</div><div class="v" id="kpi-neg">–</div></div>
+        <div class="kpi"><div class="muted">Highlights</div><div class="v" id="kpi-flags"></div></div>
+      </div>
+      <div class="hint" style="margin-top:6px">
+        Data: <code>data/datasets.json</code> + CSVs (same origin). Deterministic metrics; AI provides optional narrative only.
+      </div>
+    </section>
+
+    <!-- SUMMARY + THEMES -->
     <section class="grid-2" style="margin-bottom:18px">
       <div class="panel pad">
-        <div class="row" style="justify-content:space-between">
-          <div class="kpis">
-            <div class="v">Responses = <span id="kpi-resp">–</span></div>
-            <div class="v">Avg. score = <span id="kpi-avg">–</span></div>
-            <div class="v">Positive = <span id="kpi-pos">–</span></div>
-          </div>
-          <div class="row">
-            <span class="pill">Dataset</span>
-            <select id="surveySelect" class="pill"></select>
-            <button id="btnRefresh" class="btn ghost">Reload data</button>
-          </div>
-        </div>
-        <div class="hint" style="margin-top:8px">
-          Data source: <code>data/datasets.json</code> + CSVs (same origin). Supports both
-          <code>{"surveys":[...]}</code> and <code>{"datasets":[...]}</code>.
+        <h2 class="h2">Plain-language summary</h2>
+        <div id="plainSummary" class="ai-small">—</div>
+        <div style="margin-top:10px">
+          <b>Quick actions</b>
+          <ul id="quickActions" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
         </div>
       </div>
 
       <aside class="panel pad">
-        <h2 class="h2">Top themes</h2>
-        <div class="sub" id="ai-top-themes">–</div>
-        <canvas id="aiBar" height="160"></canvas>
+        <h2 class="h2">Themes & quotes</h2>
+        <div id="themeList" class="ai-small">—</div>
+        <div class="muted" style="margin-top:6px">Examples</div>
+        <ul id="themeQuotes" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
       </aside>
     </section>
 
-    <section class="grid-2" style="margin-bottom:18px">
-      <div class="panel pad">
-        <h2 class="h2">Overall distribution</h2>
-        <div class="mini-grid">
-          <table class="mini-table">
-            <thead><tr><th>Score</th><th>Count</th></tr></thead>
-            <tbody id="scoreTable"></tbody>
-          </table>
-          <div>
-            <h3 class="muted" style="margin:.2rem 0 .6rem">Current survey</h3>
-            <canvas id="pieCurrent" height="200"></canvas>
-          </div>
-          <div>
-            <h3 class="muted" style="margin:.2rem 0 .6rem">All surveys (combined)</h3>
-            <canvas id="pieAll" height="200"></canvas>
-          </div>
+    <!-- DISTRIBUTION + LIKERT STACK -->
+    <section class="panel pad" style="margin-bottom:18px">
+      <h2 class="h2">Response distribution</h2>
+      <div class="mini-grid">
+        <table class="mini-table">
+          <thead><tr><th>Score</th><th>Count</th><th>%</th></tr></thead>
+          <tbody id="scoreTable"></tbody>
+        </table>
+        <div>
+          <canvas id="likertBar" height="220" aria-label="Likert distribution"></canvas>
         </div>
       </div>
-
-      <aside class="panel pad">
-        <h2 class="h2">Positive trend</h2>
-        <div class="ai-small">Monthly % positive (≥4 on a 1–5 scale)</div>
-        <canvas id="lineTrend" height="210"></canvas>
-      </aside>
     </section>
 
+    <!-- COMPARE -->
+    <section id="comparePanel" class="panel pad hide" style="margin-bottom:18px">
+      <div class="row" style="justify-content:space-between">
+        <h2 class="h2" style="margin:0">Compare Q1/Q2</h2>
+        <div class="row">
+          <div class="pill">Δ Avg <span id="delta-avg" class="chip" style="margin-left:6px">–</span></div>
+          <div class="pill">Δ Positive <span id="delta-pos" class="chip" style="margin-left:6px">–</span></div>
+        </div>
+      </div>
+      <canvas id="likertCompare" height="240"></canvas>
+    </section>
+
+    <!-- AI INSIGHTS (kept for later) -->
     <section class="panel pad">
       <h2 class="h2">AI insights</h2>
       <div class="row">
         <input id="aiPrompt" class="pill" style="padding:10px 12px;width:min(680px,100%)" placeholder="Ask AI about these results (e.g., ‘key risks by theme?’)"/>
         <button id="btnExplain" class="btn">Generate insights</button>
       </div>
-      <div class="spacer"></div>
-      <div id="aiOut" class="ai-box" style="display:none">
-        <h4>Summary</h4>
+      <div class="ai-box" id="aiOut" style="display:none;margin-top:10px">
         <div id="aiSummary" class="ai-small"></div>
-        <h4 style="margin-top:10px">Prognosis</h4>
-        <div id="aiForecast" class="ai-small"></div>
-        <h4 style="margin-top:10px">Next actions</h4>
-        <div id="aiActions" class="ai-small"></div>
+        <div id="aiActions" class="ai-small" style="margin-top:8px"></div>
       </div>
     </section>
   </main>
 
   <script>
-    const $ = sel => document.querySelector(sel);
-    const neutral = [
-      "rgba(71,118,230,.9)","rgba(137,196,244,.9)","rgba(59,173,227,.9)","rgba(130,177,255,.9)","rgba(171,204,255,.9)"
-    ];
+    /* ------------ helpers ------------ */
+    const $ = s => document.querySelector(s);
+    const palette5 = ["#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5"]; // 1..5
 
-    async function fetchJSON(url){ const r = await fetch(url + (url.includes('?')?'&':'?') + 'cb=' + Date.now()); if(!r.ok) throw new Error(url+': '+r.status); return r.json(); }
-    async function fetchText(url){ const r = await fetch(url + (url.includes('?')?'&':'?') + 'cb=' + Date.now()); if(!r.ok) throw new Error(url+': '+r.status); return r.text(); }
+    async function fetchJSON(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.json(); }
+    async function fetchText(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.text(); }
 
-    // Tiny CSV parser (handles quotes)
     function parseCSV(text){
-      const rows = []; let i=0, cell='', row=[], inQ=false;
-      const pushCell=()=>{ row.push(cell); cell=''; }, pushRow=()=>{ rows.push(row); row=[]; };
+      const rows=[]; let i=0,cell='',row=[],inQ=false;
+      const pushCell=()=>{row.push(cell);cell='';}, pushRow=()=>{rows.push(row);row=[];};
       while(i<text.length){ const ch=text[i];
         if(inQ){ if(ch=='"'){ if(text[i+1]=='"'){cell+='"';i++;} else inQ=false; } else cell+=ch; }
         else{ if(ch=='"') inQ=true; else if(ch==',') pushCell();
@@ -148,14 +171,11 @@
         i++;
       }
       if(cell.length||row.length){ pushCell(); pushRow(); }
-      const header = rows.shift() || [];
-      return rows.map(r=>Object.fromEntries(
-        header.map((h,idx)=>[h.trim().replace(/^\uFEFF/, ''), (r[idx]??'').trim()])
-      ));
+      const head = rows.shift()||[];
+      return rows.map(r=>Object.fromEntries(head.map((h,idx)=>[h.trim().replace(/^\uFEFF/,''),(r[idx]??'').trim()])));
     }
 
-    // Likert map
-    const LIKERT_MAP = {
+    const LIKERT = {
       'strongly disagree':1,'disagree':2,'neither agree nor disagree':3,'neutral':3,'agree':4,'strongly agree':5,
       'very dissatisfied':1,'dissatisfied':2,'neither satisfied nor dissatisfied':3,'satisfied':4,'very satisfied':5,
       'extremely unvalued':1,'somewhat unvalued':2,'somewhat valued':4,'extremely valued':5,
@@ -163,240 +183,209 @@
     };
     function toScore(v){
       if(v==null) return null;
-      const t = String(v).trim();
-      if(t==='') return null;
-      const n = Number(t);
-      if(!Number.isNaN(n) && n>=1 && n<=5) return n;
-      const key = t.toLowerCase().replace(/[^a-z ]+/g,' ').replace(/\s+/g,' ').trim();
-      return LIKERT_MAP[key] ?? null;
+      const t=String(v).trim(); if(!t) return null;
+      const n=Number(t); if(!Number.isNaN(n)&&n>=1&&n<=5) return n;
+      const key=t.toLowerCase().replace(/[^a-z ]+/g,' ').replace(/\s+/g,' ').trim();
+      return LIKERT[key] ?? null;
     }
-    function toMonthKey(iso){ const d=new Date(iso); if(isNaN(d)) return null; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
-
-    // ----- dataset loading
-    let ALL = [];
-    let CURRENT_ID = null;
-
-    function normalizeIndex(index){
-      const base = Array.isArray(index) ? index
-             : Array.isArray(index.surveys) ? index.surveys
-             : Array.isArray(index.datasets) ? index.datasets.map(d=>({
-                 id: d.id, title: d.title || d.id, csv: (Array.isArray(d.files)&&d.files[0]) ? d.files[0] : "",
-                 answerColumn: d.answerColumn || d.answer || "",
-                 textColumn: d.textColumn || d.text || ""
-               }))
-             : [];
-      return base.map(d => ({
-        id: d.id,
-        title: d.title || d.id,
-        csv: d.csv || "",
-        answerColumn: d.answerColumn || d.answer || "",
-        textColumn: d.textColumn || d.text || ""
-      }));
-    }
-
     const BLACKLIST = /(^(id|email|name)$)|start|completion|timestamp|time/i;
     function detectColumns(rows){
-      const headers = rows.length ? Object.keys(rows[0]) : [];
-      let best = { col:null, hitRate:0 };
+      const headers = rows.length? Object.keys(rows[0]) : [];
+      let best={col:null,rate:0};
       for(const h of headers){
         if(BLACKLIST.test(h)) continue;
-        const vals = rows.map(r => toScore(r[h])).filter(v=>v!=null);
-        const rate = rows.length ? vals.length / rows.length : 0;
-        if(rate > best.hitRate){ best = { col:h, hitRate:rate }; }
+        const hits=rows.reduce((n,r)=> n+(toScore(r[h])!=null?1:0),0);
+        const rate=rows.length? hits/rows.length : 0;
+        if(rate>best.rate) best={col:h,rate};
       }
-      const scoreCol = best.hitRate >= 0.6 ? best.col : null;
-      const textCol = headers.find(h => /comment|free|text|feedback/i.test(h)) || null;
-      const dateCol = headers.find(h => /timestamp|start|completion|date/i.test(h)) || null;
-      return { scoreCol, textCol, dateCol };
+      const scoreCol=best.rate>=0.6?best.col:null;
+      const textCol=headers.find(h=>/comment|free|text|feedback/i.test(h))||null;
+      return {scoreCol,textCol};
+    }
+    function median(arr){ if(!arr.length) return 0; const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
+
+    /* ------------ load datasets ------------ */
+    let ALL=[], CURRENT_ID=null;
+
+    function normalizeIndex(index){
+      const base = Array.isArray(index)? index
+        : Array.isArray(index.surveys)? index.surveys
+        : Array.isArray(index.datasets)? index.datasets.map(d=>({id:d.id,title:d.title||d.id,csv:(Array.isArray(d.files)&&d.files[0])?d.files[0]:"",answerColumn:d.answerColumn||d.answer||"",textColumn:d.textColumn||d.text||""}))
+        : [];
+      return base.map(d=>({ id:d.id, title:d.title||d.id, csv:d.csv||"", answerColumn:d.answerColumn||"", textColumn:d.textColumn||"" }));
     }
 
     async function loadAll(){
       const defs = normalizeIndex(await fetchJSON('data/datasets.json'));
-      const loaded = [];
-      for (const def of defs) {
-        try{
-          if(!def.csv) continue;
-          const text = await fetchText(def.csv);
-          const rows = parseCSV(text);
-
-          const auto = detectColumns(rows);
-          const headers = rows.length ? Object.keys(rows[0]) : [];
-
-          const scoreCol = (def.answerColumn && headers.includes(def.answerColumn)) ? def.answerColumn : auto.scoreCol;
-          const textCol  = (def.textColumn   && headers.includes(def.textColumn))   ? def.textColumn   : auto.textCol;
-
-          loaded.push({ id:def.id, title:def.title||def.id, csv:def.csv, rows, scoreCol, textCol });
-        }catch(e){ console.error('Failed to load', def, e); }
+      const out=[];
+      for(const def of defs){
+        if(!def.csv) continue;
+        const text = await fetchText(def.csv);
+        const rows = parseCSV(text);
+        const auto = detectColumns(rows);
+        const headers = rows.length? Object.keys(rows[0]) : [];
+        const scoreCol = (def.answerColumn && headers.includes(def.answerColumn)) ? def.answerColumn : auto.scoreCol;
+        const textCol  = (def.textColumn   && headers.includes(def.textColumn))   ? def.textColumn   : auto.textCol;
+        out.push({ id:def.id, title:def.title||def.id, csv:def.csv, rows, scoreCol, textCol });
       }
-      ALL = loaded;
-      if(!CURRENT_ID || !ALL.some(s=>s.id===CURRENT_ID)){
-        CURRENT_ID = ALL[0]?.id || null;
+      ALL = out;
+      if(!CURRENT_ID || !ALL.some(s=>s.id===CURRENT_ID)) CURRENT_ID = ALL[0]?.id || null;
+      buildSelects();
+    }
+
+    /* ------------ summarise ------------ */
+    function summarise(s){
+      const scores=[], texts=[];
+      for(const r of s.rows){
+        const v=s.scoreCol? toScore(r[s.scoreCol]) : null;
+        if(v!=null) scores.push(v);
+        if(s.textCol && r[s.textCol]) texts.push(r[s.textCol]);
       }
-      buildSelects(true);
+      const total=s.rows.length, scored=scores.length, blanks=total-scored;
+      const avg=scored? scores.reduce((a,b)=>a+b,0)/scored : 0;
+      const med=scored? median(scores) : 0;
+      const posPct=scored? Math.round(100*scores.filter(v=>v>=4).length/scored) : 0;
+      const negPct=scored? Math.round(100*scores.filter(v=>v<=2).length/scored) : 0;
+      const dist=[1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length, p: scored? Math.round(100*scores.filter(x=>x===v).length/scored) : 0}));
+      return { id:s.id,title:s.title,total,scored,blanks,avg,med,posPct,negPct,dist,texts };
     }
+    function summariseAll(){ return ALL.map(s=>summarise(s)); }
 
-    // ----- summaries
-    function summarise(survey){
-      const scores = [];
-      const months = {};
-      for(const r of survey.rows){
-        const v = survey.scoreCol ? toScore(r[survey.scoreCol]) : null;
-        if(v!=null){ scores.push(v); }
-        const key = survey.dateCol ? toMonthKey(r[survey.dateCol]) : null;
-        if(key && v!=null){
-          if(!months[key]) months[key] = {pos:0,total:0};
-          months[key].total++;
-          if(v>=4) months[key].pos++;
-        }
-      }
-      const totalRows = survey.rows.length;
-      const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
-      const posPct = scores.length ? Math.round(100 * scores.filter(v=>v>=4).length / scores.length) : 0;
-      const dist = [1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length}));
-      const trend = Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0]))
-                      .map(([m,o])=>({month:m, pct: Math.round(100*o.pos/o.total)}));
-      return { total: totalRows, avg, posPct, dist, trend };
-    }
+    /* ------------ UI + charts ------------ */
+    let chLikert, chCompare;
 
-    function combineSummary(per){
-      const sum = { total:0, sumScores:0, answered:0, pos:0, dist:[0,0,0,0,0], months:{} };
-      per.forEach(s=>{
-        sum.total += s.total;
-        sum.sumScores += s.avg * s.total;
-        s.dist.forEach((d,i)=>{ sum.dist[i]+=d.n; });
-        s.trend.forEach(t=>{
-          if(!sum.months[t.month]) sum.months[t.month] = {pos:0,total:0};
-          sum.months[t.month].total += 100;
-          sum.months[t.month].pos   += t.pct;
-        });
-      });
-      const avg = sum.total ? (sum.sumScores/sum.total) : 0;
-      const dist = [1,2,3,4,5].map((v,i)=>({score:v,n:sum.dist[i]}));
-      const trend = Object.entries(sum.months).sort((a,b)=>a[0].localeCompare(b[0]))
-                    .map(([m,o])=>({month:m,pct: Math.round(o.pos/o.total*100)}));
-      const totalAnswered = dist.reduce((a,d)=>a+d.n,0);
-      const posPct = totalAnswered ? Math.round(100 * (dist[3].n + dist[4].n) / totalAnswered) : 0;
-      return { total:sum.total, avg, posPct, dist, trend };
-    }
-
-    // ----- keywords
-    function topKeywords(texts, n=6){
-      const stop = new Set(["the","and","to","of","in","for","a","on","is","are","it","with","that","this","at","as","be","or","we","our","your","i","have","has","was","were","from","by","an","you","they","them"]);
-      const freq = {};
-      texts.forEach(t=>{
-        if(!t) return;
-        t.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).forEach(w=>{
-          if(!w || stop.has(w) || w.length<3) return;
-          freq[w] = (freq[w]||0)+1;
-        });
-      });
-      return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([w,c])=>({label:w,count:c}));
-    }
-
-    // ----- charts + UI
-    let chartBar, chartPieCurrent, chartPieAll, chartTrend;
-    function drawBar(labels, counts){
-      const ctx = document.getElementById('aiBar');
-      if(chartBar) chartBar.destroy();
-      chartBar = new Chart(ctx, { type:'bar',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
-        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
-      });
-    }
-    function drawPie(elId, dataArr){
-      const ctx = document.getElementById(elId);
-      const labels = ["1","2","3","4","5"];
-      const counts = [1,2,3,4,5].map((v,i)=>dataArr[i]?.n||0);
-      const inst = new Chart(ctx,{ type:'pie',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
-        options:{ responsive:true, plugins:{legend:{position:"bottom"}}}
-      });
-      return inst;
-    }
-    function drawTrend(series){
-      const ctx = document.getElementById('lineTrend');
-      if(chartTrend) chartTrend.destroy();
-      chartTrend = new Chart(ctx, { type:"line",
-        data:{ labels: series.map(s=>s.month),
-          datasets:[{ data: series.map(s=>s.pct), tension:.35, fill:false, borderColor: neutral[0], pointBackgroundColor: neutral[0] }]
-        },
-        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{suggestedMin:0,suggestedMax:100,ticks:{callback:v=>v+"%"}}}}
-      });
-    }
-    function fillScoreTable(dist){
-      $('#scoreTable').innerHTML = dist.map(d=>`<tr><td>${d.score}</td><td>${d.n}</td></tr>`).join('');
-    }
-    function updateKpis(sum){
-      $('#kpi-resp').textContent = sum.total;
-      $('#kpi-avg').textContent  = sum.avg ? sum.avg.toFixed(2) : "–";
-      $('#kpi-pos').textContent  = sum.posPct + "%";
-    }
-
-    function buildSelects(preserve=false){
-      const sel = $('#surveySelect');
-      const prev = preserve ? (CURRENT_ID || sel.value) : null;
-      sel.innerHTML = "";
+    function buildSelects(){
+      const sel=$('#surveySelect'), cmp=$('#compareSelect');
+      const prev=sel.value, prevCmp=cmp.value;
+      sel.innerHTML=""; cmp.innerHTML="";
       ALL.forEach(s=>{
-        const opt = document.createElement('option');
-        opt.value = s.id; opt.textContent = s.title || s.id;
-        sel.appendChild(opt);
+        sel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.title}</option>`);
+        cmp.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.title}</option>`);
       });
-      const exists = prev && ALL.some(s=>s.id===prev);
-      CURRENT_ID = exists ? prev : (ALL[0]?.id || null);
-      sel.value = CURRENT_ID || "";
+      sel.value = ALL.some(s=>s.id===prev)? prev : (CURRENT_ID||ALL[0]?.id||"");
+      cmp.value = ALL.find(s=>s.id!==sel.value)?.id || ALL[0]?.id || "";
+      CURRENT_ID = sel.value;
+      $('#compareSelect').disabled = !$('#compareToggle').checked;
+      $('#comparePanel').classList.toggle('hide', !$('#compareToggle').checked);
     }
 
-    function summariseAll(){
-      const per = ALL.map(s=>{
-        const texts = s.textCol ? s.rows.map(r=>r[s.textCol]).filter(Boolean) : [];
-        const base = summarise(s);
-        return { id:s.id, title:s.title, texts, ...base };
+    function fillKPIs(a){
+      $('#kpi-total').textContent = a.total;
+      $('#kpi-scored').textContent = a.scored;
+      $('#kpi-avg').textContent = a.avg? a.avg.toFixed(2) : "–";
+      $('#kpi-med').textContent = a.med? (Number.isInteger(a.med)? a.med : a.med.toFixed(1)) : "–";
+      $('#kpi-pos').textContent = a.posPct + "%";
+      $('#kpi-neg').textContent = a.negPct + "%";
+
+      const extremes = [];
+      if(a.dist[0].n) extremes.push(`<span class="chip bad">${a.dist[0].n} × score 1</span>`);
+      if(a.dist[1].n) extremes.push(`<span class="chip bad">${a.dist[1].n} × score 2</span>`);
+      if(a.dist[4].n) extremes.push(`<span class="chip good">${a.dist[4].n} × score 5</span>`);
+      $('#kpi-flags').innerHTML = extremes.join(' ') || '—';
+    }
+
+    function fillPlainSummary(a){
+      const pos=a.posPct, neg=a.negPct, neu=(a.dist[2]?.p||0);
+      $('#plainSummary').innerHTML =
+        `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neg}%</b> negative (1–2), and <b>${neu}%</b> neutral. `
+        + `Average is <b>${a.avg.toFixed(2)}</b> (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`;
+      const actions=[];
+      if(pos<60) actions.push("Run a short focus group to understand low sentiment.");
+      if(neu>=20) actions.push("Probe why many are neutral; clarify expectations or supports.");
+      if(a.dist[0].n + a.dist[1].n >= 10) actions.push("Follow up with the bottom-scoring group confidentially.");
+      if(!actions.length) actions.push("Share positives and maintain pulse checks.");
+      $('#quickActions').innerHTML = actions.map(x=>`<li>${x}</li>`).join('');
+    }
+
+    function themesAndQuotes(texts){
+      const stop=new Set("the,and,to,of,in,for,a,on,is,are,it,with,that,this,at,as,be,or,we,our,your,i,have,has,was,were,from,by,an,you,they,them,not,sure".split(','));
+      const freq={};
+      texts.forEach(t=>{
+        t.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).forEach(w=>{
+          if(!w||stop.has(w)||w.length<3) return; freq[w]=(freq[w]||0)+1;
+        });
       });
-      const combined = combineSummary(per);
-      return { per, combined };
+      const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([label,count])=>({label,count}));
+      $('#themeList').innerHTML = top.length ? top.map(t=>`• <b>${t.label}</b> (${t.count})`).join('<br>') : '—';
+      const q=[];
+      if(top[0]) for(const t of texts){ if(t.toLowerCase().includes(top[0].label) && q.length<2) q.push(t); }
+      if(q.length<2 && top[1]) for(const t of texts){ if(t.toLowerCase().includes(top[1].label) && q.length<2) q.push(t); }
+      $('#themeQuotes').innerHTML = q.length ? q.map(s=>`<li>“${s.replace(/"/g,'&quot;')}”</li>`).join('') : '';
     }
 
-    function refreshUI(){
-      if(!CURRENT_ID && ALL[0]) CURRENT_ID = ALL[0].id;
-      const { per, combined } = summariseAll();
-      const cur = per.find(x=>x.id===CURRENT_ID) || per[0] || combined;
-
-      updateKpis(cur || combined);
-      fillScoreTable((cur||combined).dist);
-
-      if(chartPieCurrent) chartPieCurrent.destroy();
-      if(chartPieAll) chartPieAll.destroy();
-      chartPieCurrent = drawPie('pieCurrent', (cur||combined).dist);
-      chartPieAll     = drawPie('pieAll', combined.dist);
-
-      drawTrend(combined.trend);
-
-      const kws = topKeywords(cur.texts || [], 6);
-      $('#ai-top-themes').textContent = kws.length ? kws.map(k=>k.label).join(", ") : "—";
-      drawBar(kws.map(k=>k.label), kws.map(k=>k.count));
-      $('#surveySelect').value = CURRENT_ID || "";
+    function fillTable(dist){
+      $('#scoreTable').innerHTML = dist.map(d=>`<tr><td>${d.score}</td><td>${d.n}</td><td>${d.p}%</td></tr>`).join('');
     }
 
+    function drawLikert(dist){
+      const ds = dist.map((d,i)=>({ label:String(i+1), data:[d.n], backgroundColor:palette5[i], stack:'x' }));
+      const ctx = document.getElementById('likertBar');
+      if(chLikert) chLikert.destroy();
+      chLikert = new Chart(ctx,{ type:'bar', data:{ labels:[''], datasets:ds },
+        options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} }, plugins:{legend:{position:'bottom'}} }
+      });
+    }
+
+    function drawCompare(a,b){
+      const ctx = document.getElementById('likertCompare');
+      if(chCompare) chCompare.destroy();
+      const ds = [0,1,2,3,4].map(i=>({
+        label:String(i+1),
+        data:[a.dist[i].n, b.dist[i].n],
+        backgroundColor:palette5[i],
+        stack:'x'
+      }));
+      chCompare = new Chart(ctx,{ type:'bar', data:{ labels:[a.title, b.title], datasets:ds },
+        options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true}, y:{stacked:true} }, plugins:{legend:{position:'bottom'}} }
+      });
+      const dAvg=a.avg-b.avg, dPos=a.posPct-b.posPct;
+      const chip=(el,n)=>{ el.textContent=(n>0?'+':'')+(Number.isInteger(n)?n:n.toFixed(2)); el.className='chip ' + (n>=0?'good':'bad'); };
+      chip($('#delta-avg'), dAvg); chip($('#delta-pos'), dPos);
+    }
+
+    function refresh(){
+      if(!ALL.length) return;
+      const per = summariseAll();
+      const cur = per.find(x=>x.id===CURRENT_ID) || per[0];
+
+      fillKPIs(cur);
+      fillPlainSummary(cur);
+      themesAndQuotes(cur.texts || []);
+      fillTable(cur.dist);
+      drawLikert(cur.dist);
+
+      const compareOn = $('#compareToggle').checked && ALL.length>1;
+      $('#comparePanel').classList.toggle('hide', !compareOn);
+      $('#compareSelect').disabled = !compareOn;
+      if(compareOn){
+        const other = per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id) || cur;
+        drawCompare(cur, other);
+      }
+    }
+
+    /* ------------ events ------------ */
+    $('#surveySelect').addEventListener('change', e=>{ CURRENT_ID=e.target.value; refresh(); });
+    $('#compareToggle').addEventListener('change', ()=>{ buildSelects(); refresh(); });
+    $('#compareSelect').addEventListener('change', refresh);
+    $('#btnRefresh').addEventListener('click', async ()=>{ await loadAll(); refresh(); });
+
+    // simple placeholder for AI button (will be replaced by serverless later)
     $('#btnExplain').addEventListener('click', ()=>{
-      const sel = $('#surveySelect').value;
-      const per = summariseAll().per;
-      const cur = per.find(x=>x.id===sel) || per[0];
-      const summary = `We analysed ${cur.total} responses. Average score ${cur.avg.toFixed(2)} (1–5). Positive share ${cur.posPct}%.`;
-      $('#aiSummary').textContent = summary;
-      $('#aiForecast').textContent = "— (AI forecast placeholder)";
-      $('#aiActions').innerHTML = "<ul><li>Placeholder action 1</li><li>Placeholder action 2</li></ul>";
-      $('#aiOut').style.display = "block";
+      const per=summariseAll(), cur=per.find(x=>x.id===$('#surveySelect').value)||per[0];
+      const bullets=[
+        `${cur.total} responses; ${cur.scored} scored.`,
+        `Avg ${cur.avg.toFixed(2)} (median ${Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)}).`,
+        `${cur.posPct}% positive; ${cur.negPct}% negative.`
+      ];
+      $('#aiSummary').innerHTML = bullets.map(b=>`• ${b}`).join('<br>');
+      $('#aiActions').innerHTML = "<b>Actions</b><ul style='margin:.2rem 0 0 1rem'><li>Share topline with faculty.</li><li>Run small focus group for low scorers.</li><li>Plan follow-up pulse check.</li></ul>";
+      $('#aiOut').style.display='block';
     });
 
-    $('#surveySelect').addEventListener('change', e=>{ CURRENT_ID = e.target.value; refreshUI(); });
-    $('#btnRefresh').addEventListener('click', async ()=>{ try{ await loadAll(); refreshUI(); } catch(e){ alert("Failed to reload data."); } });
-
+    /* ------------ boot ------------ */
     (async function init(){
-      try{
-        await loadAll();
-        if(!ALL.length){ alert("No datasets found. Check data/datasets.json and CSV paths."); }
-        refreshUI();
-      }catch(e){ console.error(e); alert("Failed to load data. Check datasets.json and CSV paths."); }
+      try{ await loadAll(); buildSelects(); refresh(); }
+      catch(e){ console.error(e); alert("Failed to load data. Check datasets.json and CSV paths."); }
     })();
   </script>
 </body>
