@@ -1,556 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>I-REACCH | Dashboard</title>
-
-  <!-- Reuse your site styles -->
-  <link rel="stylesheet" href="assets/css/brand.css"/>
-  <link rel="stylesheet" href="assets/css/header.css"/>
-  <link rel="stylesheet" href="assets/css/style.css"/>
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard | I-REACCH</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="assets/css/brand.css">
+  <link rel="stylesheet" href="assets/css/style.css">
   <style>
     :root{
-      --page-max: 1200px;
-      --border:#e6ecf1; --text:#1b2a41; --muted:#556070;
-      --band:#cfe4e7; --white:#fff;
-      --grad-a:#4a1ea8; --grad-b:#0aa0ff;
+      --accent:#4a6cf7; --bg:#f3f7fb; --card:#fff; --border:#e6edf5; --ink:#1b2a41; --muted:#64748b;
     }
+    body{background:#eaf1f7;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif;color:var(--ink)}
+    .wrap{max-width:1200px;margin:32px auto;padding:0 16px}
+    .title{display:flex;align-items:center;gap:10px}
+    .beta{font-size:12px;font-weight:800;background:#eef4ff;color:#2c5aa0;border:1px solid var(--border);padding:2px 8px;border-radius:999px}
+    .sub{color:var(--muted);font-size:13px;margin-top:4px}
 
-    .hero-slab{background:var(--band);padding:28px 0 22px;border-bottom:1px solid #c3d6d9}
-    .wrap{max-width:var(--page-max);margin:0 auto;padding:0 24px}
-    @media (max-width:640px){.wrap{padding:0 16px}}
+    .grid{display:grid;gap:16px}
+    .grid.cols-2{grid-template-columns:1.15fr .85fr}
+    .grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+    @media (max-width:1000px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr}}
 
-    .h1{font-weight:800;margin:0;font-size:clamp(1.6rem,2.6vw,2.1rem)}
-    .sub{color:var(--muted);margin-top:6px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 18px rgba(18,47,76,.06)}
+    .card .hd{padding:14px 16px;border-bottom:1px solid var(--border);font-weight:900}
+    .card .bd{padding:14px 16px}
 
-    .grid-2{display:grid;grid-template-columns:1fr 360px;gap:18px}
-    @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
-    .panel{
-      background:var(--white);border:1px solid var(--border);border-radius:16px;
-      box-shadow:0 10px 24px rgba(28,39,51,.04)
-    }
-    .pad{padding:18px}
-
-    .kpis{display:flex;gap:22px;flex-wrap:wrap;font-weight:800}
-    .kpis .v{font-size:clamp(1.15rem,2vw,1.35rem)}
+    .kpis{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .kchip{font-weight:800;background:#eef4ff;border:1px solid var(--border);border-radius:999px;padding:8px 12px}
+    .pill{font-weight:800;padding:6px 10px;border-radius:999px;background:#eef4ff;border:1px solid var(--border)}
     .muted{color:var(--muted)}
-    .btn{
-      appearance:none;border:0;border-radius:999px;padding:10px 14px;font-weight:800;color:#fff;
-      background:linear-gradient(90deg,var(--grad-a),var(--grad-b));cursor:pointer
-    }
-    .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
-    .h2{font-weight:800;margin:0 0 10px;font-size:clamp(1.3rem,2.2vw,1.6rem)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    select,button{padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:#fff}
+    button{font-weight:800;background:linear-gradient(135deg,#9b51e0,#4a6cf7);color:#fff;border:0}
 
-    .mini-grid{display:grid;grid-template-columns:240px 1fr 1fr;gap:18px}
-    @media (max-width:980px){.mini-grid{grid-template-columns:1fr}}
-    .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden}
-    .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:10px 12px;text-align:center;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    td,th{border-bottom:1px solid var(--border);padding:8px 10px;font-size:14px;text-align:center}
+    th{text-align:left}
 
-    .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
-    .ai-box h4{margin:.2rem 0 .4rem}
-    .ai-small{color:var(--muted);font-size:.95rem}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .spacer{height:10px}
-    canvas{max-width:100%}
-    .pill{font-size:.85rem;background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;font-weight:700}
-    select.pill{appearance:auto}
-    .hint{font-size:.9rem;color:var(--muted)}
+    .drop{border:2px dashed var(--border);border-radius:12px;padding:10px;text-align:center;color:var(--muted);font-size:13px}
+    .drop.drag{background:#f7fbff}
+    .ai-box{display:flex;gap:10px}
+    .ai-box input{flex:1;padding:10px;border:1px solid var(--border);border-radius:10px}
+    .hint{font-size:12px;color:var(--muted);margin-top:8px}
   </style>
 </head>
 <body>
-
-  <!-- Slim banner -->
-  <header class="hero-slab">
-    <div class="wrap">
-      <h1 class="h1">Dashboard <span class="pill">beta</span></h1>
-      <div class="sub">Live view of micro-survey responses (from CSV exports in your repo) + client-side insights.</div>
+  <div class="wrap">
+    <div class="title">
+      <h1 style="margin:0">Dashboard</h1>
+      <span class="beta">beta</span>
     </div>
-  </header>
+    <div class="sub">Live view of micro-survey responses (CSV exports in your repo) + client-side insights.</div>
 
-  <main class="wrap" style="margin:20px auto 40px">
-    <!-- KPI + themes -->
-    <section class="grid-2" style="margin-bottom:18px">
-      <div class="panel pad">
-        <div class="row" style="justify-content:space-between">
-          <div class="kpis">
-            <div class="v">Responses = <span id="kpi-resp">–</span></div>
-            <div class="v">Avg. score = <span id="kpi-avg">–</span></div>
-            <div class="v">Positive = <span id="kpi-pos">–</span></div>
-          </div>
-          <div class="row">
-            <span class="pill">Dataset</span>
-            <select id="surveySelect" class="pill"></select>
-            <button id="btnRefresh" class="btn ghost">Reload data</button>
-          </div>
+    <!-- KPIs + controls -->
+    <div class="card" style="margin-top:16px">
+      <div class="bd">
+        <div class="kpis">
+          <div class="kchip">Responses = <span id="kpiResponses">–</span></div>
+          <div class="kchip">Avg. score = <span id="kpiAvg">–</span></div>
+          <div class="kchip">Positive = <span id="kpiPos">–</span></div>
+
+          <span class="pill">Dataset</span>
+          <select id="datasetSel"></select>
+          <button id="reloadBtn" title="Re-fetch current dataset">Reload data</button>
         </div>
-        <div class="hint" style="margin-top:8px">
+        <div class="hint">
           Data source: <code>data/datasets.json</code> + CSVs (same origin). Supports both
           <code>{"surveys":[...]}</code> and <code>{"datasets":[...]}</code> index shapes.
         </div>
       </div>
+    </div>
 
-      <aside class="panel pad">
-        <h2 class="h2">Top themes</h2>
-        <div class="sub" id="ai-top-themes">–</div>
-        <canvas id="aiBar" height="160"></canvas>
-      </aside>
-    </section>
+    <!-- themes + trend -->
+    <div class="grid cols-2" style="margin-top:16px">
+      <div class="card">
+        <div class="hd">Top themes</div>
+        <div class="bd">
+          <canvas id="themesChart" height="110"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd">Positive trend</div>
+        <div class="bd">
+          <div class="muted" style="margin-bottom:6px">Monthly % positive (≥4 on a 1–5 scale)</div>
+          <canvas id="trendChart" height="110"></canvas>
+        </div>
+      </div>
+    </div>
 
-    <!-- Charts -->
-    <section class="grid-2" style="margin-bottom:18px">
-      <div class="panel pad">
-        <h2 class="h2">Overall distribution</h2>
-        <div class="mini-grid">
-          <table class="mini-table">
-            <thead><tr><th>Score</th><th>Count</th></tr></thead>
-            <tbody id="scoreTable"></tbody>
-          </table>
+    <!-- distribution -->
+    <div class="card" style="margin-top:16px">
+      <div class="hd">Overall distribution</div>
+      <div class="bd">
+        <div class="grid cols-3">
           <div>
-            <h3 class="muted" style="margin:.2rem 0 .6rem">Current survey</h3>
-            <canvas id="pieCurrent" height="200"></canvas>
+            <table>
+              <thead><tr><th>Score</th><th>Count</th></tr></thead>
+              <tbody id="distTable"></tbody>
+            </table>
           </div>
           <div>
-            <h3 class="muted" style="margin:.2rem 0 .6rem">All surveys (combined)</h3>
-            <canvas id="pieAll" height="200"></canvas>
+            <div class="muted" style="margin-bottom:6px">Current survey</div>
+            <canvas id="pieCurrent" height="150"></canvas>
+          </div>
+          <div>
+            <div class="muted" style="margin-bottom:6px">All surveys (combined)</div>
+            <canvas id="pieAll" height="150"></canvas>
           </div>
         </div>
       </div>
+    </div>
 
-      <aside class="panel pad">
-        <h2 class="h2">Positive trend</h2>
-        <div class="ai-small">Monthly % positive (≥4 on a 1–5 scale)</div>
-        <canvas id="lineTrend" height="210"></canvas>
-      </aside>
-    </section>
-
-    <!-- AI Insights (client side heuristics) -->
-    <section class="panel pad">
-      <h2 class="h2">AI insights</h2>
-      <div class="row">
-        <input id="aiPrompt" class="pill" style="padding:10px 12px;width:min(680px,100%)" placeholder="Ask AI about these results (e.g., ‘key risks by theme?’)"/>
-        <button id="btnExplain" class="btn">Generate insights</button>
+    <!-- AI insights (placeholder; safe to wire later) -->
+    <div class="card" style="margin-top:16px;margin-bottom:24px">
+      <div class="hd">AI insights</div>
+      <div class="bd">
+        <div class="ai-box">
+          <input id="aiQuestion" placeholder="Ask AI about these results (e.g., ‘key risks by theme?’)" disabled />
+          <button id="aiBtn" disabled>Generate insights</button>
+        </div>
+        <div class="hint">Enable later with a small serverless function (Azure Functions) to call Azure OpenAI safely.</div>
       </div>
-      <div class="spacer"></div>
+    </div>
 
-      <div id="aiOut" class="ai-box" style="display:none">
-        <h4>Summary</h4>
-        <div id="aiSummary" class="ai-small"></div>
+    <!-- Drag-and-drop (optional upload mode for quick tests) -->
+    <div class="drop" id="dropZone">or drop CSVs here to preview locally (upload mode)</div>
+  </div>
 
-        <h4 style="margin-top:10px">Prognosis</h4>
-        <div id="aiForecast" class="ai-small"></div>
-
-        <h4 style="margin-top:10px">Next actions</h4>
-        <div id="aiActions" class="ai-small"></div>
-      </div>
-    </section>
-  </main>
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <script>
-    /* -------------------------------------------------------
-       This page expects (all in your repo, same origin):
+  // -------- state --------
+  let DATASETS = [];          // normalized [{id,title,csv,answerColumn,textColumn}]
+  let CURRENT_ID = null;      // active dataset id
+  let ALL_CACHE = {};         // combined cache {id -> rows[]}
+  let charts = [];            // Chart.js instances to destroy between renders
 
-       data/datasets.json  (INDEX of CSVs)
-       EITHER
-       {
-         "surveys": [
-           { "id":"q1", "title":"Q1: Feel valued in your job at the moment", "csv":"data/q1.csv" },
-           { "id":"q2", "title":"Q2: Confidence in career planning",       "csv":"data/q2.csv" }
-         ]
-       }
-       OR
-       {
-         "datasets": [
-           { "id":"q1", "title":"Q1: Feel valued in your job at the moment", "files":["data/q1.csv"] },
-           { "id":"q2", "title":"Q2: Confidence in career planning",         "files":["data/q2.csv"] }
-         ]
-       }
+  // -------- utils --------
+  async function fetchJSON(url){
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now());
+    return await res.json();
+  }
+  async function fetchText(url){
+    const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'cb=' + Date.now());
+    return await res.text();
+  }
+  function normalizeRoot(root){
+    const arr = Array.isArray(root?.surveys) ? root.surveys :
+                Array.isArray(root?.datasets) ? root.datasets : [];
+    return arr.map(d => ({
+      id: d.id,
+      title: d.title || d.name || d.id,
+      csv: d.csv,
+      answerColumn: d.answerColumn || d.answer || "",
+      textColumn: d.textColumn || d.text || ""
+    }));
+  }
+  function getDatasetById(id){ return DATASETS.find(d => d.id === id); }
 
-       Each CSV is a Microsoft Forms export. We will:
-       - auto-detect the score column (1–5) OR map Likert text to 1–5
-       - auto-detect a comments/free-text column (optional)
-       - use a Timestamp column, if present, for monthly trend
-       ------------------------------------------------------- */
+  // -------- Likert → 1–5 mapping (fixes avg=25) --------
+  const LIKERT_MAP = {
+    'strongly disagree':1,'disagree':2,'neither':3,'neutral':3,'agree':4,'strongly agree':5
+  };
+  function toScore(v){
+    if (v == null) return null;
+    const n = Number(v);
+    if (!Number.isNaN(n) && n>=1 && n<=5) return n;
+    const key = String(v).toLowerCase().replace(/[^a-z ]+/g,' ').replace(/\s+/g,' ').trim();
+    return LIKERT_MAP[key] ?? null;
+  }
 
-    /* ----------------------- Utilities ----------------------- */
-    const $ = sel => document.querySelector(sel);
-    const neutral = [
-      "rgba(71,118,230,.9)","rgba(137,196,244,.9)","rgba(59,173,227,.9)","rgba(130,177,255,.9)","rgba(171,204,255,.9)"
-    ];
+  // -------- CSV parsing --------
+  function parseCSV(text){
+    const out = Papa.parse(text, { header:true, skipEmptyLines:true });
+    return out.data;
+  }
 
-    async function fetchJSON(url){ const r = await fetch(url+'?cb='+Date.now()); if(!r.ok) throw new Error(url+': '+r.status); return r.json(); }
-    async function fetchText(url){ const r = await fetch(url+'?cb='+Date.now()); if(!r.ok) throw new Error(url+': '+r.status); return r.text(); }
+  // -------- column detection --------
+  function detectColumns(rows, cfg){
+    const cols = rows.length ? Object.keys(rows[0]) : [];
+    const isDate = v => v && !isNaN(Date.parse(v));
+    // score column
+    let scoreCol = cfg.answerColumn && cols.includes(cfg.answerColumn)
+      ? cfg.answerColumn
+      : cols.find(c => rows.some(r => toScore(r[c]) != null));
+    // date column
+    let dateCol = cols.find(c => rows.some(r => isDate(r[c])));
+    // text column
+    let textCol = cfg.textColumn && cols.includes(cfg.textColumn)
+      ? cfg.textColumn
+      : cols.find(c => /comment|text|feedback|free/i.test(c));
+    return { scoreCol, dateCol, textCol };
+  }
 
-    // Minimal CSV parser (handles quoted commas and CRLF)
-    function parseCSV(text){
-      const rows = [];
-      let i=0, cell='', row=[], inQ=false;
-      const pushCell = ()=>{ row.push(cell); cell=''; };
-      const pushRow = ()=>{ rows.push(row); row=[]; };
-      while(i<text.length){
-        const ch = text[i];
-        if(inQ){
-          if(ch === '"'){
-            if(text[i+1] === '"'){ cell+='"'; i++; } else { inQ=false; }
-          } else { cell += ch; }
-        }else{
-          if(ch === '"'){ inQ=true; }
-          else if(ch === ','){ pushCell(); }
-          else if(ch === '\n' || ch === '\r'){ if(cell.length || row.length){ pushCell(); pushRow(); } while(text[i+1]==='\n' || text[i+1]==='\r') i++; }
-          else { cell += ch; }
-        }
-        i++;
-      }
-      if(cell.length || row.length){ pushCell(); pushRow(); }
-      const header = rows.shift() || [];
-      return rows.map(r=>Object.fromEntries(header.map((h,idx)=>[h.trim(), (r[idx]??'').trim()])));
-    }
+  // -------- KPI & transforms --------
+  function computeKPIs(rows, cols){
+    const scores = rows.map(r => toScore(r[cols.scoreCol])).filter(x => x != null);
+    const total = scores.length;
+    const avg = total ? (scores.reduce((a,b)=>a+b,0) / total) : 0;
+    const positive = total ? (scores.filter(s=>s>=4).length / total) * 100 : 0;
+    return { total, avg, positive, scores };
+  }
+  function counts1to5(arr){
+    const out = [0,0,0,0,0];
+    arr.forEach(s => { if (s>=1 && s<=5) out[s-1]++; });
+    return out;
+  }
+  function monthKey(s){
+    const d = new Date(s);
+    if (isNaN(d)) return null;
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  }
 
-    const LIKERT_MAP = {
-      // strong polarity
-      'strongly agree': 5, 'agree': 4, 'neither agree nor disagree': 3, 'disagree': 2, 'strongly disagree': 1,
-      // valued wording
-      'extremely valued': 5, 'somewhat valued': 4, 'neutral': 3, 'somewhat unvalued': 2, 'extremely unvalued': 1,
-      // generic
-      'very satisfied': 5, 'satisfied': 4, 'neither satisfied nor dissatisfied': 3, 'dissatisfied': 2, 'very dissatisfied': 1
-    };
-    function mapLikert(v){
-      if(v==null) return null;
-      const t = String(v).trim();
-      if(t==='' ) return null;
-      if(!isNaN(+t)) return +t; // already numeric
-      const k = t.toLowerCase();
-      return LIKERT_MAP[k] ?? null;
-    }
+  // -------- charts helpers --------
+  function destroyCharts(){ charts.forEach(ch => { try{ch.destroy()}catch{} }); charts = []; }
+  function pie(canvas, labels, data){
+    const ctx = document.getElementById(canvas);
+    const ch = new Chart(ctx, { type:'pie', data:{ labels, datasets:[{ data }] } });
+    charts.push(ch);
+  }
+  function line(canvas, labels, data){
+    const ctx = document.getElementById(canvas);
+    const ch = new Chart(ctx, { type:'line', data:{ labels, datasets:[{ data, tension:.25 }] },
+      options:{ scales:{ y:{ min:0, max:100, ticks:{ callback:v=>v+'%' }}}}});
+    charts.push(ch);
+  }
+  function bar(canvas, labels, data){
+    const ctx = document.getElementById(canvas);
+    const ch = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ data }] },
+      options:{ indexAxis:'y' }});
+    charts.push(ch);
+  }
 
-    function isNum(v){ return v!=='' && !isNaN(+v); }
-    function toMonthKey(iso){ const d=new Date(iso); if(isNaN(d)) return null; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
-
-    /* ----------------------- Load datasets ----------------------- */
-    let ALL_SURVEYS = [];  // {id,title,rows,scoreCol,textCol}
-
-    async function loadAll(){
-      const index = await fetchJSON('data/datasets.json');
-
-      // Normalize to [{id,title,csv}]
-      let defs = [];
-      if (Array.isArray(index)) {
-        defs = index;
-      } else if (Array.isArray(index.surveys)) {
-        defs = index.surveys;
-      } else if (Array.isArray(index.datasets)) {
-        defs = index.datasets.map(d => ({
-          id: d.id,
-          title: d.title || d.id,
-          csv: (Array.isArray(d.files) && d.files[0]) ? d.files[0] : ""
-        }));
-      } else {
-        defs = [];
-      }
-
-      const loaded = [];
-      for (const def of defs) {
-        try{
-          if(!def.csv){ console.warn('No CSV path for', def); continue; }
-          const text = await fetchText(def.csv);
-          const rows = parseCSV(text);
-          if(!rows.length){ console.warn('Empty CSV:', def.csv); }
-
-          // pick score column: prefer numeric-like 1–5 counts, else Likert-mappable
-          const headers = rows.length ? Object.keys(rows[0]) : [];
-          let scoreCol = null;
-          let bestHits = -1;
-
-          // test numeric
-          for(const h of headers){
-            const vals = rows.map(r => r[h]).filter(v => v!=='' && v!=null);
-            const nums = vals.map(v => +v).filter(v => !isNaN(v) && v>=1 && v<=5);
-            if(nums.length > bestHits){ bestHits = nums.length; scoreCol = h; }
-          }
-          // if numeric weak, try Likert map
-          if(bestHits < 3){
-            scoreCol = null; bestHits = -1;
-            for(const h of headers){
-              const hits = rows.map(r => mapLikert(r[h])).filter(v => v>=1 && v<=5).length;
-              if(hits > bestHits){ bestHits = hits; scoreCol = h; }
-            }
-          }
-
-          // comments column (optional)
-          let textCol = headers.find(h => /comment|free|text|feedback/i.test(h)) || null;
-
-          loaded.push({
-            id: def.id,
-            title: def.title || def.id,
-            csv: def.csv,
-            rows,
-            scoreCol,
-            textCol
-          });
-        }catch(e){
-          console.error('Failed to load', def, e);
-        }
-      }
-      ALL_SURVEYS = loaded;
-    }
-
-    /* ----------------------- Aggregations ----------------------- */
-    function extractScore(raw){
-      if(isNum(raw)) return +raw;
-      const m = mapLikert(raw);
-      return (m && m>=1 && m<=5) ? m : null;
-    }
-
-    function summarise(survey){
-      const scores = [];
-      const texts  = [];
-      const months = {}; // key -> {pos,total}
-      const tsCol  = Object.keys(survey.rows[0]||{}).find(h=>/timestamp|date/i.test(h)) || null;
-
-      for(const r of survey.rows){
-        const v = extractScore( survey.scoreCol ? r[survey.scoreCol] : null );
-        if(v!=null){ scores.push(v); }
-        if(survey.textCol && r[survey.textCol]){ texts.push(r[survey.textCol]); }
-        if(tsCol && v!=null){
-          const key = toMonthKey(r[tsCol]);
-          if(key){
-            if(!months[key]) months[key] = {pos:0,total:0};
-            months[key].total++;
-            if(v >= 4) months[key].pos++;
-          }
-        }
-      }
-
-      const total = scores.length;
-      const avg = total ? (scores.reduce((a,b)=>a+b,0)/total) : 0;
-      const posPct = total ? Math.round(100 * scores.filter(v=>v>=4).length / total) : 0;
-
-      // distribution counts 1..5
-      const dist = [1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length}));
-
-      // trend series sorted by month
-      const trend = Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0]))
-        .map(([m, o])=>({month:m, pct: Math.round(100*o.pos/o.total)}));
-
-      return { total, avg, posPct, dist, trend, texts };
-    }
-
-    function combineSummary(summaries){
-      const sum = { total:0, sumScores:0, pos:0, dist:[0,0,0,0,0], months:{} };
-      summaries.forEach(s=>{
-        sum.total += s.total;
-        sum.sumScores += s.avg * s.total;
-        sum.pos += Math.round(s.posPct/100 * s.total);
-        s.dist.forEach((d,i)=>{ sum.dist[i]+=d.n; });
-        s.trend.forEach(t=>{
-          if(!sum.months[t.month]) sum.months[t.month] = {pos:0,total:0};
-          // rough combine (uses totals as weight proxy)
-          sum.months[t.month].total += 100;        // normalize to 100 “units” per survey
-          sum.months[t.month].pos   += t.pct;      // add %
-        });
+  // -------- themes (very simple) --------
+  const STOP = new Set(['the','a','an','of','and','to','in','for','on','at','with','is','are','be','it','that','this','we','i','you','our','your']);
+  function extractThemes(rows, textCol){
+    if (!textCol) return [];
+    const bag = new Map();
+    rows.forEach(r=>{
+      const t = (r[textCol]||'').toString().toLowerCase();
+      t.replace(/[^a-z0-9 ]+/g,' ').split(/\s+/).forEach(w=>{
+        if (!w || STOP.has(w) || w.length<3) return;
+        bag.set(w, (bag.get(w)||0)+1);
       });
-      const avg = sum.total ? (sum.sumScores/sum.total) : 0;
-      const posPct = sum.total ? Math.round(100*sum.pos/sum.total) : 0;
-      const dist = [1,2,3,4,5].map((v,i)=>({score:v,n:sum.dist[i]}));
-      const trend = Object.entries(sum.months).sort((a,b)=>a[0].localeCompare(b[0]))
-        .map(([m,o])=>({month:m,pct: Math.round(o.pos/o.total*100)}));
-      return { total:sum.total, avg, posPct, dist, trend };
-    }
-
-    /* ----------------------- “AI” insights (client-only) ----------------------- */
-    function topKeywords(texts, n=6){
-      const stop = new Set(["the","and","to","of","in","for","a","on","is","are","it","with","that","this","at","as","be","or","we","our","your","i","have","has","was","were","from","by","an","you","they","them"]);
-      const freq = {};
-      texts.forEach(t=>{
-        t.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).forEach(w=>{
-          if(!w || stop.has(w) || w.length<3) return;
-          freq[w] = (freq[w]||0)+1;
-        });
-      });
-      return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([w,c])=>({label:w,count:c}));
-    }
-
-    function slopeAndNext(series){
-      if(!series.length){ return {slope:0,next:0}; }
-      const y = series.map(s=>s.pct);
-      const x = series.map((_,i)=>i+1);
-      const n = x.length;
-      const sum = a => a.reduce((s,v)=>s+v,0);
-      const mx = sum(x)/n, my = sum(y)/n;
-      const num = sum(x.map((xi,i)=>(xi-mx)*(y[i]-my)));
-      const den = sum(x.map(xi=>Math.pow(xi-mx,2))) || 1;
-      const slope = num/den; // % points per step
-      const next = Math.max(0, Math.min(100, Math.round(my + slope*(n+1-mx))));
-      return { slope, next };
-    }
-
-    function actionIdeas(nextPct){
-      if(nextPct < 55) return [
-        "Run a focused ‘You said, we did’ on top pain points within 2 weeks.",
-        "Timebox a pilot (4–6 weeks) addressing the most cited barrier.",
-      ];
-      if(nextPct < 70) return [
-        "Scale the most effective pilot to more Schools.",
-        "Publish a monthly culture dashboard with quick wins.",
-      ];
-      return [
-        "Consolidate: document playbooks and case studies.",
-        "Introduce light-touch pulse checks to sustain momentum.",
-      ];
-    }
-
-    /* ----------------------- Charts + UI wiring ----------------------- */
-    let chartBar, chartPieCurrent, chartPieAll, chartTrend;
-
-    function drawBar(labels, counts){
-      const ctx = document.getElementById('aiBar');
-      if(chartBar) chartBar.destroy();
-      chartBar = new Chart(ctx, {
-        type:'bar',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
-        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
-      });
-    }
-
-    function drawPie(elId, dataArr){
-      const ctx = document.getElementById(elId);
-      const labels = ["1","2","3","4","5"];
-      const counts = [1,2,3,4,5].map((v,i)=>dataArr[i]?.n||0);
-      const inst = new Chart(ctx,{
-        type:'pie',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
-        options:{ responsive:true, plugins:{legend:{position:"bottom"}}}
-      });
-      return inst;
-    }
-
-    function drawTrend(series){
-      const ctx = document.getElementById('lineTrend');
-      if(chartTrend) chartTrend.destroy();
-      chartTrend = new Chart(ctx, {
-        type:"line",
-        data:{
-          labels: series.map(s=>s.month),
-          datasets:[{
-            data: series.map(s=>s.pct),
-            tension:.35, fill:false,
-            borderColor: neutral[0], pointBackgroundColor: neutral[0]
-          }]
-        },
-        options:{
-          responsive:true, plugins:{legend:{display:false}},
-          scales:{y:{suggestedMin:0,suggestedMax:100,ticks:{callback:v=>v+"%"}}}
-        }
-      });
-    }
-
-    function fillScoreTable(dist){
-      $('#scoreTable').innerHTML = dist.map(d=>`<tr><td>${d.score}</td><td>${d.n}</td></tr>`).join('');
-    }
-
-    function updateKpis(sum){
-      $('#kpi-resp').textContent = sum.total;
-      $('#kpi-avg').textContent  = sum.avg ? sum.avg.toFixed(2) : "–";
-      $('#kpi-pos').textContent  = sum.posPct + "%";
-    }
-
-    function buildSurveySelect(){
-      const sel = $('#surveySelect');
-      sel.innerHTML = "";
-      ALL_SURVEYS.forEach((s,idx)=>{
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = s.title || s.id;
-        if(idx===0) opt.selected = true;
-        sel.appendChild(opt);
-      });
-    }
-
-    function summariseAll(){
-      const per = ALL_SURVEYS.map(s=>({ id:s.id, title:s.title, ...summarise(s) }));
-      const combined = combineSummary(per);
-      return { per, combined };
-    }
-
-    function refreshUI(){
-      const { per, combined } = summariseAll();
-
-      // fill select
-      buildSurveySelect();
-
-      // current survey summary
-      const selId = $('#surveySelect').value || (ALL_SURVEYS[0]?.id);
-      const cur = per.find(x=>x.id===selId) || per[0] || combined;
-
-      updateKpis(cur || combined);
-      fillScoreTable((cur||combined).dist);
-
-      if(chartPieCurrent) chartPieCurrent.destroy();
-      if(chartPieAll) chartPieAll.destroy();
-      chartPieCurrent = drawPie('pieCurrent', (cur||combined).dist);
-      chartPieAll     = drawPie('pieAll', combined.dist);
-
-      // trend (combined for context)
-      drawTrend(combined.trend);
-
-      // top themes from current survey texts
-      const sDef = ALL_SURVEYS.find(s=>s.id===selId);
-      const curTexts = sDef ? summarise(sDef).texts : [];
-      const kws = topKeywords(curTexts, 6);
-      $('#ai-top-themes').textContent = kws.length ? kws.map(k=>k.label).join(", ") : "—";
-      drawBar(kws.map(k=>k.label), kws.map(k=>k.count));
-      // stash for AI section
-      window.__ai_context__ = { cur: (cur||combined), combined, keywords: kws, texts: curTexts };
-    }
-
-    /* ----------------------- AI box behaviour ----------------------- */
-    $('#btnExplain').addEventListener('click', ()=>{
-      const ctx = window.__ai_context__ || {};
-      const cur = ctx.cur || { total:0, avg:0, posPct:0, trend:[] };
-      const { slope, next } = slopeAndNext((ctx.combined||{trend:[]}).trend);
-
-      const userQ = ($('#aiPrompt').value||'').trim();
-      const lead = userQ ? `Prompt: ${userQ}. ` : '';
-
-      const summary = [
-        lead + `We analysed ${cur.total} responses.`,
-        cur.avg ? `Average score is ${cur.avg.toFixed(2)} (1–5).` : "",
-        `Positive share (scores 4–5) is ${cur.posPct}%.`,
-        ctx.keywords?.length ? `Top themes: ${ctx.keywords.slice(0,3).map(k=>k.label).join(", ")}.` : ""
-      ].filter(Boolean).join(" ");
-
-      const dir = slope >= 0 ? "improving" : "declining";
-      const actions = actionIdeas(next);
-
-      $('#aiSummary').textContent = summary + ` Overall sentiment is ${dir}.`;
-      $('#aiForecast').textContent = `Projected positive rate next month ≈ ${next}%.`;
-      $('#aiActions').innerHTML =
-        "<ul style='margin:.2rem 0;padding-left:18px'>" +
-        actions.map(a=>`<li>${a}</li>`).join("") + "</ul>";
-
-      $('#aiOut').style.display = "block";
     });
+    return Array.from(bag.entries()).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  }
 
-    $('#surveySelect').addEventListener('change', refreshUI);
-    $('#btnRefresh').addEventListener('click', async ()=>{ try{ await loadAll(); refreshUI(); }catch(e){ alert("Failed to reload data."); } });
+  // -------- render all --------
+  function renderAll({ rows, cols, kpis, dataset }){
+    // KPIs
+    document.getElementById('kpiResponses').textContent = kpis.total;
+    document.getElementById('kpiAvg').textContent = kpis.avg.toFixed(2);
+    document.getElementById('kpiPos').textContent = Math.round(kpis.positive) + '%';
 
-    /* ----------------------- Boot ----------------------- */
-    (async function init(){
-      try{
-        await loadAll();
-        if(!ALL_SURVEYS.length){
-          alert("No datasets found. Ensure data/datasets.json exists and CSV paths are correct.");
-        }
-        refreshUI();
-      }catch(e){
-        console.error(e);
-        alert("Failed to load data. Check datasets.json and CSV paths.");
-      }
-    })();
+    // Distribution table + pies
+    destroyCharts();
+    const dist = counts1to5(kpis.scores);
+    const tbody = document.getElementById('distTable');
+    tbody.innerHTML = '';
+    for (let i=1;i<=5;i++){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td style="text-align:left">${i}</td><td>${dist[i-1]}</td>`;
+      tbody.appendChild(tr);
+    }
+    pie('pieCurrent', ['1','2','3','4','5'], dist);
+
+    // Combined pie (all datasets we have cached)
+    const allScores = Object.values(ALL_CACHE).flatMap(rr=>{
+      const c = detectColumns(rr, dataset);
+      return rr.map(r=>toScore(r[c.scoreCol])).filter(x=>x!=null);
+    });
+    pie('pieAll', ['1','2','3','4','5'], counts1to5(allScores));
+
+    // Trend %≥4 by month
+    const m = {};
+    rows.forEach(r=>{
+      const mk = monthKey(r[cols.dateCol]);
+      const sc = toScore(r[cols.scoreCol]);
+      if(!mk || sc==null) return;
+      m[mk] ||= {pos:0,total:0};
+      m[mk].total++; if(sc>=4) m[mk].pos++;
+    });
+    const months = Object.keys(m).sort();
+    const pct = months.map(k => m[k].total ? Math.round(100*m[k].pos/m[k].total) : 0);
+    line('trendChart', months, pct);
+
+    // Themes
+    const themes = extractThemes(rows, cols.textCol);
+    bar('themesChart', themes.map(x=>x[0]), themes.map(x=>x[1]));
+  }
+
+  // -------- main loaders --------
+  async function loadDatasetsIndex(){
+    const root = await fetchJSON('data/datasets.json');
+    DATASETS = normalizeRoot(root);
+    const sel = document.getElementById('datasetSel');
+    sel.innerHTML = DATASETS.map(d => `<option value="${d.id}">${d.title}</option>`).join('');
+    if (!CURRENT_ID || !DATASETS.some(d=>d.id===CURRENT_ID)) CURRENT_ID = DATASETS[0]?.id || null;
+    sel.value = CURRENT_ID || '';
+  }
+
+  async function loadRowsFor(id){
+    const ds = getDatasetById(id);
+    if (!ds) return [];
+    const text = await fetchText(ds.csv);
+    return parseCSV(text);
+  }
+
+  async function loadAndRenderCurrent(){
+    const ds = getDatasetById(CURRENT_ID);
+    if (!ds) return;
+
+    const rows = await loadRowsFor(ds.id);
+    ALL_CACHE[ds.id] = rows; // store for combined pie
+    const cols = detectColumns(rows, ds);
+    const kpis = computeKPIs(rows, cols);
+    renderAll({ rows, cols, kpis, dataset: ds });
+  }
+
+  // -------- events --------
+  document.getElementById('datasetSel').addEventListener('change', (e)=>{
+    CURRENT_ID = e.target.value;        // <-- critical
+    loadAndRenderCurrent();             // refresh view for Q2, etc.
+  });
+  document.getElementById('reloadBtn').addEventListener('click', ()=>{
+    loadAndRenderCurrent();             // cache-busted fetch
+  });
+
+  // Drag-drop upload mode (optional local preview)
+  const drop = document.getElementById('dropZone');
+  drop.addEventListener('dragover', e=>{e.preventDefault(); drop.classList.add('drag');});
+  drop.addEventListener('dragleave', ()=>drop.classList.remove('drag'));
+  drop.addEventListener('drop', async e=>{
+    e.preventDefault(); drop.classList.remove('drag');
+    const files = [...e.dataTransfer.files].filter(f=>/\.csv$/i.test(f.name));
+    if (!files.length) return;
+    // Treat each dropped CSV as its own dataset (id from filename)
+    const readers = await Promise.all(files.map(f => f.text()));
+    DATASETS = files.map((f,i)=>({ id: f.name.replace(/\.[^/.]+$/,''), title: f.name, csv: '(uploaded)', answerColumn:'', textColumn:'' }));
+    const sel = document.getElementById('datasetSel');
+    sel.innerHTML = DATASETS.map(d=>`<option value="${d.id}">${d.title}</option>`).join('');
+    ALL_CACHE = {};
+    // prime cache
+    DATASETS.forEach((d,i)=>{
+      ALL_CACHE[d.id] = parseCSV(readers[i]);
+    });
+    CURRENT_ID = DATASETS[0].id;
+    sel.value = CURRENT_ID;
+    // render first
+    const rows = ALL_CACHE[CURRENT_ID];
+    const cols = detectColumns(rows, DATASETS[0]);
+    const kpis = computeKPIs(rows, cols);
+    renderAll({ rows, cols, kpis, dataset: DATASETS[0] });
+  });
+
+  // -------- boot --------
+  (async function init(){
+    await loadDatasetsIndex();
+    await loadAndRenderCurrent();
+  })();
   </script>
 </body>
 </html>
