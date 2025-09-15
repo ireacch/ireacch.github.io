@@ -1,20 +1,14 @@
 {
-  "surveys": [
+  "datasets": [
     {
-      "id": "q1-wellbeing",
+      "id": "q1",
       "title": "Q1: Feel valued in your job at the moment",
-      "csv": "data/csv/q1.csv",
-      "answerColumn": "",
-      "textColumn": "",
-      "publishedAt": "2025-02-10"
+      "files": ["data/q1.csv"]
     },
     {
-      "id": "q2-support",
+      "id": "q2",
       "title": "Q2: Confidence in career planning",
-      "csv": "data/csv/q2.csv",
-      "answerColumn": "",
-      "textColumn": "",
-      "publishedAt": "2025-02-17"
+      "files": ["data/q2.csv"]
     }
   ]
 }
