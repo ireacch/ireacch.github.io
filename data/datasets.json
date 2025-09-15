@@ -4,13 +4,15 @@
       "id": "q1",
       "title": "Q1: Feel valued in your job at the moment",
       "csv": "data/q1.csv",
+      "answerColumn": "To what extent you feel valued in your job at the moment?",
       "textColumn": "Anything you want to add?"
     },
     {
       "id": "q2",
       "title": "Q2: Confidence in career planning",
       "csv": "data/q2.csv",
-      "textColumn": "Comments"
+      "answerColumn": "How confident do you feel about your career planning?",
+      "textColumn": "Anything you want to add?"
     }
   ]
 }
