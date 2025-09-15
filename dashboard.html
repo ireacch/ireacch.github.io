@@ -26,10 +26,11 @@
 
     .panel{background:var(--white);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(28,39,51,.04)}
     .pad{padding:18px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
     .pill{font-size:.85rem;background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;font-weight:700}
     .btn{appearance:none;border:0;border-radius:999px;padding:10px 14px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--grad-a),var(--grad-b));cursor:pointer}
     .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .btn.tiny{padding:6px 10px;font-size:.85rem}
     .hint{font-size:.9rem;color:var(--muted)}
     .muted{color:var(--muted)}
     .h2{font-weight:800;margin:0 0 10px;font-size:clamp(1.3rem,2.2vw,1.6rem)}
@@ -48,6 +49,7 @@
     .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden;width:100%}
     .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:8px 10px;text-align:center;font-weight:700}
 
+    .likert-caption{font-size:.9rem;color:var(--muted);margin-top:6px}
     .hide{display:none}
     canvas{max-width:100%}
     .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
@@ -65,14 +67,14 @@
   <main class="wrap" style="margin:20px auto 40px">
     <!-- CONTROLS + KPIs -->
     <section class="panel pad" style="margin-bottom:18px">
-      <div class="row" style="justify-content:space-between">
-        <div class="row">
+      <div class="row">
+        <div class="row" style="gap:10px">
           <span class="pill">Dataset</span>
-          <select id="surveySelect" class="pill"></select>
+          <select id="surveySelect" class="pill" aria-label="Select dataset"></select>
           <label class="pill" style="display:flex;gap:8px;align-items:center">
             <input type="checkbox" id="compareToggle"> compare
           </label>
-          <select id="compareSelect" class="pill" disabled></select>
+          <select id="compareSelect" class="pill" disabled aria-label="Compare with dataset"></select>
         </div>
         <div class="row">
           <button id="btnRefresh" class="btn ghost">Reload data</button>
@@ -85,18 +87,42 @@
         <div class="kpi"><div class="muted">Avg.</div><div class="v" id="kpi-avg">–</div></div>
         <div class="kpi"><div class="muted">Median</div><div class="v" id="kpi-med">–</div></div>
         <div class="kpi"><div class="muted">Positive (4–5)</div><div class="v" id="kpi-pos">–</div></div>
+        <div class="kpi"><div class="muted">Neutral (3)</div><div class="v" id="kpi-neu">–</div></div>
         <div class="kpi"><div class="muted">Negative (1–2)</div><div class="v" id="kpi-neg">–</div></div>
         <div class="kpi"><div class="muted">Highlights</div><div class="v" id="kpi-flags"></div></div>
       </div>
       <div class="hint" style="margin-top:6px">
-        Data: <code>data/datasets.json</code> + CSVs (same origin). Deterministic metrics; AI provides optional narrative only.
+        % values are based on <b>scored</b> responses (<span id="kpi-scored-note">n=–</span>). Data: <code>data/datasets.json</code> + CSVs.
       </div>
     </section>
 
-    <!-- SUMMARY + THEMES -->
+    <!-- RESPONSE DISTRIBUTION -->
+    <section class="panel pad" style="margin-bottom:18px">
+      <div class="row">
+        <h2 class="h2" style="margin:0">Response distribution</h2>
+        <div class="row" style="gap:8px">
+          <button id="btnDownloadLikert" class="btn ghost tiny" title="Download chart as PNG">Download PNG</button>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <table class="mini-table" aria-label="Score table">
+          <thead><tr><th>Score</th><th>Count</th><th>%</th></tr></thead>
+          <tbody id="scoreTable"></tbody>
+        </table>
+        <div>
+          <canvas id="likertBar" height="220" aria-label="Likert distribution"></canvas>
+          <div id="likertCaption" class="likert-caption"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY + THEMES (side-by-side) -->
     <section class="grid-2" style="margin-bottom:18px">
       <div class="panel pad">
-        <h2 class="h2">Plain-language summary</h2>
+        <div class="row">
+          <h2 class="h2" style="margin:0">Plain-language summary & quick actions</h2>
+          <button id="btnCopySummary" class="btn ghost tiny" title="Copy summary and actions">Copy summary</button>
+        </div>
         <div id="plainSummary" class="ai-small">—</div>
         <div style="margin-top:10px">
           <b>Quick actions</b>
@@ -112,23 +138,9 @@
       </aside>
     </section>
 
-    <!-- DISTRIBUTION + LIKERT STACK -->
-    <section class="panel pad" style="margin-bottom:18px">
-      <h2 class="h2">Response distribution</h2>
-      <div class="mini-grid">
-        <table class="mini-table">
-          <thead><tr><th>Score</th><th>Count</th><th>%</th></tr></thead>
-          <tbody id="scoreTable"></tbody>
-        </table>
-        <div>
-          <canvas id="likertBar" height="220" aria-label="Likert distribution"></canvas>
-        </div>
-      </div>
-    </section>
-
     <!-- COMPARE -->
     <section id="comparePanel" class="panel pad hide" style="margin-bottom:18px">
-      <div class="row" style="justify-content:space-between">
+      <div class="row">
         <h2 class="h2" style="margin:0">Compare Q1/Q2</h2>
         <div class="row">
           <div class="pill">Δ Avg <span id="delta-avg" class="chip" style="margin-left:6px">–</span></div>
@@ -138,7 +150,7 @@
       <canvas id="likertCompare" height="240"></canvas>
     </section>
 
-    <!-- AI INSIGHTS (kept for later) -->
+    <!-- AI INSIGHTS (placeholder; wire serverless later) -->
     <section class="panel pad">
       <h2 class="h2">AI insights</h2>
       <div class="row">
@@ -155,7 +167,7 @@
   <script>
     /* ------------ helpers ------------ */
     const $ = s => document.querySelector(s);
-    const palette5 = ["#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5"]; // 1..5
+    const palette5 = ["#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5"]; // 1..5 light→dark
 
     async function fetchJSON(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.json(); }
     async function fetchText(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.text(); }
@@ -234,6 +246,18 @@
     }
 
     /* ------------ summarise ------------ */
+    function roundPercentsTo100(counts){
+      const total = counts.reduce((a,b)=>a+b,0) || 0;
+      if(!total) return counts.map(()=>0);
+      const raw = counts.map(c => 100*c/total);
+      const floored = raw.map(Math.floor);
+      let remainder = 100 - floored.reduce((a,b)=>a+b,0);
+      const fracIdx = raw.map((v,i)=>({i,f:v-Math.floor(v)})).sort((a,b)=>b.f-a.f).map(x=>x.i);
+      const result = [...floored];
+      for(let k=0;k<remainder;k++) result[fracIdx[k%fracIdx.length]]++;
+      return result;
+    }
+
     function summarise(s){
       const scores=[], texts=[];
       for(const r of s.rows){
@@ -246,7 +270,11 @@
       const med=scored? median(scores) : 0;
       const posPct=scored? Math.round(100*scores.filter(v=>v>=4).length/scored) : 0;
       const negPct=scored? Math.round(100*scores.filter(v=>v<=2).length/scored) : 0;
-      const dist=[1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length, p: scored? Math.round(100*scores.filter(x=>x===v).length/scored) : 0}));
+
+      const counts=[1,2,3,4,5].map(v=>scores.filter(x=>x===v).length);
+      const perc = roundPercentsTo100(counts);
+
+      const dist=[1,2,3,4,5].map((v,i)=>({score:v, n:counts[i], p:perc[i]}));
       return { id:s.id,title:s.title,total,scored,blanks,avg,med,posPct,negPct,dist,texts };
     }
     function summariseAll(){ return ALL.map(s=>summarise(s)); }
@@ -275,7 +303,9 @@
       $('#kpi-avg').textContent = a.avg? a.avg.toFixed(2) : "–";
       $('#kpi-med').textContent = a.med? (Number.isInteger(a.med)? a.med : a.med.toFixed(1)) : "–";
       $('#kpi-pos').textContent = a.posPct + "%";
+      $('#kpi-neu').textContent = (a.dist[2]?.p ?? 0) + "%";
       $('#kpi-neg').textContent = a.negPct + "%";
+      $('#kpi-scored-note').textContent = "n=" + a.scored;
 
       const extremes = [];
       if(a.dist[0].n) extremes.push(`<span class="chip bad">${a.dist[0].n} × score 1</span>`);
@@ -287,7 +317,7 @@
     function fillPlainSummary(a){
       const pos=a.posPct, neg=a.negPct, neu=(a.dist[2]?.p||0);
       $('#plainSummary').innerHTML =
-        `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neg}%</b> negative (1–2), and <b>${neu}%</b> neutral. `
+        `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neu}%</b> neutral (3), and <b>${neg}%</b> negative (1–2). `
         + `Average is <b>${a.avg.toFixed(2)}</b> (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`;
       const actions=[];
       if(pos<60) actions.push("Run a short focus group to understand low sentiment.");
@@ -305,12 +335,12 @@
           if(!w||stop.has(w)||w.length<3) return; freq[w]=(freq[w]||0)+1;
         });
       });
-      const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([label,count])=>({label,count}));
+      const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([label,count])=>({label,count}));
       $('#themeList').innerHTML = top.length ? top.map(t=>`• <b>${t.label}</b> (${t.count})`).join('<br>') : '—';
       const q=[];
       if(top[0]) for(const t of texts){ if(t.toLowerCase().includes(top[0].label) && q.length<2) q.push(t); }
       if(q.length<2 && top[1]) for(const t of texts){ if(t.toLowerCase().includes(top[1].label) && q.length<2) q.push(t); }
-      $('#themeQuotes').innerHTML = q.length ? q.map(s=>`<li>“${s.replace(/"/g,'&quot;')}”</li>`).join('') : '';
+      $('#themeQuotes').innerHTML = q.length ? q.map(s=>`<li>“${s.replace(/"/g,'&quot;')}”</li>`).join('') : '<li>No free-text comments.</li>';
     }
 
     function fillTable(dist){
@@ -324,6 +354,9 @@
       chLikert = new Chart(ctx,{ type:'bar', data:{ labels:[''], datasets:ds },
         options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} }, plugins:{legend:{position:'bottom'}} }
       });
+      // caption
+      const cap = dist.map(d=>`${d.score}: ${d.n} (${d.p}%)`).join(' • ');
+      $('#likertCaption').textContent = cap;
     }
 
     function drawCompare(a,b){
@@ -343,16 +376,61 @@
       chip($('#delta-avg'), dAvg); chip($('#delta-pos'), dPos);
     }
 
+    /* ------------ actions: copy + download ------------ */
+    function buildCopyText(){
+      const sel = $('#surveySelect').value;
+      const per = summariseAll();
+      const cur = per.find(x=>x.id===sel) || per[0];
+      const neu = cur.dist[2]?.p || 0;
+      const lines = [
+        `${cur.title} — topline`,
+        `Responses: ${cur.total} (scored n=${cur.scored})`,
+        `Average ${cur.avg.toFixed(2)} (median ${Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)})`,
+        `Positive: ${cur.posPct}% • Neutral: ${neu}% • Negative: ${cur.negPct}%`,
+        `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`,
+        ``,
+        `Quick actions:`,
+        ...Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`)
+      ];
+      return lines.join('\n');
+    }
+
+    async function copySummary(){
+      const text = buildCopyText();
+      try{
+        await navigator.clipboard.writeText(text);
+        $('#btnCopySummary').textContent = 'Copied!';
+        setTimeout(()=>$('#btnCopySummary').textContent='Copy summary',1200);
+      }catch{
+        // fallback
+        const ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try{ document.execCommand('copy'); }catch{}
+        document.body.removeChild(ta);
+        $('#btnCopySummary').textContent = 'Copied!';
+        setTimeout(()=>$('#btnCopySummary').textContent='Copy summary',1200);
+      }
+    }
+
+    function downloadLikertPNG(){
+      if(!window.chLikert) return;
+      const link = document.createElement('a');
+      link.download = `${$('#surveySelect').value || 'survey'}-likert.png`;
+      link.href = chLikert.toBase64Image();
+      link.click();
+    }
+
+    /* ------------ refresh pipeline ------------ */
     function refresh(){
       if(!ALL.length) return;
       const per = summariseAll();
       const cur = per.find(x=>x.id===CURRENT_ID) || per[0];
 
       fillKPIs(cur);
-      fillPlainSummary(cur);
-      themesAndQuotes(cur.texts || []);
       fillTable(cur.dist);
       drawLikert(cur.dist);
+      fillPlainSummary(cur);
+      themesAndQuotes(cur.texts || []);
 
       const compareOn = $('#compareToggle').checked && ALL.length>1;
       $('#comparePanel').classList.toggle('hide', !compareOn);
@@ -369,13 +447,16 @@
     $('#compareSelect').addEventListener('change', refresh);
     $('#btnRefresh').addEventListener('click', async ()=>{ await loadAll(); refresh(); });
 
-    // simple placeholder for AI button (will be replaced by serverless later)
+    $('#btnCopySummary').addEventListener('click', copySummary);
+    $('#btnDownloadLikert').addEventListener('click', downloadLikertPNG);
+
+    // simple placeholder for AI button (replace with serverless later)
     $('#btnExplain').addEventListener('click', ()=>{
       const per=summariseAll(), cur=per.find(x=>x.id===$('#surveySelect').value)||per[0];
       const bullets=[
         `${cur.total} responses; ${cur.scored} scored.`,
         `Avg ${cur.avg.toFixed(2)} (median ${Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)}).`,
-        `${cur.posPct}% positive; ${cur.negPct}% negative.`
+        `${cur.posPct}% positive; ${(cur.dist[2]?.p||0)}% neutral; ${cur.negPct}% negative.`
       ];
       $('#aiSummary').innerHTML = bullets.map(b=>`• ${b}`).join('<br>');
       $('#aiActions').innerHTML = "<b>Actions</b><ul style='margin:.2rem 0 0 1rem'><li>Share topline with faculty.</li><li>Run small focus group for low scorers.</li><li>Plan follow-up pulse check.</li></ul>";
