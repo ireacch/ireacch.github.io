@@ -5,17 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>I-REACCH | Dashboard</title>
 
+  <!-- your site styles -->
   <link rel="stylesheet" href="assets/css/brand.css"/>
   <link rel="stylesheet" href="assets/css/header.css"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
   <style>
     :root{
-      --page-max: 1200px;
+      --page-max:1200px;
       --border:#e6ecf1; --text:#1b2a41; --muted:#556070;
       --band:#cfe4e7; --white:#fff;
       --grad-a:#4a1ea8; --grad-b:#0aa0ff;
+      --good:#22a06b; --bad:#d14d4d;
     }
     .hero-slab{background:var(--band);padding:28px 0 22px;border-bottom:1px solid #c3d6d9}
     .wrap{max-width:var(--page-max);margin:0 auto;padding:0 24px}
@@ -26,18 +30,18 @@
     @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
     .panel{background:var(--white);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(28,39,51,.04)}
     .pad{padding:18px}
-    .kpis{display:flex;gap:22px;flex-wrap:wrap;font-weight:800}
-    .kpis .v{font-size:clamp(1.15rem,2vw,1.35rem)}
+    .kpis{display:flex;gap:18px;flex-wrap:wrap;font-weight:800}
+    .kpi{display:flex;flex-direction:column}
+    .kpi .v{font-size:clamp(1.05rem,2vw,1.3rem)}
     .muted{color:var(--muted)}
     .btn{appearance:none;border:0;border-radius:999px;padding:10px 14px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--grad-a),var(--grad-b));cursor:pointer}
     .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
     .h2{font-weight:800;margin:0 0 10px;font-size:clamp(1.3rem,2.2vw,1.6rem)}
-    .mini-grid{display:grid;grid-template-columns:240px 1fr 1fr;gap:18px}
+    .mini-grid{display:grid;grid-template-columns:260px 1fr;gap:18px}
     @media (max-width:980px){.mini-grid{grid-template-columns:1fr}}
-    .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden}
-    .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:10px 12px;text-align:center;font-weight:700}
+    .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden;width:100%}
+    .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:8px 10px;text-align:center;font-weight:700}
     .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
-    .ai-box h4{margin:.2rem 0 .4rem}
     .ai-small{color:var(--muted);font-size:.95rem}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
     .spacer{height:10px}
@@ -45,70 +49,91 @@
     .pill{font-size:.85rem;background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;font-weight:700}
     select.pill{appearance:auto}
     .hint{font-size:.9rem;color:var(--muted)}
+    .delta{font-weight:800;padding:.15rem .5rem;border-radius:999px}
+    .delta.up{background:#eaf7f1;color:var(--good)}
+    .delta.down{background:#fdecec;color:var(--bad)}
+    .right{margin-left:auto}
+    .hide{display:none}
   </style>
 </head>
 <body>
+  <!-- header -->
   <header class="hero-slab">
     <div class="wrap">
       <h1 class="h1">Dashboard <span class="pill">beta</span></h1>
-      <div class="sub">Live view of micro-survey responses (from CSV exports in your repo) + client-side insights.</div>
+      <div class="sub">Clear, reproducible summaries of each micro-survey — with optional AI text on top of exact numbers.</div>
     </div>
   </header>
 
   <main class="wrap" style="margin:20px auto 40px">
+    <!-- controls + KPIs -->
+    <section class="panel pad" style="margin-bottom:18px">
+      <div class="row" style="justify-content:space-between">
+        <div class="row">
+          <span class="pill">Dataset</span>
+          <select id="surveySelect" class="pill"></select>
+          <label class="pill" style="display:flex;gap:8px;align-items:center">
+            <input type="checkbox" id="compareToggle"> compare
+          </label>
+          <select id="compareSelect" class="pill" disabled></select>
+        </div>
+        <div class="row">
+          <button id="btnRefresh" class="btn ghost">Reload data</button>
+        </div>
+      </div>
+
+      <div class="kpis" style="margin-top:12px">
+        <div class="kpi"><div class="muted">Responses (total)</div><div class="v" id="kpi-total">–</div></div>
+        <div class="kpi"><div class="muted">Scored</div><div class="v" id="kpi-scored">–</div></div>
+        <div class="kpi"><div class="muted">Blanks</div><div class="v" id="kpi-blank">–</div></div>
+        <div class="kpi"><div class="muted">Avg. score</div><div class="v" id="kpi-avg">–</div></div>
+        <div class="kpi"><div class="muted">Median</div><div class="v" id="kpi-med">–</div></div>
+        <div class="kpi"><div class="muted">Positive (4–5)</div><div class="v" id="kpi-pos">–</div></div>
+        <div class="kpi"><div class="muted">Negative (1–2)</div><div class="v" id="kpi-neg">–</div></div>
+        <div class="kpi right"><div class="muted">Notes</div><div class="v" id="kpi-note" style="font-weight:600"></div></div>
+      </div>
+      <div class="hint" style="margin-top:8px">
+        Data source: <code>data/datasets.json</code> + CSVs (same origin). We compute numbers deterministically and let AI summarise in words.
+      </div>
+    </section>
+
+    <!-- distribution + themes -->
     <section class="grid-2" style="margin-bottom:18px">
       <div class="panel pad">
-        <div class="row" style="justify-content:space-between">
-          <div class="kpis">
-            <div class="v">Responses = <span id="kpi-resp">–</span></div>
-            <div class="v">Avg. score = <span id="kpi-avg">–</span></div>
-            <div class="v">Positive = <span id="kpi-pos">–</span></div>
+        <h2 class="h2">Response distribution</h2>
+        <div class="mini-grid">
+          <table class="mini-table">
+            <thead><tr><th>Score</th><th>Count</th><th>%</th></tr></thead>
+            <tbody id="scoreTable"></tbody>
+          </table>
+          <div>
+            <canvas id="likertBar" height="200" aria-label="Likert distribution"></canvas>
           </div>
-          <div class="row">
-            <span class="pill">Dataset</span>
-            <select id="surveySelect" class="pill"></select>
-            <button id="btnRefresh" class="btn ghost">Reload data</button>
-          </div>
-        </div>
-        <div class="hint" style="margin-top:8px">
-          Data source: <code>data/datasets.json</code> + CSVs (same origin). Supports both
-          <code>{"surveys":[...]}</code> and <code>{"datasets":[...]}</code>.
         </div>
       </div>
 
       <aside class="panel pad">
         <h2 class="h2">Top themes</h2>
-        <div class="sub" id="ai-top-themes">–</div>
-        <canvas id="aiBar" height="160"></canvas>
+        <div id="themeList" class="ai-small">–</div>
+        <div class="spacer"></div>
+        <div class="muted">Examples</div>
+        <ul id="themeQuotes" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
       </aside>
     </section>
 
-    <section class="grid-2" style="margin-bottom:18px">
-      <div class="panel pad">
-        <h2 class="h2">Overall distribution</h2>
-        <div class="mini-grid">
-          <table class="mini-table">
-            <thead><tr><th>Score</th><th>Count</th></tr></thead>
-            <tbody id="scoreTable"></tbody>
-          </table>
-          <div>
-            <h3 class="muted" style="margin:.2rem 0 .6rem">Current survey</h3>
-            <canvas id="pieCurrent" height="200"></canvas>
-          </div>
-          <div>
-            <h3 class="muted" style="margin:.2rem 0 .6rem">All surveys (combined)</h3>
-            <canvas id="pieAll" height="200"></canvas>
-          </div>
+    <!-- compare -->
+    <section id="comparePanel" class="panel pad hide" style="margin-bottom:18px">
+      <div class="row" style="justify-content:space-between">
+        <h2 class="h2" style="margin:0">Compare</h2>
+        <div class="row">
+          <div class="pill">Δ Avg <span id="delta-avg" class="delta" style="margin-left:6px">–</span></div>
+          <div class="pill">Δ Positive <span id="delta-pos" class="delta" style="margin-left:6px">–</span></div>
         </div>
       </div>
-
-      <aside class="panel pad">
-        <h2 class="h2">Positive trend</h2>
-        <div class="ai-small">Monthly % positive (≥4 on a 1–5 scale)</div>
-        <canvas id="lineTrend" height="210"></canvas>
-      </aside>
+      <canvas id="likertCompare" height="220"></canvas>
     </section>
 
+    <!-- AI Insights -->
     <section class="panel pad">
       <h2 class="h2">AI insights</h2>
       <div class="row">
@@ -117,29 +142,25 @@
       </div>
       <div class="spacer"></div>
       <div id="aiOut" class="ai-box" style="display:none">
-        <h4>Summary</h4>
-        <div id="aiSummary" class="ai-small"></div>
-        <h4 style="margin-top:10px">Prognosis</h4>
-        <div id="aiForecast" class="ai-small"></div>
-        <h4 style="margin-top:10px">Next actions</h4>
-        <div id="aiActions" class="ai-small"></div>
+        <div class="ai-small" id="aiSummary"></div>
+        <div class="ai-small" id="aiActions" style="margin-top:8px"></div>
       </div>
     </section>
   </main>
 
   <script>
-    const $ = sel => document.querySelector(sel);
-    const neutral = [
-      "rgba(71,118,230,.9)","rgba(137,196,244,.9)","rgba(59,173,227,.9)","rgba(130,177,255,.9)","rgba(171,204,255,.9)"
-    ];
+    /* ---------------- utilities ---------------- */
+    const $ = s => document.querySelector(s);
+    const palette5 = ["#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5"]; // 1..5
+    const neutral = ["rgba(71,118,230,.9)","rgba(137,196,244,.9)","rgba(59,173,227,.9)","rgba(130,177,255,.9)","rgba(171,204,255,.9)"];
 
-    async function fetchJSON(url){ const r = await fetch(url + (url.includes('?')?'&':'?') + 'cb=' + Date.now()); if(!r.ok) throw new Error(url+': '+r.status); return r.json(); }
-    async function fetchText(url){ const r = await fetch(url + (url.includes('?')?'&':'?') + 'cb=' + Date.now()); if(!r.ok) throw new Error(url+': '+r.status); return r.text(); }
+    async function fetchJSON(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.json(); }
+    async function fetchText(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.text(); }
 
-    // Tiny CSV parser (handles quotes)
+    // tiny CSV parser (quoted commas)
     function parseCSV(text){
-      const rows = []; let i=0, cell='', row=[], inQ=false;
-      const pushCell=()=>{ row.push(cell); cell=''; }, pushRow=()=>{ rows.push(row); row=[]; };
+      const rows=[]; let i=0,cell='',row=[],inQ=false;
+      const pushCell=()=>{row.push(cell);cell='';}, pushRow=()=>{rows.push(row);row=[];};
       while(i<text.length){ const ch=text[i];
         if(inQ){ if(ch=='"'){ if(text[i+1]=='"'){cell+='"';i++;} else inQ=false; } else cell+=ch; }
         else{ if(ch=='"') inQ=true; else if(ch==',') pushCell();
@@ -148,12 +169,12 @@
         i++;
       }
       if(cell.length||row.length){ pushCell(); pushRow(); }
-      const header = rows.shift() || [];
-      return rows.map(r=>Object.fromEntries(header.map((h,idx)=>[h.trim(), (r[idx]??'').trim()])));
+      const head = rows.shift()||[];
+      return rows.map(r=>Object.fromEntries(head.map((h,idx)=>[h.trim(),(r[idx]??'').trim()])));
     }
 
-    // Likert map
-    const LIKERT_MAP = {
+    // Likert mapping
+    const LIKERT = {
       'strongly disagree':1,'disagree':2,'neither agree nor disagree':3,'neutral':3,'agree':4,'strongly agree':5,
       'very dissatisfied':1,'dissatisfied':2,'neither satisfied nor dissatisfied':3,'satisfied':4,'very satisfied':5,
       'extremely unvalued':1,'somewhat unvalued':2,'somewhat valued':4,'extremely valued':5,
@@ -161,265 +182,232 @@
     };
     function toScore(v){
       if(v==null) return null;
-      const t = String(v).trim();
-      if(t==='') return null;
-      const n = Number(t);
-      if(!Number.isNaN(n) && n>=1 && n<=5) return n;
-      const key = t.toLowerCase().replace(/[^a-z ]+/g,' ').replace(/\s+/g,' ').trim();
-      return LIKERT_MAP[key] ?? null;
+      const t=String(v).trim(); if(!t) return null;
+      const n=Number(t); if(!Number.isNaN(n) && n>=1 && n<=5) return n;
+      const key=t.toLowerCase().replace(/[^a-z ]+/g,' ').replace(/\s+/g,' ').trim();
+      return LIKERT[key] ?? null;
     }
-    function toMonthKey(iso){ const d=new Date(iso); if(isNaN(d)) return null; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 
-    // ----- dataset loading
-    let ALL_SURVEYS = [];
+    function median(arr){ if(!arr.length) return 0; const s=[...arr].sort((a,b)=>a-b); const m=Math.floor(s.length/2); return s.length%2? s[m] : (s[m-1]+s[m])/2; }
+
+    /* --------------- loading --------------- */
+    let ALL = [];       // [{id,title,csv,rows,scoreCol,textCol}]
     let CURRENT_ID = null;
 
-    function normalizeIndex(index){
-      if (Array.isArray(index)) return index;
-      if (Array.isArray(index.surveys)) return index.surveys;
-      if (Array.isArray(index.datasets)) {
-        return index.datasets.map(d => ({
-          id: d.id, title: d.title || d.id, csv: (Array.isArray(d.files) && d.files[0]) ? d.files[0] : ""
-        }));
-      }
-      return [];
-    }
-
-    // robust column detection
     const BLACKLIST = /(^(id|email|name)$)|start|completion|timestamp|time/i;
     function detectColumns(rows){
-      const headers = rows.length ? Object.keys(rows[0]) : [];
-      // score: column with highest % of mappable 1–5, ignoring blacklist; require >= 0.6 coverage
-      let best = { col:null, hitRate:0 };
+      const headers = rows.length? Object.keys(rows[0]) : [];
+      // score column: highest hit rate of mappable 1–5, excluding blacklist; need >=60%
+      let best={col:null,rate:0};
       for(const h of headers){
         if(BLACKLIST.test(h)) continue;
-        const vals = rows.map(r => toScore(r[h])).filter(v=>v!=null);
-        const rate = rows.length ? vals.length / rows.length : 0;
-        if(rate > best.hitRate){ best = { col:h, hitRate:rate }; }
+        const hits = rows.reduce((n,r)=> n+(toScore(r[h])!=null?1:0), 0);
+        const rate = rows.length? hits/rows.length : 0;
+        if(rate>best.rate){ best={col:h,rate}; }
       }
-      const scoreCol = best.hitRate >= 0.6 ? best.col : null;
+      const scoreCol = best.rate>=0.6? best.col : null;
+      const textCol = headers.find(h=>/comment|free|text|feedback/i.test(h)) || null;
+      return {scoreCol,textCol};
+    }
 
-      const textCol = headers.find(h => /comment|free|text|feedback/i.test(h)) || null;
-      const dateCol = headers.find(h => /timestamp|start|completion|date/i.test(h)) || null;
-
-      return { scoreCol, textCol, dateCol };
+    function normalizeIndex(index){
+      if(Array.isArray(index)) return index;
+      if(Array.isArray(index.surveys)) return index.surveys;
+      if(Array.isArray(index.datasets)) return index.datasets.map(d=>({id:d.id,title:d.title||d.id,csv:(Array.isArray(d.files)&&d.files[0])?d.files[0]:""}));
+      return [];
     }
 
     async function loadAll(){
       const defs = normalizeIndex(await fetchJSON('data/datasets.json'));
-      const loaded = [];
-      for (const def of defs) {
-        try{
-          if(!def.csv) continue;
-          const text = await fetchText(def.csv);
-          const rows = parseCSV(text);
-          const cols = detectColumns(rows);
-          loaded.push({ id:def.id, title:def.title||def.id, csv:def.csv, rows, ...cols });
-        }catch(e){ console.error('Failed to load', def, e); }
+      const out=[];
+      for(const def of defs){
+        if(!def.csv) continue;
+        const text = await fetchText(def.csv);
+        const rows = parseCSV(text);
+        const cols = detectColumns(rows);
+        out.push({ id:def.id, title:def.title||def.id, csv:def.csv, rows, ...cols });
       }
-      ALL_SURVEYS = loaded;
-      if(!CURRENT_ID || !ALL_SURVEYS.some(s=>s.id===CURRENT_ID)){
-        CURRENT_ID = ALL_SURVEYS[0]?.id || null;
-      }
-      buildSurveySelect(true);
+      ALL = out;
+      if(!CURRENT_ID || !ALL.some(s=>s.id===CURRENT_ID)) CURRENT_ID = ALL[0]?.id || null;
+      buildSelects();
     }
 
-    // ----- summaries
-    function summarise(survey){
-      const scores = [];
-      const months = {};
-      for(const r of survey.rows){
-        const v = survey.scoreCol ? toScore(r[survey.scoreCol]) : null;
-        if(v!=null){ scores.push(v); }
-        const key = survey.dateCol ? toMonthKey(r[survey.dateCol]) : null;
-        if(key && v!=null){
-          if(!months[key]) months[key] = {pos:0,total:0};
-          months[key].total++;
-          if(v>=4) months[key].pos++;
-        }
+    /* --------------- summarise --------------- */
+    function summarise(s){
+      const scores=[], texts=[];
+      for(const r of s.rows){
+        const v = s.scoreCol ? toScore(r[s.scoreCol]) : null;
+        if(v!=null) scores.push(v);
+        if(s.textCol && r[s.textCol]) texts.push(r[s.textCol]);
       }
-      const totalRows = survey.rows.length;                 // <-- show all responses
-      const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
-      const posPct = scores.length ? Math.round(100 * scores.filter(v=>v>=4).length / scores.length) : 0;
-      const dist = [1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length}));
-      const trend = Object.entries(months).sort((a,b)=>a[0].localeCompare(b[0]))
-                      .map(([m,o])=>({month:m, pct: Math.round(100*o.pos/o.total)}));
-      return { total: totalRows, avg, posPct, dist, trend };
+      const total = s.rows.length;
+      const scored = scores.length;
+      const blanks = total - scored;
+      const avg = scored ? scores.reduce((a,b)=>a+b,0)/scored : 0;
+      const med = scored ? median(scores) : 0;
+      const posPct = scored ? Math.round(100 * scores.filter(v=>v>=4).length / scored) : 0;
+      const negPct = scored ? Math.round(100 * scores.filter(v=>v<=2).length / scored) : 0;
+      const dist = [1,2,3,4,5].map(v=>({score:v, n:scores.filter(x=>x===v).length, p: scored? Math.round(100*scores.filter(x=>x===v).length/scored) : 0}));
+      return {total,scored,blanks,avg,med,posPct,negPct,dist,texts};
     }
 
-    function combineSummary(per){
-      const sum = { total:0, sumScores:0, answered:0, pos:0, dist:[0,0,0,0,0], months:{} };
-      per.forEach(s=>{
-        sum.total += s.total;
-        sum.sumScores += s.avg * s.total; // rough weight by total responses
-        s.dist.forEach((d,i)=>{ sum.dist[i]+=d.n; });
-        s.trend.forEach(t=>{
-          if(!sum.months[t.month]) sum.months[t.month] = {pos:0,total:0};
-          sum.months[t.month].total += 100;
-          sum.months[t.month].pos   += t.pct;
-        });
+    /* --------------- UI + charts --------------- */
+    let chLikert, chCompare;
+
+    function buildSelects(){
+      const sel = $('#surveySelect'), cmp = $('#compareSelect');
+      const prev = sel.value, prevCmp = cmp.value;
+      sel.innerHTML = ""; cmp.innerHTML = "";
+      ALL.forEach(s=>{
+        sel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.title||s.id}</option>`);
+        cmp.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.title||s.id}</option>`);
       });
-      const avg = sum.total ? (sum.sumScores/sum.total) : 0;
-      const dist = [1,2,3,4,5].map((v,i)=>({score:v,n:sum.dist[i]}));
-      const trend = Object.entries(sum.months).sort((a,b)=>a[0].localeCompare(b[0]))
-                    .map(([m,o])=>({month:m,pct: Math.round(o.pos/o.total*100)}));
-      // compute combined % positive from dist
-      const totalAnswered = dist.reduce((a,d)=>a+d.n,0);
-      const posPct = totalAnswered ? Math.round(100 * (dist[3].n + dist[4].n) / totalAnswered) : 0;
-      return { total:sum.total, avg, posPct, dist, trend };
+      sel.value = ALL.some(s=>s.id===prev)? prev : (CURRENT_ID||ALL[0]?.id||"");
+      cmp.value = ALL.find(s=>s.id!==sel.value)?.id || ALL[0]?.id || "";
+      CURRENT_ID = sel.value;
+      $('#compareSelect').disabled = !$('#compareToggle').checked;
+      $('#comparePanel').classList.toggle('hide', !$('#compareToggle').checked);
     }
 
-    // ----- keywords
-    function topKeywords(texts, n=6){
-      const stop = new Set(["the","and","to","of","in","for","a","on","is","are","it","with","that","this","at","as","be","or","we","our","your","i","have","has","was","were","from","by","an","you","they","them"]);
-      const freq = {};
+    function fillKpis(sum, title){
+      $('#kpi-total').textContent  = sum.total;
+      $('#kpi-scored').textContent = sum.scored;
+      $('#kpi-blank').textContent  = sum.blanks;
+      $('#kpi-avg').textContent    = sum.avg ? sum.avg.toFixed(2) : "–";
+      $('#kpi-med').textContent    = sum.med ? (Number.isInteger(sum.med)? sum.med : sum.med.toFixed(1)) : "–";
+      $('#kpi-pos').textContent    = sum.posPct + "%";
+      $('#kpi-neg').textContent    = sum.negPct + "%";
+      $('#kpi-note').textContent   = title ? title : "";
+    }
+
+    function fillTable(dist){
+      $('#scoreTable').innerHTML = dist.map(d=>`<tr><td>${d.score}</td><td>${d.n}</td><td>${d.p}%</td></tr>`).join('');
+    }
+
+    function drawLikert(dist){
+      const counts = dist.map(d=>d.n); // 1..5
+      const dataSets = counts.map((c,i)=>({
+        label:String(i+1),
+        data:[c],
+        backgroundColor:palette5[i],
+        stack:'x'
+      }));
+      const ctx = document.getElementById('likertBar');
+      if(chLikert) chLikert.destroy();
+      chLikert = new Chart(ctx,{
+        type:'bar',
+        data:{ labels:[''], datasets:dataSets },
+        options:{
+          indexAxis:'y',
+          scales:{ x:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } }, y:{ stacked:true } },
+          plugins:{ legend:{ position:'bottom' } }
+        }
+      });
+    }
+
+    function drawCompare(a,b){
+      const da = a.dist.map(d=>d.n);
+      const db = b.dist.map(d=>d.n);
+      const ds = [0,1,2,3,4].map(i=>({
+        label:String(i+1),
+        data:[da[i], db[i]],
+        backgroundColor:palette5[i],
+        stack:'x'
+      }));
+      const ctx = document.getElementById('likertCompare');
+      if(chCompare) chCompare.destroy();
+      chCompare = new Chart(ctx,{
+        type:'bar',
+        data:{ labels:['Current','Compare'], datasets: ds },
+        options:{ indexAxis:'y', scales:{ x:{ stacked:true, beginAtZero:true }, y:{ stacked:true } }, plugins:{ legend:{ position:'bottom' } } }
+      });
+
+      const dAvg = (a.avg - b.avg);
+      const dPos = (a.posPct - b.posPct);
+      const fmt = n => (n>0? '+' : '') + (Number.isInteger(n)? n : n.toFixed(2));
+      const chip = (el, n) => {
+        el.textContent = fmt(n);
+        el.className = 'delta ' + (n>=0? 'up' : 'down');
+      };
+      chip($('#delta-avg'), dAvg);
+      chip($('#delta-pos'), dPos);
+    }
+
+    function themesOutput(texts){
+      // super-simple keyword freq + 2 example quotes
+      const stop=new Set("the,and,to,of,in,for,a,on,is,are,it,with,that,this,at,as,be,or,we,our,your,i,have,has,was,were,from,by,an,you,they,them".split(','));
+      const freq={};
       texts.forEach(t=>{
-        if(!t) return;
         t.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).forEach(w=>{
           if(!w || stop.has(w) || w.length<3) return;
-          freq[w] = (freq[w]||0)+1;
+          freq[w]=(freq[w]||0)+1;
         });
       });
-      return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([w,c])=>({label:w,count:c}));
+      const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([label,count])=>({label,count}));
+      $('#themeList').innerHTML = top.length ? top.map(t=>`<div>• <b>${t.label}</b> (${t.count})</div>`).join('') : '—';
+      // naive quotes: first 2 comments containing top-1 or top-2 keywords
+      const q=[];
+      if(top[0]) for(const t of texts){ if(t.toLowerCase().includes(top[0].label) && q.length<2) q.push(t); }
+      if(q.length<2 && top[1]) for(const t of texts){ if(t.toLowerCase().includes(top[1].label) && q.length<2) q.push(t); }
+      $('#themeQuotes').innerHTML = q.length ? q.map(s=>`<li>“${s.replace(/"/g,'&quot;')}”</li>`).join('') : '';
     }
 
-    // ----- charts + UI
-    let chartBar, chartPieCurrent, chartPieAll, chartTrend;
-    function drawBar(labels, counts){
-      const ctx = document.getElementById('aiBar');
-      if(chartBar) chartBar.destroy();
-      chartBar = new Chart(ctx, { type:'bar',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
-        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}}}
-      });
-    }
-    function drawPie(elId, dataArr){
-      const ctx = document.getElementById(elId);
-      const labels = ["1","2","3","4","5"];
-      const counts = [1,2,3,4,5].map((v,i)=>dataArr[i]?.n||0);
-      const inst = new Chart(ctx,{ type:'pie',
-        data:{ labels, datasets:[{ data:counts, backgroundColor:neutral }]},
-        options:{ responsive:true, plugins:{legend:{position:"bottom"}}}
-      });
-      return inst;
-    }
-    function drawTrend(series){
-      const ctx = document.getElementById('lineTrend');
-      if(chartTrend) chartTrend.destroy();
-      chartTrend = new Chart(ctx, { type:"line",
-        data:{ labels: series.map(s=>s.month),
-          datasets:[{ data: series.map(s=>s.pct), tension:.35, fill:false, borderColor: neutral[0], pointBackgroundColor: neutral[0] }]
-        },
-        options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{suggestedMin:0,suggestedMax:100,ticks:{callback:v=>v+"%"}}}}
-      });
-    }
-    function fillScoreTable(dist){
-      $('#scoreTable').innerHTML = dist.map(d=>`<tr><td>${d.score}</td><td>${d.n}</td></tr>`).join('');
-    }
-    function updateKpis(sum){
-      $('#kpi-resp').textContent = sum.total;               // total rows (what supervisors expect)
-      $('#kpi-avg').textContent  = sum.avg ? sum.avg.toFixed(2) : "–";
-      $('#kpi-pos').textContent  = sum.posPct + "%";
+    /* --------------- interactions --------------- */
+    function refresh(){
+      if(!ALL.length) return;
+      const cur = ALL.find(s=>s.id===CURRENT_ID) || ALL[0];
+      const a = summarise(cur);
+      fillKpis(a, cur.title);
+      fillTable(a.dist);
+      drawLikert(a.dist);
+      themesOutput(a.texts||[]);
+
+      const compareOn = $('#compareToggle').checked && ALL.length>1;
+      $('#comparePanel').classList.toggle('hide', !compareOn);
+      $('#compareSelect').disabled = !compareOn;
+      if(compareOn){
+        const otherId = $('#compareSelect').value;
+        const other = ALL.find(s=>s.id===otherId && s.id!==cur.id) || ALL.find(s=>s.id!==cur.id) || cur;
+        const b = summarise(other);
+        drawCompare(a,b);
+      }
     }
 
-    function buildSurveySelect(preserve=false){
-      const sel = $('#surveySelect');
-      const prev = preserve ? (CURRENT_ID || sel.value) : null;
-      sel.innerHTML = "";
-      ALL_SURVEYS.forEach(s=>{
-        const opt = document.createElement('option');
-        opt.value = s.id; opt.textContent = s.title || s.id;
-        sel.appendChild(opt);
-      });
-      const exists = prev && ALL_SURVEYS.some(s=>s.id===prev);
-      CURRENT_ID = exists ? prev : (ALL_SURVEYS[0]?.id || null);
-      sel.value = CURRENT_ID || "";
-    }
+    $('#surveySelect').addEventListener('change', e=>{ CURRENT_ID = e.target.value; refresh(); });
+    $('#compareToggle').addEventListener('change', ()=>{ buildSelects(); refresh(); });
+    $('#compareSelect').addEventListener('change', refresh);
+    $('#btnRefresh').addEventListener('click', async ()=>{ await loadAll(); refresh(); });
 
-    function summariseAll(){
-      const per = ALL_SURVEYS.map(s=>{
-        // collect comments for themes
-        const textCol = s.textCol;
-        const texts = textCol ? s.rows.map(r=>r[textCol]).filter(Boolean) : [];
-        const base = summarise(s);
-        return { id:s.id, title:s.title, texts, ...base };
-      });
-      const combined = combineSummary(per);
-      return { per, combined };
-    }
-
-    function refreshUI(){
-      if(!CURRENT_ID && ALL_SURVEYS[0]) CURRENT_ID = ALL_SURVEYS[0].id;
-      const { per, combined } = summariseAll();
-      const cur = per.find(x=>x.id===CURRENT_ID) || per[0] || combined;
-
-      updateKpis(cur || combined);
-      fillScoreTable((cur||combined).dist);
-
-      if(chartPieCurrent) chartPieCurrent.destroy();
-      if(chartPieAll) chartPieAll.destroy();
-      chartPieCurrent = drawPie('pieCurrent', (cur||combined).dist);
-      chartPieAll     = drawPie('pieAll', combined.dist);
-
-      drawTrend(combined.trend);
-
-      // themes from current survey
-      const kws = topKeywords(cur.texts || [], 6);
-      $('#ai-top-themes').textContent = kws.length ? kws.map(k=>k.label).join(", ") : "—";
-      drawBar(kws.map(k=>k.label), kws.map(k=>k.count));
-      $('#surveySelect').value = CURRENT_ID || "";
-    }
-
-    // AI box (placeholder)
-    function slopeAndNext(series){
-      if(!series.length){ return {slope:0,next:0}; }
-      const y = series.map(s=>s.pct), x = series.map((_,i)=>i+1);
-      const n = x.length, sum = a => a.reduce((s,v)=>s+v,0);
-      const mx = sum(x)/n, my = sum(y)/n;
-      const num = sum(x.map((xi,i)=>(xi-mx)*(y[i]-my)));
-      const den = sum(x.map(xi=>Math.pow(xi-mx,2))) || 1;
-      const slope = num/den; const next = Math.max(0, Math.min(100, Math.round(my + slope*(n+1-mx))));
-      return { slope, next };
-    }
-    function actionIdeas(nextPct){
-      if(nextPct < 55) return [
-        "Run a focused ‘You said, we did’ on top pain points within 2 weeks.",
-        "Timebox a pilot (4–6 weeks) addressing the most cited barrier.",
-      ];
-      if(nextPct < 70) return [
-        "Scale the most effective pilot to more Schools.",
-        "Publish a monthly culture dashboard with quick wins.",
-      ];
-      return [
-        "Consolidate: document playbooks and case studies.",
-        "Introduce light-touch pulse checks to sustain momentum.",
-      ];
-    }
+    // simple AI text (client-only heuristic for now)
     $('#btnExplain').addEventListener('click', ()=>{
-      const sel = $('#surveySelect').value;
-      const per = summariseAll().per;
-      const cur = per.find(x=>x.id===sel) || per[0];
-      const { slope, next } = slopeAndNext((summariseAll().combined).trend);
-      const summary = `We analysed ${cur.total} responses. Average score ${cur.avg.toFixed(2)} (1–5). Positive share ${cur.posPct}%.`;
-      const dir = slope>=0 ? "improving" : "declining";
-      const actions = actionIdeas(next);
-      $('#aiSummary').textContent = summary + ` Overall sentiment is ${dir}.`;
-      $('#aiForecast').textContent = `Projected positive rate next month ≈ ${next}%.`;
-      $('#aiActions').innerHTML = "<ul style='margin:.2rem 0;padding-left:18px'>" + actions.map(a=>`<li>${a}</li>`).join("") + "</ul>";
-      $('#aiOut').style.display = "block";
+      const cur = ALL.find(s=>s.id===CURRENT_ID) || ALL[0];
+      const a = summarise(cur);
+      const prompt = ($('#aiPrompt').value||'').trim();
+      const bullets = [
+        `${a.total} responses collected; ${a.scored} scored, ${a.blanks} blank.`,
+        `Average ${a.avg.toFixed(2)} (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`,
+        `${a.posPct}% positive (4–5); ${a.negPct}% negative (1–2).`,
+        `Most common score: ${a.dist.sort((x,y)=>y.n-x.n)[0]?.score ?? '—'}.`
+      ];
+      const extra = prompt ? `Prompt: ${prompt}` : '';
+      $('#aiSummary').innerHTML = bullets.map(b=>`• ${b}`).join('<br>') + (extra? `<br>${extra}` : '');
+      const actions = [
+        "Share a quick wins note referencing top theme.",
+        "Plan a short pilot addressing the biggest friction theme.",
+        "Run a pulse check after the intervention."
+      ];
+      $('#aiActions').innerHTML = "<b>Next actions</b><br><ul style='margin:.2rem 0 0 1rem'>"+actions.map(a=>`<li>${a}</li>`).join('')+"</ul>";
+      $('#aiOut').style.display='block';
     });
 
-    // events
-    $('#surveySelect').addEventListener('change', e=>{ CURRENT_ID = e.target.value; refreshUI(); });
-    $('#btnRefresh').addEventListener('click', async ()=>{ try{ await loadAll(); refreshUI(); } catch(e){ alert("Failed to reload data."); } });
-
-    // boot
     (async function init(){
       try{
         await loadAll();
-        if(!ALL_SURVEYS.length){ alert("No datasets found. Check data/datasets.json and CSV paths."); }
-        refreshUI();
-      }catch(e){ console.error(e); alert("Failed to load data. Check datasets.json and CSV paths."); }
+        refresh();
+      }catch(e){
+        console.error(e);
+        alert("Failed to load data. Check data/datasets.json and CSV paths.");
+      }
     })();
   </script>
 </body>
