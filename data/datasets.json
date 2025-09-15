@@ -4,21 +4,11 @@
       "id": "q1",
       "title": "Q1: Feel valued in your job at the moment",
       "csv": "data/q1.csv"
-      /* Optional if you want to be explicit:
-         "answerColumn": "Your answer",
-         "textColumn": "Any comments",
-         "publishedAt": "2025-02-10"
-      */
     },
     {
       "id": "q2",
       "title": "Q2: Confidence in career planning",
       "csv": "data/q2.csv"
-      /* Optional:
-         "answerColumn": "Your answer",
-         "textColumn": "Any comments",
-         "publishedAt": "2025-02-17"
-      */
     }
   ]
 }
