@@ -4,7 +4,7 @@
       "id": "q1",
       "title": "Q1: Feel valued in your job at the moment",
       "csv": "data/q1.csv"
-    },
+    }
     {
       "id": "q2",
       "title": "Q2: Confidence in career planning",
