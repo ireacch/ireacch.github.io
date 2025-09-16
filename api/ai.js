@@ -3,7 +3,6 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// allow your GitHub Pages and common local dev ports
 const ALLOWED_ORIGINS = new Set([
   "https://ireacch.github.io",
   "http://localhost:3000",
@@ -15,7 +14,6 @@ const ALLOWED_ORIGINS = new Set([
 function applyCors(req, res) {
   const origin = req.headers.origin || "";
   const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "https://ireacch.github.io";
-
   res.setHeader("Access-Control-Allow-Origin", allowOrigin);
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -81,7 +79,7 @@ If a userPrompt is included, answer it directly in 1–3 sentences using ONLY th
     const text = rsp?.output?.[0]?.content?.[0]?.text ?? "{}";
     let data; try { data = JSON.parse(text); } catch { data = {}; }
 
-    applyCors(req, res); // ensure headers are on final response
+    applyCors(req, res);
     return res.status(200).json({
       ok: true,
       summary: data.summary || "",
