@@ -1,15 +1,16 @@
-// /api/ping.js — Edge Function (Web API) with CORS that handles OPTIONS
+// /api/ping.js — Edge runtime + loud CORS + runtime breadcrumb
 export const config = { runtime: "edge" };
 
 function corsHeaders(req) {
   const origin = req.headers.get("origin") || "*";
   const acrh = req.headers.get("access-control-request-headers") || "Content-Type, Authorization";
   return {
-    "Access-Control-Allow-Origin": origin,     // reflect for testing; you can pin to https://ireacch.github.io
-    "Vary": "Origin",
+    "Access-Control-Allow-Origin": origin,          // reflect or "*" when no Origin
     "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
     "Access-Control-Allow-Headers": acrh,
-    "Access-Control-Max-Age": "86400"
+    "Access-Control-Max-Age": "86400",
+    "Vary": "Origin",
+    "X-Debug-Edge": "true"                          // breadcrumb to confirm edge code ran
   };
 }
 
@@ -19,15 +20,14 @@ export default async function handler(req) {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers });
   }
-  if (req.method !== "GET" && req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Use GET/POST" }), {
-      status: 405,
-      headers: { ...headers, "Content-Type": "application/json" }
-    });
-  }
 
-  return new Response(JSON.stringify({ ok: true, msg: "pong" }), {
-    status: 200,
-    headers: { ...headers, "Content-Type": "application/json" }
-  });
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      runtime: "edge",
+      sawOrigin: req.headers.get("origin") || null,
+      method: req.method
+    }),
+    { status: 200, headers: { ...headers, "Content-Type": "application/json" } }
+  );
 }
