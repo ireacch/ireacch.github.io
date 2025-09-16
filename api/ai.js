@@ -89,4 +89,28 @@ If a userPrompt is included, answer it directly in 1–3 sentences using ONLY th
       const errTxt = await rsp.text();
       return new Response(JSON.stringify({ error: "OpenAI error", detail: errTxt }), {
         status: 502,
-        headers: { ...headers, "Content-Type": "application/j
+        headers: { ...headers, "Content-Type": "application/json" }
+      });
+    }
+
+    const json = await rsp.json();
+    const text = json?.output?.[0]?.content?.[0]?.text ?? "{}";
+    let data; try { data = JSON.parse(text); } catch { data = {}; }
+
+    return new Response(JSON.stringify({
+      ok: true,
+      summary: data.summary || "",
+      actions: Array.isArray(data.actions) ? data.actions : [],
+      risks: Array.isArray(data.risks) ? data.risks : [],
+      answer: data.answer || ""
+    }), {
+      status: 200,
+      headers: { ...headers, "Content-Type": "application/json" }
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: "AI error", detail: String(e?.message || e) }), {
+      status: 500,
+      headers: { ...headers, "Content-Type": "application/json" }
+    });
+  }
+}
