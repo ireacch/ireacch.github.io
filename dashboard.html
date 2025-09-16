@@ -150,7 +150,7 @@
       <canvas id="likertCompare" height="240"></canvas>
     </section>
 
-    <!-- AI INSIGHTS (placeholder; wire serverless later) -->
+    <!-- AI INSIGHTS -->
     <section class="panel pad">
       <h2 class="h2">AI insights</h2>
       <div class="row">
@@ -354,7 +354,6 @@
       chLikert = new Chart(ctx,{ type:'bar', data:{ labels:[''], datasets:ds },
         options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} }, plugins:{legend:{position:'bottom'}} }
       });
-      // caption
       const cap = dist.map(d=>`${d.score}: ${d.n} (${d.p}%)`).join(' • ');
       $('#likertCaption').textContent = cap;
     }
@@ -402,7 +401,6 @@
         $('#btnCopySummary').textContent = 'Copied!';
         setTimeout(()=>$('#btnCopySummary').textContent='Copy summary',1200);
       }catch{
-        // fallback
         const ta = document.createElement('textarea');
         ta.value = text; document.body.appendChild(ta); ta.select();
         try{ document.execCommand('copy'); }catch{}
@@ -418,6 +416,89 @@
       link.download = `${$('#surveySelect').value || 'survey'}-likert.png`;
       link.href = chLikert.toBase64Image();
       link.click();
+    }
+
+    /* ------------ AI endpoint wiring ------------ */
+    const AI_URL = 'https://ireacch-github-io.vercel.app/api/ai';
+
+    async function callAIInsights(payload){
+      const res = await fetch(AI_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('AI endpoint failed');
+      return res.json();
+    }
+
+    function buildAIPayload(){
+      const sel = $('#surveySelect').value;
+      const per = summariseAll();
+      const cur = per.find(x=>x.id===sel) || per[0];
+
+      const themes = Array.from(document.querySelectorAll('#themeList b')).map(b=>{
+        const parentText = b.parentElement?.textContent || '';
+        const m = parentText.match(/\((\d+)\)\s*$/);
+        return { label: b.textContent.trim(), count: m ? Number(m[1]) : undefined };
+      });
+
+      const quotes = Array.from(document.querySelectorAll('#themeQuotes li'))
+        .map(li => li.textContent.replace(/^“|”$/g,'').trim())
+        .slice(0,5);
+
+      return {
+        surveyTitle: cur.title,
+        userPrompt: ($('#aiPrompt')?.value || '').trim(),
+        kpis: {
+          total: cur.total,
+          scored: cur.scored,
+          avg: Number(cur.avg.toFixed(2)),
+          median: Number.isInteger(cur.med) ? cur.med : Number(cur.med.toFixed(1)),
+          posPct: cur.posPct,
+          neuPct: cur.dist[2]?.p || 0,
+          negPct: cur.negPct
+        },
+        distribution: cur.dist.map(d => ({ score: d.score, n: d.n, pct: d.p })),
+        themes,
+        sampleQuotes: quotes
+      };
+    }
+
+    async function generateInsights(){
+      const btn = $('#btnExplain');
+      const out = $('#aiOut');
+      const sDiv = $('#aiSummary');
+      const aDiv = $('#aiActions');
+
+      btn.disabled = true; btn.textContent = 'Thinking…';
+      sDiv.textContent = ''; aDiv.innerHTML = ''; out.style.display='block';
+
+      try{
+        const payload = buildAIPayload();
+        const data = await callAIInsights(payload);
+
+        sDiv.textContent = data.summary || '—';
+
+        const prompt = ($('#aiPrompt')?.value || '').trim();
+        const qa = (prompt && data.answer)
+          ? `<div style="margin:.4rem 0"><b>Answer:</b> ${data.answer}</div>`
+          : '';
+
+        const risks = (data.risks && data.risks.length)
+          ? `<div class="muted" style="margin:.4rem 0"><b>Risks:</b> ${data.risks.join('; ')}</div>`
+          : '';
+
+        const actions = (data.actions && data.actions.length)
+          ? data.actions.map(x=>`<li>${x}</li>`).join('')
+          : '<li>No specific actions returned.</li>';
+
+        aDiv.innerHTML = `${qa}${risks}<b>Recommended actions</b><ul style="margin:.2rem 0 0 1rem">${actions}</ul>`;
+      }catch(e){
+        sDiv.textContent = 'Sorry — could not generate AI insights.';
+        aDiv.textContent = String(e?.message || e);
+      }finally{
+        btn.disabled = false; btn.textContent = 'Generate insights';
+      }
     }
 
     /* ------------ refresh pipeline ------------ */
@@ -450,18 +531,8 @@
     $('#btnCopySummary').addEventListener('click', copySummary);
     $('#btnDownloadLikert').addEventListener('click', downloadLikertPNG);
 
-    // simple placeholder for AI button (replace with serverless later)
-    $('#btnExplain').addEventListener('click', ()=>{
-      const per=summariseAll(), cur=per.find(x=>x.id===$('#surveySelect').value)||per[0];
-      const bullets=[
-        `${cur.total} responses; ${cur.scored} scored.`,
-        `Avg ${cur.avg.toFixed(2)} (median ${Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)}).`,
-        `${cur.posPct}% positive; ${(cur.dist[2]?.p||0)}% neutral; ${cur.negPct}% negative.`
-      ];
-      $('#aiSummary').innerHTML = bullets.map(b=>`• ${b}`).join('<br>');
-      $('#aiActions').innerHTML = "<b>Actions</b><ul style='margin:.2rem 0 0 1rem'><li>Share topline with faculty.</li><li>Run small focus group for low scorers.</li><li>Plan follow-up pulse check.</li></ul>";
-      $('#aiOut').style.display='block';
-    });
+    // AI button → serverless endpoint
+    $('#btnExplain').addEventListener('click', generateInsights);
 
     /* ------------ boot ------------ */
     (async function init(){
