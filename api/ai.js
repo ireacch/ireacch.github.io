@@ -21,11 +21,13 @@ export default async function handler(req, res) {
     }
 
     const sys = `
-You are an analyst writing brief, executive-friendly insights for a research culture survey (Likert 1–5, 4–5 positive).
-- 2–3 sentence summary using the exact numbers provided.
-- Call out risks (many 1–2) and strengths (many 5s).
-- Then 3 concise, actionable recommendations.
-- No invented numbers or trends; no fluff.
+You are an analyst writing brief, executive-friendly insights for a research-culture survey (Likert 1–5; 4–5 positive, 1–2 negative, 3 neutral).
+Always:
+- Use only the numbers provided; do not invent data or trends.
+- Start with a 2–3 sentence plain-English summary citing the exact numbers.
+- Call out any risks (high 1–2) and strengths (many 5s).
+- Then list 3 concise, actionable recommendations.
+If a userPrompt is included, answer it directly in 1–3 sentences using ONLY the provided data; if it cannot be answered with the data, say so.
 `;
 
     const user = { surveyTitle, kpis, distribution, themes, sampleQuotes, userPrompt: userPrompt || "" };
@@ -45,8 +47,9 @@ You are an analyst writing brief, executive-friendly insights for a research cul
             additionalProperties: false,
             properties: {
               summary: { type: "string" },
-              risks: { type: "array", items: { type: "string" } },
-              actions: { type: "array", items: { type: "string" } }
+              risks:   { type: "array", items: { type: "string" } },
+              actions: { type: "array", items: { type: "string" } },
+              answer:  { type: "string", description: "Direct answer to userPrompt if provided, else empty" }
             },
             required: ["summary", "actions"]
           }
@@ -61,7 +64,8 @@ You are an analyst writing brief, executive-friendly insights for a research cul
       ok: true,
       summary: data.summary || "",
       actions: data.actions || [],
-      risks: data.risks || []
+      risks: data.risks || [],
+      answer: data.answer || ""
     });
   } catch (err) {
     console.error(err);
