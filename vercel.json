@@ -8,10 +8,10 @@
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" },
         { "key": "Access-Control-Max-Age", "value": "86400" }
-      ] 
+      ]
     }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" }
   ]
 }
