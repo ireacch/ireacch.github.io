@@ -1,12 +1,12 @@
-// /api/ai.js — Vercel Serverless Function
+// /api/ai.js — Vercel Serverless Function with robust CORS
 import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Allowed front-end origins
+// allow your GitHub Pages and common local dev ports
 const ALLOWED_ORIGINS = new Set([
-  "https://ireacch.github.io",   // GitHub Pages prod
-  "http://localhost:3000",       // local dev
+  "https://ireacch.github.io",
+  "http://localhost:3000",
   "http://127.0.0.1:3000",
   "http://localhost:5173",
   "http://127.0.0.1:5173"
@@ -17,26 +17,23 @@ function applyCors(req, res) {
   const allowOrigin = ALLOWED_ORIGINS.has(origin) ? origin : "https://ireacch.github.io";
 
   res.setHeader("Access-Control-Allow-Origin", allowOrigin);
-  res.setHeader("Vary", "Origin"); // so caches don't mix origins
+  res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Access-Control-Max-Age", "86400"); // cache preflight for 24h
+  res.setHeader("Access-Control-Max-Age", "86400");
 }
 
 export default async function handler(req, res) {
   applyCors(req, res);
 
   if (req.method === "OPTIONS") {
-    // Preflight: return 200 with CORS headers
-    return res.status(200).end();
+    return res.status(200).end(); // preflight OK
   }
-
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Use POST" });
   }
 
   try {
-    // Body may be a string (depending on Vercel config) — handle both
     const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
     const { surveyTitle, kpis, distribution, themes, sampleQuotes, userPrompt } = body;
 
@@ -82,11 +79,9 @@ If a userPrompt is included, answer it directly in 1–3 sentences using ONLY th
     });
 
     const text = rsp?.output?.[0]?.content?.[0]?.text ?? "{}";
-    let data;
-    try { data = JSON.parse(text); } catch { data = {}; }
+    let data; try { data = JSON.parse(text); } catch { data = {}; }
 
-    // Ensure CORS headers are present on the final response too
-    applyCors(req, res);
+    applyCors(req, res); // ensure headers are on final response
     return res.status(200).json({
       ok: true,
       summary: data.summary || "",
