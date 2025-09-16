@@ -1,6 +1,6 @@
 // /api/ai.js — Vercel Serverless Function with robust CORS
 import OpenAI from "openai";
-
+ 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const ALLOWED_ORIGINS = new Set([
