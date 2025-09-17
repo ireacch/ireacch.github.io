@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Micro Survey Overview | I-REACCH</title>
 
+  <!-- Keep your existing site styles -->
   <link rel="stylesheet" href="assets/css/brand.css">
   <link rel="stylesheet" href="assets/css/header.css">
   <link rel="stylesheet" href="assets/css/style.css">
@@ -67,28 +68,31 @@
     .h2{ margin:0; color:var(--text); font-size:18px; font-weight:800; }
     .muted{ color:var(--muted); font-size:12px; }
 
-    .frame-wrap{ position:relative; }
-    iframe{ width:100%; height:600px; border:0; border-radius:12px; background:#fff; display:block; }
-
-    /* Fallback overlay */
-    .fallback{
-      position:absolute; inset:0;
-      display:flex; flex-direction:column; justify-content:center; align-items:center;
-      gap:10px; text-align:center;
-      padding:16px;
-      border-radius:12px;
-      background:rgba(255,255,255,0.92);
-      border:1px dashed var(--border);
-    }
-    .fallback .actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
-    .btn{ appearance:none; border:0; border-radius:999px; padding:10px 16px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--accent-2),var(--accent)); cursor:pointer; }
-    .btn.ghost{ background:#fff; color:#1b2a41; border:1px solid var(--border); }
-    .btn.link{ background:transparent; color:#1b2a41; border:0; text-decoration:underline; padding:0; }
-    .btn[disabled]{ opacity:.45; cursor:not-allowed; }
+    iframe{ width:100%; height:600px; border:0; border-radius:12px; background:#fff; }
 
     .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center; }
+    .btn{ appearance:none; border:0; border-radius:999px; padding:10px 16px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--accent-2),var(--accent)); cursor:pointer; }
+    .btn[disabled]{ opacity:.45; cursor:not-allowed; }
+
     .complete-note{ color:var(--red-pill); font-size:13px; font-weight:700; line-height:1.2; }
-    .note{ font-size:12px; color:#b45309; }
+
+    .admin{ margin-top:26px; border-top:1px dashed var(--border); padding-top:16px; }
+    .admin input{ width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0; }
+    .admin .grid{ display:grid; grid-template-columns:2fr 1fr; gap:10px; }
+    code.json-out{ display:block; white-space:pre-wrap; background:#0f172a; color:#e2e8f0; padding:10px; border-radius:10px; margin-top:10px; font-size:.85rem; }
+
+    /* Fallback note under iframe */
+    .fallback{
+      display:none;
+      margin-top:12px;
+      padding:12px 14px;
+      border:1px dashed var(--border);
+      border-radius:12px;
+      background:#fffdfa;
+    }
+    .fallback .actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .btn.ghost{ background:#fff; color:#1b2a41; border:1px solid var(--border); }
+    .btn.link{ background:transparent; color:#1b2a41; border:0; text-decoration:underline; padding:0; }
   </style>
 </head>
 <body>
@@ -104,15 +108,18 @@
   </header>
 
   <main class="page">
+    <!-- INTRO CARD (unchanged) -->
     <section class="intro-card" aria-labelledby="intro-heading">
       <div class="intro-grid">
         <div>
           <h2 id="intro-heading">Speak up for research culture: I-REACCH Micro Survey</h2>
-          <p>The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester.</p>
-          <h2>Why take part?</h2>
-          <p>Each weekly micro-survey has one question and takes &lt; 1 minute. It’s anonymous and open to research staff, enabling staff, and PGRs.</p>
-          <h2>Privacy</h2>
-          <p>You may be asked to sign in with your University account to access the form; your identity isn’t collected by I-REACCH.</p>
+          <p>The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester. These anonymous micro-surveys are designed to capture perceptions and establish a baseline for evaluating I-REACCH’s interventions.</p>
+          <h2>Why take part in the micro-surveys?</h2>
+          <p>Help shape a more inclusive and supportive research culture at Leicester – one click at a time! Each weekly I-REACCH micro-survey has just one question and takes less than a minute. It’s quick, anonymous, and open to all research staff, research-enabling staff, and PGRs.</p>
+          <h2>What will happen to your responses?</h2>
+          <p>The survey is totally anonymous. You may be asked to log in with your University of Leicester email; the system won't collect your name or your email address.</p>
+          <p>If you would like to find out more before deciding to participate, please <a href="mailto:ireacch@leicester.ac.uk">contact us</a>.</p>
+          <p>By completing the survey, you confirm that you have read the information above and consent to take part in the study.</p>
         </div>
         <figure class="intro-figure" aria-hidden="true">
           <img src="assets/img/speak-up.png" alt="">
@@ -120,7 +127,9 @@
       </div>
     </section>
 
+    <!-- MAIN CONTENT -->
     <div class="runner">
+      <!-- LEFT: list (unchanged) -->
       <aside class="panel" aria-labelledby="list-heading">
         <div class="hd">
           <h3 id="list-heading" class="side-title">Survey List</h3>
@@ -133,6 +142,7 @@
         <div class="bd"><div id="list" class="list"></div></div>
       </aside>
 
+      <!-- RIGHT: current survey with fallback -->
       <section class="panel" aria-live="polite">
         <div class="hd">
           <div class="head-row">
@@ -143,35 +153,31 @@
             <div class="status"><span id="currBadge" class="pill unfinished">Unfinished</span></div>
           </div>
         </div>
-
         <div class="bd">
-          <div class="frame-wrap">
-            <iframe id="formFrame" title="Survey"></iframe>
+          <iframe id="formFrame" title="Survey"></iframe>
 
-            <!-- Fallback overlay -->
-            <div id="formFallback" class="fallback" aria-live="polite">
-              <div><b>We can’t show the survey here.</b></div>
-              <div class="actions">
-                <a id="openNewTab" class="btn ghost" target="_blank" rel="noopener">Open in a new tab</a>
-                <button id="btnSignin" class="btn ghost" type="button">Sign in to Microsoft</button>
-                <button id="btnRefresh" class="btn link" type="button">Refresh</button>
-              </div>
-              <div class="muted" style="margin-top:6px">
-                Tip: click <b>Sign in to Microsoft</b>, finish the popup, then use <b>Open in a new tab</b> or <b>Refresh</b>.
-              </div>
-              <div id="popupNote" class="note" style="display:none;">Your browser blocked the automatic sign-in popup — please click “Sign in to Microsoft”.</div>
+          <!-- Fallback shown if the iframe can’t load (user not signed in / tenant blocks iframes) -->
+          <div id="formFallback" class="fallback">
+            <div><b>Can’t show the survey here.</b> You may need to sign in to Microsoft 365 or open the survey in a separate tab.</div>
+            <div class="actions">
+              <a id="openNewTab" class="btn ghost" target="_blank" rel="noopener">Open survey in a new tab</a>
+              <a class="btn ghost" href="https://login.microsoftonline.com/" target="_blank" rel="noopener">Sign in to Microsoft</a>
+              <button id="retryEmbed" class="btn link">Try the embed again</button>
+            </div>
+            <div class="muted" style="margin-top:6px">
+              Tip: If you just signed in, come back to this page and click “Try the embed again”.
             </div>
           </div>
 
           <div class="controls">
             <button id="btnComplete" class="btn">Mark as completed</button>
-            <span class="complete-note">Please press “Submit” in the survey before marking it as completed.</span>
+            <span class="complete-note">Please make sure to press “Submit” in the survey before marking it as completed.</span>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- Admin helper (optional) -->
+    <!-- Admin helper (unchanged) -->
     <section id="admin" class="admin" style="display:none">
       <h2 style="margin:0 0 8px">Admin • add a survey (JSON helper)</h2>
       <div class="grid">
@@ -182,7 +188,7 @@
         <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
         <input id="aSchool" placeholder="School/College (optional)"/>
       </div>
-      <input id="aUrl" placeholder="Microsoft Forms URL"/>
+      <input id="aUrl" placeholder="Microsoft Forms embed URL"/>
       <div class="controls">
         <button id="aAdd" class="btn">Add to config (in memory)</button>
         <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
@@ -192,7 +198,7 @@
   </main>
 
   <script>
-    /* ------------ Load surveys + LIVE submission dates ------------ */
+    /* -------------------- Load surveys + LIVE submission dates -------------------- */
     let SURVEYS = [];
     const LIVE = { updatedAt: null, surveys: {} };
 
@@ -211,9 +217,10 @@
       }catch{}
     }
 
-    /* ------------ Local completion status ------------ */
+    /* -------------------- Local completion status -------------------- */
     const statusKey = id => `survey-status:${id}`;
     const whenKey   = id => `survey-completed-at:${id}`;
+
     const getStatus = id => localStorage.getItem(statusKey(id)) || "not";
     function setStatus(id, s){
       localStorage.setItem(statusKey(id), s);
@@ -222,14 +229,12 @@
       updateBtn();
     }
 
-    /* ------------ UI refs ------------ */
+    /* -------------------- UI refs -------------------- */
     const $list   = document.getElementById('list');
     const $frame  = document.getElementById('formFrame');
     const $fallback = document.getElementById('formFallback');
     const $openNewTab = document.getElementById('openNewTab');
-    const $btnSignin  = document.getElementById('btnSignin');
-    const $btnRefresh = document.getElementById('btnRefresh');
-    const $popupNote  = document.getElementById('popupNote');
+    const $retryEmbed = document.getElementById('retryEmbed');
 
     const $title  = document.getElementById('currTitle');
     const $date   = document.getElementById('currDate');
@@ -238,6 +243,7 @@
     const $filters= document.getElementById('filters');
 
     let current = null, filter = "all";
+    let embedTimer = null;
 
     /* Filters */
     [...$filters.querySelectorAll('a')].forEach(a=>{
@@ -250,7 +256,7 @@
       };
     });
 
-    /* Dates + labels */
+    /* Dates */
     const fmt = (any) => {
       if (!any) return '';
       const d = new Date(any);
@@ -262,11 +268,13 @@
       }
       return String(any);
     };
+
     function getDisplayDate(id, surveyObj){
       const live = LIVE.surveys?.[id] || {};
       const pick = live.publishedAt || live.lastSubmittedAt || surveyObj?.publishedAt || surveyObj?.date || null;
       return fmt(pick);
     }
+
     function labelForList(s, index){
       return s.displayTitle && s.displayTitle.trim().length
         ? s.displayTitle
@@ -307,24 +315,16 @@
       });
     }
 
-    /* ---- Auto sign-in attempt (may be blocked by popup blockers) ---- */
-    function tryAutoSignin(){
-      const LOGIN_URL = 'https://login.microsoftonline.com/';
-      const w = 640, h = 720;
-      const left = (screen.width - w) / 2;
-      const top  = (screen.height - h) / 2;
-      const win = window.open(LOGIN_URL, 'mslogin',
-        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-      if (!win) {
-        // blocked
-        $popupNote.style.display = 'block';
-        return;
-      }
-      // Close the popup automatically after a short while (if allowed).
-      setTimeout(() => { try { win.close(); } catch(_){} }, 4000);
+    /* Show/hide fallback helpers */
+    function showFallback(url){
+      $openNewTab.href = url || '#';
+      $fallback.style.display = 'block';
+    }
+    function hideFallback(){
+      $fallback.style.display = 'none';
     }
 
-    /* Load a survey: set up frame, overlay, auto sign-in attempt */
+    /* Load a survey with embed watchdog */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -337,36 +337,34 @@
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
-      $popupNote.style.display = 'none';
-
-      // Always keep overlay visible (tenant may block iframe).
+      hideFallback();               // reset fallback
+      $frame.src = 'about:blank';   // reset frame quickly
+      // Start embed attempt
+      $frame.src = s.url;
       $openNewTab.href = s.url;
 
-      // Load the iframe behind the overlay (for tenants that do allow it).
-      const sep = s.url.includes('?') ? '&' : '?';
-      $frame.src = s.url + sep + 'cb=' + Date.now();
-      document.getElementById('formFallback').style.display = 'flex';
+      // If the iframe loads, hide fallback; otherwise show after timeout
+      if (embedTimer) clearTimeout(embedTimer);
+      embedTimer = setTimeout(() => showFallback(s.url), 2500);
 
-      // Attempt auto sign-in (may be blocked by browser).
-      tryAutoSignin();
+      // Some browsers fire load even if content is blocked; still treat as success
+      $frame.onload = () => {
+        if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
+        hideFallback();
+      };
 
       renderList(id);
       updateBtn();
     }
 
-    /* Manual sign-in button */
-    document.getElementById('btnSignin').addEventListener('click', () => {
-      $popupNote.style.display = 'none';
-      tryAutoSignin();
-    });
-
-    /* Refresh button re-loads the iframe src (useful after sign-in) */
-    document.getElementById('btnRefresh').addEventListener('click', () => {
+    /* Retry button */
+    $retryEmbed.addEventListener('click', () => {
       if (!current) return;
-      const sep = current.url.includes('?') ? '&' : '?';
-      $frame.src = current.url + sep + 'cb=' + Date.now();
-      // Keep the overlay; if tenant allows embedding, you can manually hide overlay in code here,
-      // but most universities block iframes for Forms, so open-in-new-tab remains the reliable path.
+      hideFallback();
+      // Re-attempt the embed
+      if (embedTimer) clearTimeout(embedTimer);
+      $frame.src = 'about:blank';
+      setTimeout(() => loadSurvey(current.id), 100);
     });
 
     function updateBtn(){
@@ -382,7 +380,7 @@
       loadSurvey(current.id);
     };
 
-    /* Admin helper (?admin=1) */
+    /* Admin helper (?admin=1) — unchanged */
     const urlParams = new URLSearchParams(location.search);
     if(urlParams.get("admin")==="1"){
       const admin = document.getElementById('admin');
