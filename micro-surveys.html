@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Micro Survey Overview | I-REACCH</title>
 
-  <!-- Keep your existing site styles -->
   <link rel="stylesheet" href="assets/css/brand.css">
   <link rel="stylesheet" href="assets/css/header.css">
   <link rel="stylesheet" href="assets/css/style.css">
@@ -150,10 +149,11 @@
             <div><b>Can’t show the survey here.</b></div>
             <div class="actions">
               <a id="openNewTab" class="btn ghost" target="_blank" rel="noopener">Open survey in a new tab</a>
+              <button id="btnSignin" class="btn ghost" type="button">Sign in to Microsoft</button>
               <button id="retryEmbed" class="btn link" type="button">Try again</button>
             </div>
             <div class="muted" style="margin-top:6px">
-              Tip: if you weren’t logged in, open in a new tab, <b>sign in to Microsoft</b>, then return and click “Try again”.
+              Tip: if you weren’t logged in, click <b>Sign in to Microsoft</b>, complete sign-in in the popup, then click <b>Try again</b>.
             </div>
           </div>
 
@@ -222,6 +222,7 @@
     const $fallback   = document.getElementById('formFallback');
     const $openNewTab = document.getElementById('openNewTab');
     const $retryEmbed = document.getElementById('retryEmbed');
+    const $btnSignin  = document.getElementById('btnSignin');
 
     const $title  = document.getElementById('currTitle');
     const $date   = document.getElementById('currDate');
@@ -300,7 +301,7 @@
       });
     }
 
-    /* Fallback helpers — HIDE iframe when we show fallback */
+    /* Fallback helpers — hide iframe while fallback is shown */
     function showFallback(url){
       $openNewTab.href = url || '#';
       $frame.style.display = 'none';
@@ -311,48 +312,55 @@
       $frame.style.display = 'block';
     }
 
+    /* Only consider these hosts as a successful embed */
+    function isAllowedFormsHost(href){
+      if(!href) return false;
+      try{
+        const u = new URL(href, location.href);
+        return /(^|\.)forms\.office\.com$/.test(u.hostname) || /(^|\.)office\.com$/.test(u.hostname);
+      }catch{ return false; }
+    }
+
     /* Try to embed the form, ignoring about:blank onload */
     function tryEmbed(url){
-      hideFallback();
+      // show fallback by default; we'll hide on confirmed success
+      showFallback(url);
 
       // Clear any previous timer
       if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
 
-      // Reset frame
+      // Reset iframe to a clean state (about:blank will fire onload; we ignore it)
+      $frame.onload = null;
       $frame.src = 'about:blank';
 
-      // Build a real URL with cache-buster
+      // Real URL with cache-buster
       const sep = url.includes('?') ? '&' : '?';
       const realURL = url + sep + 'cb=' + Date.now();
 
-      // Only treat onload as "success" if the src is the real Microsoft URL
-      const isRealLoad = () => {
-        const cur = $frame.src || '';
-        if (!cur || cur === 'about:blank') return false;
-        // Accept Microsoft Forms hosts (forms.office.com, *.office.com)
-        if (/forms\.office\.com|office\.com/i.test(cur)) return true;
-        // Also accept if it matches our realURL (handles redirects preserving base)
-        return cur.indexOf(url) === 0;
-      };
-
-      // Attach onload AFTER setting about:blank, BEFORE setting the real URL,
-      // but ignore the immediate about:blank load.
+      // Set onload to detect successful loads only
       $frame.onload = () => {
-        if (isRealLoad()) {
-          if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
+        const cur = $frame.src || '';
+        if (isAllowedFormsHost(cur)) {
+          // success: show iframe, hide fallback
           hideFallback();
+          // guard: cancel watchdog if any
+          if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
+        } else {
+          // onload from about:blank or some blocked redirect — keep fallback visible
         }
-        // If it's about:blank, do nothing; watchdog will decide.
       };
 
-      // Nudge to real URL shortly after reset
+      // Kick to real URL
       setTimeout(() => { $frame.src = realURL; }, 50);
 
-      // Watchdog: show fallback if real content doesn't load in time
-      embedTimer = setTimeout(() => { showFallback(url); }, 6000);
+      // Watchdog: if nothing good happens in time, keep fallback up (already visible)
+      embedTimer = setTimeout(() => {
+        // nothing to do; fallback is already showing. Leave iframe hidden.
+        // Optionally, we could try once more automatically.
+      }, 5000);
     }
 
-    /* Load a survey with the robust embed logic */
+    /* Load a survey with robust embed logic */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -376,6 +384,31 @@
     $retryEmbed.addEventListener('click', () => {
       if (!current) return;
       tryEmbed(current.url);
+    });
+
+    /* Open Microsoft login in a popup, then retry when the popup closes */
+    $btnSignin.addEventListener('click', () => {
+      const LOGIN_URL = 'https://login.microsoftonline.com/';
+      const w = 640, h = 720;
+      const left = (screen.width - w) / 2;
+      const top  = (screen.height - h) / 2;
+      const authWin = window.open(LOGIN_URL, 'mslogin',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+
+      if (!authWin) {
+        // Popup blocked — fall back to opening the survey in a new tab for SSO
+        if (current?.url) window.open(current.url, '_blank', 'noopener');
+        return;
+      }
+
+      const poll = setInterval(() => {
+        if (authWin.closed) {
+          clearInterval(poll);
+          if (current?.url) tryEmbed(current.url);
+        }
+      }, 600);
+      // safety: stop polling after 2 minutes even if window left open
+      setTimeout(() => clearInterval(poll), 120000);
     });
 
     function updateBtn(){
