@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="assets/css/header.css"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
 
   <style>
     :root{
@@ -29,7 +31,7 @@
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}
     .pill{font-size:.85rem;background:#eef2f7;color:#556070;padding:4px 10px;border-radius:999px;font-weight:700}
     .btn{appearance:none;border:0;border-radius:999px;padding:10px 14px;font-weight:800;color:#fff;background:linear-gradient(90deg,var(--grad-a),var(--grad-b));cursor:pointer}
-    .btn.ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+    .btn.ghost{background:transparent;border:1px solid var(--border);color:#1b2a41}
     .btn.tiny{padding:6px 10px;font-size:.85rem}
     .hint{font-size:.9rem;color:var(--muted)}
     .muted{color:var(--muted)}
@@ -76,7 +78,8 @@
           </label>
           <select id="compareSelect" class="pill" disabled aria-label="Compare with dataset"></select>
         </div>
-        <div class="row">
+        <div class="row" style="gap:8px">
+          <button id="btnExportExcel" class="btn ghost" title="Export current survey to Excel (Copilot-ready)">Export to Excel</button>
           <button id="btnRefresh" class="btn ghost">Reload data</button>
         </div>
       </div>
@@ -161,6 +164,7 @@
         <div id="aiSummary" class="ai-small"></div>
         <div id="aiActions" class="ai-small" style="margin-top:8px"></div>
       </div>
+      <div class="hint" style="margin-top:6px">No Azure OpenAI? Export to Excel above and use <b>Copilot in Excel</b> for secure analysis inside Microsoft 365.</div>
     </section>
   </main>
 
@@ -375,7 +379,7 @@
       chip($('#delta-avg'), dAvg); chip($('#delta-pos'), dPos);
     }
 
-    /* ------------ actions: copy + download ------------ */
+    /* ------------ COPY + DOWNLOAD ------------ */
     function buildCopyText(){
       const sel = $('#surveySelect').value;
       const per = summariseAll();
@@ -418,9 +422,53 @@
       link.click();
     }
 
-    /* ------------ AI endpoint wiring ------------ */
-    const AI_URL = "/api/ai";
+    /* ------------ EXPORT TO EXCEL (Copilot-ready) ------------ */
+    function exportToExcel(){
+      const sel = $('#surveySelect').value;
+      const per = summariseAll();
+      const cur = per.find(x=>x.id===sel) || per[0];
 
+      // Sheet 1: Topline (as AoA)
+      const topline = [
+        [cur.title, "Topline"],
+        ["Responses", cur.total],
+        ["Scored (n)", cur.scored],
+        ["Average", cur.avg.toFixed(2)],
+        ["Median", Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)],
+        ["Positive (4–5)", cur.posPct + "%"],
+        ["Neutral (3)", (cur.dist[2]?.p||0) + "%"],
+        ["Negative (1–2)", cur.negPct + "%"],
+        [],
+        ["Narrative"],
+        [document.getElementById("plainSummary").textContent || ""]
+      ];
+      const wsTop = XLSX.utils.aoa_to_sheet(topline);
+
+      // Sheet 2: Distribution
+      const distAoA = [["Score","Count","%"]].concat(cur.dist.map(d=>[d.score,d.n,d.p]));
+      const wsDist = XLSX.utils.aoa_to_sheet(distAoA);
+
+      // Sheet 3: Responses (anonymised)
+      // Only mapped score + free-text comment (when available)
+      const sDef = ALL.find(s=>s.id===cur.id);
+      const rows = (sDef?.rows || []).map(r=>{
+        const sc = sDef?.scoreCol ? toScore(r[sDef.scoreCol]) : null;
+        const tx = sDef?.textCol ? r[sDef.textCol] : "";
+        return { "Score (1-5)": sc, "Comment": tx || "" };
+      });
+      const wsResp = XLSX.utils.json_to_sheet(rows, { header:["Score (1-5)","Comment"] });
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, wsTop, "Topline");
+      XLSX.utils.book_append_sheet(wb, wsDist, "Distribution");
+      XLSX.utils.book_append_sheet(wb, wsResp, "Responses (anonymised)");
+
+      const fname = (cur.title || "survey").replace(/[^a-z0-9]+/gi,'_') + "_copilot.xlsx";
+      XLSX.writeFile(wb, fname);
+    }
+
+    /* ------------ AI endpoint wiring (kept; optional) ------------ */
+    const AI_URL = "/api/ai";
     async function callAIInsights(payload){
       const res = await fetch(AI_URL, {
         method: 'POST',
@@ -430,40 +478,31 @@
       if(!res.ok) throw new Error('AI endpoint failed');
       return res.json();
     }
-
     function buildAIPayload(){
       const sel = $('#surveySelect').value;
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
-
       const themes = Array.from(document.querySelectorAll('#themeList b')).map(b=>{
         const parentText = b.parentElement?.textContent || '';
         const m = parentText.match(/\((\d+)\)\s*$/);
         return { label: b.textContent.trim(), count: m ? Number(m[1]) : undefined };
       });
-
       const quotes = Array.from(document.querySelectorAll('#themeQuotes li'))
         .map(li => li.textContent.replace(/^“|”$/g,'').trim())
         .slice(0,5);
-
       return {
         surveyTitle: cur.title,
         userPrompt: ($('#aiPrompt')?.value || '').trim(),
         kpis: {
-          total: cur.total,
-          scored: cur.scored,
+          total: cur.total, scored: cur.scored,
           avg: Number(cur.avg.toFixed(2)),
           median: Number.isInteger(cur.med) ? cur.med : Number(cur.med.toFixed(1)),
-          posPct: cur.posPct,
-          neuPct: cur.dist[2]?.p || 0,
-          negPct: cur.negPct
+          posPct: cur.posPct, neuPct: cur.dist[2]?.p || 0, negPct: cur.negPct
         },
         distribution: cur.dist.map(d => ({ score: d.score, n: d.n, pct: d.p })),
-        themes,
-        sampleQuotes: quotes
+        themes, sampleQuotes: quotes
       };
     }
-
     async function generateInsights(){
       const btn = $('#btnExplain');
       const out = $('#aiOut');
@@ -530,8 +569,9 @@
 
     $('#btnCopySummary').addEventListener('click', copySummary);
     $('#btnDownloadLikert').addEventListener('click', downloadLikertPNG);
+    $('#btnExportExcel').addEventListener('click', exportToExcel);
 
-    // AI button → serverless endpoint
+    // AI button → serverless endpoint (optional)
     $('#btnExplain').addEventListener('click', generateInsights);
 
     /* ------------ boot ------------ */
