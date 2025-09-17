@@ -176,7 +176,7 @@
         <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
         <input id="aSchool" placeholder="School/College (optional)"/>
       </div>
-      <input id="aUrl" placeholder="Microsoft Forms URL"/>
+        <input id="aUrl" placeholder="Microsoft Forms URL"/>
       <div class="controls">
         <button id="aAdd" class="btn">Add to config (in memory)</button>
         <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
@@ -311,7 +311,48 @@
       $frame.style.display = 'block';
     }
 
-    /* Load a survey with watchdog + onload to cancel fallback */
+    /* Try to embed the form, ignoring about:blank onload */
+    function tryEmbed(url){
+      hideFallback();
+
+      // Clear any previous timer
+      if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
+
+      // Reset frame
+      $frame.src = 'about:blank';
+
+      // Build a real URL with cache-buster
+      const sep = url.includes('?') ? '&' : '?';
+      const realURL = url + sep + 'cb=' + Date.now();
+
+      // Only treat onload as "success" if the src is the real Microsoft URL
+      const isRealLoad = () => {
+        const cur = $frame.src || '';
+        if (!cur || cur === 'about:blank') return false;
+        // Accept Microsoft Forms hosts (forms.office.com, *.office.com)
+        if (/forms\.office\.com|office\.com/i.test(cur)) return true;
+        // Also accept if it matches our realURL (handles redirects preserving base)
+        return cur.indexOf(url) === 0;
+      };
+
+      // Attach onload AFTER setting about:blank, BEFORE setting the real URL,
+      // but ignore the immediate about:blank load.
+      $frame.onload = () => {
+        if (isRealLoad()) {
+          if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
+          hideFallback();
+        }
+        // If it's about:blank, do nothing; watchdog will decide.
+      };
+
+      // Nudge to real URL shortly after reset
+      setTimeout(() => { $frame.src = realURL; }, 50);
+
+      // Watchdog: show fallback if real content doesn't load in time
+      embedTimer = setTimeout(() => { showFallback(url); }, 6000);
+    }
+
+    /* Load a survey with the robust embed logic */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -324,46 +365,17 @@
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
-      hideFallback();
       $openNewTab.href = s.url;
 
-      // Reset, then try to embed with a cache buster
-      if (embedTimer) clearTimeout(embedTimer);
-      $frame.src = 'about:blank';
-
-      // Important: wire onload BEFORE setting src, so we cancel the timer as soon as the frame signals load
-      $frame.onload = () => {
-        if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
-        hideFallback(); // ensure fallback stays hidden once something loaded
-      };
-
-      const sep = s.url.includes('?') ? '&' : '?';
-      $frame.src = s.url + sep + 'cb=' + Date.now();
-
-      // Show fallback only if nothing loads within the window
-      embedTimer = setTimeout(() => showFallback(s.url), 6000); // longer window to avoid “flash then fallback”
-
+      tryEmbed(s.url);
       renderList(id);
       updateBtn();
     }
 
-    /* Retry */
+    /* Retry (after sign-in etc.) */
     $retryEmbed.addEventListener('click', () => {
       if (!current) return;
-      hideFallback();
-      if (embedTimer) clearTimeout(embedTimer);
-      $frame.src = 'about:blank';
-      // Give it a fresh try; use a slightly longer timeout after login
-      setTimeout(() => {
-        // rebind onload each attempt
-        $frame.onload = () => {
-          if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
-          hideFallback();
-        };
-        const sep = current.url.includes('?') ? '&' : '?';
-        $frame.src = current.url + sep + 'cb=' + Date.now();
-        embedTimer = setTimeout(() => showFallback(current.url), 8000);
-      }, 120);
+      tryEmbed(current.url);
     });
 
     function updateBtn(){
