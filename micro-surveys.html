@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Micro Survey Overview | I-REACCH</title>
 
-  <!-- Keep your existing site styles -->
   <link rel="stylesheet" href="assets/css/brand.css">
   <link rel="stylesheet" href="assets/css/header.css">
   <link rel="stylesheet" href="assets/css/style.css">
@@ -76,7 +75,7 @@
 
     .complete-note{ color:var(--red-pill); font-size:13px; font-weight:700; line-height:1.2; }
 
-    /* Fallback under iframe (simple, 2 options) */
+    /* Fallback box */
     .fallback{
       display:none;
       margin-top:12px;
@@ -103,17 +102,15 @@
   </header>
 
   <main class="page">
-    <!-- Intro -->
     <section class="intro-card" aria-labelledby="intro-heading">
       <div class="intro-grid">
         <div>
           <h2 id="intro-heading">Speak up for research culture: I-REACCH Micro Survey</h2>
-          <p>The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester. These anonymous micro-surveys are designed to capture perceptions and establish a baseline for evaluating I-REACCH’s interventions.</p>
-          <h2>Why take part in the micro-surveys?</h2>
-          <p>Each weekly micro-survey has just one question and takes less than a minute. It’s quick, anonymous, and open to all research staff, research-enabling staff, and PGRs.</p>
-          <h2>What will happen to your responses?</h2>
-          <p>The survey is anonymous. You may be asked to sign in with your University email to access the form; your identity isn’t collected.</p>
-          <p>Questions? <a href="mailto:ireacch@leicester.ac.uk">contact us</a>.</p>
+          <p>The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester.</p>
+          <h2>Why take part?</h2>
+          <p>Each weekly micro-survey has one question and takes &lt; 1 minute. It’s anonymous and open to research staff, enabling staff, and PGRs.</p>
+          <h2>Privacy</h2>
+          <p>You may be asked to sign in with your University account to access the form; your identity isn’t collected by I-REACCH.</p>
         </div>
         <figure class="intro-figure" aria-hidden="true">
           <img src="assets/img/speak-up.png" alt="">
@@ -121,9 +118,7 @@
       </div>
     </section>
 
-    <!-- Main: list + current survey -->
     <div class="runner">
-      <!-- Left: list -->
       <aside class="panel" aria-labelledby="list-heading">
         <div class="hd">
           <h3 id="list-heading" class="side-title">Survey List</h3>
@@ -136,7 +131,6 @@
         <div class="bd"><div id="list" class="list"></div></div>
       </aside>
 
-      <!-- Right: current survey -->
       <section class="panel" aria-live="polite">
         <div class="hd">
           <div class="head-row">
@@ -150,7 +144,7 @@
         <div class="bd">
           <iframe id="formFrame" title="Survey"></iframe>
 
-          <!-- Simple fallback -->
+          <!-- Fallback when embed is blocked -->
           <div id="formFallback" class="fallback">
             <div><b>Can’t show the survey here.</b></div>
             <div class="actions">
@@ -158,13 +152,13 @@
               <button id="retryEmbed" class="btn link" type="button">Try again</button>
             </div>
             <div class="muted" style="margin-top:6px">
-              Tip: if you weren’t logged in, use “Open survey in a new tab”, sign in, then come back and click “Try again”.
+              Tip: if you weren’t logged in, open in a new tab, sign in, then return and click “Try again”.
             </div>
           </div>
 
           <div class="controls">
             <button id="btnComplete" class="btn">Mark as completed</button>
-            <span class="complete-note">Please make sure to press “Submit” in the survey before marking it as completed.</span>
+            <span class="complete-note">Please press “Submit” in the survey before marking it as completed.</span>
           </div>
         </div>
       </section>
@@ -191,7 +185,7 @@
   </main>
 
   <script>
-    /* -------------------- Load surveys + LIVE submission dates -------------------- */
+    /* ---------- Load surveys + LIVE submission dates ---------- */
     let SURVEYS = [];
     const LIVE = { updatedAt: null, surveys: {} };
 
@@ -210,10 +204,9 @@
       }catch{}
     }
 
-    /* -------------------- Local completion status -------------------- */
+    /* ---------- Local completion status ---------- */
     const statusKey = id => `survey-status:${id}`;
     const whenKey   = id => `survey-completed-at:${id}`;
-
     const getStatus = id => localStorage.getItem(statusKey(id)) || "not";
     function setStatus(id, s){
       localStorage.setItem(statusKey(id), s);
@@ -222,10 +215,10 @@
       updateBtn();
     }
 
-    /* -------------------- UI refs -------------------- */
+    /* ---------- UI refs ---------- */
     const $list   = document.getElementById('list');
     const $frame  = document.getElementById('formFrame');
-    const $fallback = document.getElementById('formFallback');
+    const $fallback   = document.getElementById('formFallback');
     const $openNewTab = document.getElementById('openNewTab');
     const $retryEmbed = document.getElementById('retryEmbed');
 
@@ -249,7 +242,7 @@
       };
     });
 
-    /* Dates */
+    /* Dates + labels */
     const fmt = (any) => {
       if (!any) return '';
       const d = new Date(any);
@@ -261,13 +254,11 @@
       }
       return String(any);
     };
-
     function getDisplayDate(id, surveyObj){
       const live = LIVE.surveys?.[id] || {};
       const pick = live.publishedAt || live.lastSubmittedAt || surveyObj?.publishedAt || surveyObj?.date || null;
       return fmt(pick);
     }
-
     function labelForList(s, index){
       return s.displayTitle && s.displayTitle.trim().length
         ? s.displayTitle
@@ -308,14 +299,18 @@
       });
     }
 
-    /* Fallback helpers */
+    /* Fallback helpers — HIDE iframe when we show fallback */
     function showFallback(url){
       $openNewTab.href = url || '#';
+      $frame.style.display = 'none';
       $fallback.style.display = 'block';
     }
-    function hideFallback(){ $fallback.style.display = 'none'; }
+    function hideFallback(){
+      $fallback.style.display = 'none';
+      $frame.style.display = 'block';
+    }
 
-    /* Load a survey with embed watchdog */
+    /* Load a survey, with a watchdog timer to show fallback */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -329,18 +324,20 @@
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
       hideFallback();
-      $frame.src = 'about:blank';
-      $frame.src = s.url;
       $openNewTab.href = s.url;
 
+      // Reset and try to embed
       if (embedTimer) clearTimeout(embedTimer);
+      $frame.src = 'about:blank';
+      // Add a small cache-buster to the form URL too (harmless)
+      const sep = s.url.includes('?') ? '&' : '?';
+      $frame.src = s.url + sep + 'cb=' + Date.now();
+
+      // If the embed doesn't render in time, show fallback
       embedTimer = setTimeout(() => showFallback(s.url), 2500);
 
-      $frame.onload = () => {
-        if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
-        hideFallback();
-      };
-
+      // NOTE: We intentionally don't trust iframe.onload here,
+      // because some browsers fire it even when the form is blocked.
       renderList(id);
       updateBtn();
     }
