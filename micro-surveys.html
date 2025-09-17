@@ -316,15 +316,17 @@
       const win = window.open(LOGIN_URL, 'mslogin',
         `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
       if (!win) {
-        // blocked
         $popupNote.style.display = 'block';
         return;
       }
-      // Close the popup automatically after a short while (if allowed).
+      // Close the popup automatically after a short while.
       setTimeout(() => { try { win.close(); } catch(_){} }, 4000);
     }
 
-    /* Load a survey: set up frame, overlay, auto sign-in attempt */
+    function hideOverlay(){ $fallback.style.display = 'none'; }
+    function showOverlay(){ $fallback.style.display = 'flex'; }
+
+    /* Load a survey */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -338,35 +340,54 @@
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
       $popupNote.style.display = 'none';
-
-      // Always keep overlay visible (tenant may block iframe).
       $openNewTab.href = s.url;
 
-      // Load the iframe behind the overlay (for tenants that do allow it).
+      // Load the iframe; keep overlay initially (most tenants block).
       const sep = s.url.includes('?') ? '&' : '?';
       $frame.src = s.url + sep + 'cb=' + Date.now();
-      document.getElementById('formFallback').style.display = 'flex';
+      showOverlay();
 
-      // Attempt auto sign-in (may be blocked by browser).
+      // If the iframe really loads a Forms URL, auto-hide overlay.
+      $frame.addEventListener('load', onFrameLoadOnce, { once:true });
+
+      // Kick off auto sign-in attempt.
       tryAutoSignin();
 
       renderList(id);
       updateBtn();
     }
 
+    function onFrameLoadOnce(){
+      try {
+        const src = $frame.src || '';
+        if (/forms\.office\.com|office\.com/i.test(src)) {
+          hideOverlay(); // Let user see the form (or the MS "forbidden" image) without the overlay.
+        } else {
+          showOverlay();
+        }
+      } catch {
+        // Cross-origin read not allowed — do nothing.
+      }
+    }
+
     /* Manual sign-in button */
-    document.getElementById('btnSignin').addEventListener('click', () => {
+    $btnSignin.addEventListener('click', () => {
       $popupNote.style.display = 'none';
       tryAutoSignin();
+      // After user triggers sign-in, assume progress: reload form and hide overlay.
+      if (current) {
+        const sep = current.url.includes('?') ? '&' : '?';
+        $frame.src = current.url + sep + 'cb=' + Date.now();
+      }
+      hideOverlay();
     });
 
-    /* Refresh button re-loads the iframe src (useful after sign-in) */
-    document.getElementById('btnRefresh').addEventListener('click', () => {
+    /* Refresh button: reload iframe and hide overlay immediately */
+    $btnRefresh.addEventListener('click', () => {
       if (!current) return;
       const sep = current.url.includes('?') ? '&' : '?';
       $frame.src = current.url + sep + 'cb=' + Date.now();
-      // Keep the overlay; if tenant allows embedding, you can manually hide overlay in code here,
-      // but most universities block iframes for Forms, so open-in-new-tab remains the reliable path.
+      hideOverlay();
     });
 
     function updateBtn(){
