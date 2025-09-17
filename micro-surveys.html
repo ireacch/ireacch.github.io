@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Micro Survey Overview | I-REACCH</title>
 
+  <!-- Keep your existing site styles -->
   <link rel="stylesheet" href="assets/css/brand.css">
   <link rel="stylesheet" href="assets/css/header.css">
   <link rel="stylesheet" href="assets/css/style.css">
@@ -152,7 +153,7 @@
               <button id="retryEmbed" class="btn link" type="button">Try again</button>
             </div>
             <div class="muted" style="margin-top:6px">
-              Tip: if you weren’t logged in, open in a new tab, sign in, then return and click “Try again”.
+              Tip: if you weren’t logged in, open in a new tab, <b>sign in to Microsoft</b>, then return and click “Try again”.
             </div>
           </div>
 
@@ -310,7 +311,7 @@
       $frame.style.display = 'block';
     }
 
-    /* Load a survey, with a watchdog timer to show fallback */
+    /* Load a survey with watchdog + onload to cancel fallback */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -326,18 +327,22 @@
       hideFallback();
       $openNewTab.href = s.url;
 
-      // Reset and try to embed
+      // Reset, then try to embed with a cache buster
       if (embedTimer) clearTimeout(embedTimer);
       $frame.src = 'about:blank';
-      // Add a small cache-buster to the form URL too (harmless)
+
+      // Important: wire onload BEFORE setting src, so we cancel the timer as soon as the frame signals load
+      $frame.onload = () => {
+        if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
+        hideFallback(); // ensure fallback stays hidden once something loaded
+      };
+
       const sep = s.url.includes('?') ? '&' : '?';
       $frame.src = s.url + sep + 'cb=' + Date.now();
 
-      // If the embed doesn't render in time, show fallback
-      embedTimer = setTimeout(() => showFallback(s.url), 2500);
+      // Show fallback only if nothing loads within the window
+      embedTimer = setTimeout(() => showFallback(s.url), 6000); // longer window to avoid “flash then fallback”
 
-      // NOTE: We intentionally don't trust iframe.onload here,
-      // because some browsers fire it even when the form is blocked.
       renderList(id);
       updateBtn();
     }
@@ -348,7 +353,17 @@
       hideFallback();
       if (embedTimer) clearTimeout(embedTimer);
       $frame.src = 'about:blank';
-      setTimeout(() => loadSurvey(current.id), 100);
+      // Give it a fresh try; use a slightly longer timeout after login
+      setTimeout(() => {
+        // rebind onload each attempt
+        $frame.onload = () => {
+          if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
+          hideFallback();
+        };
+        const sep = current.url.includes('?') ? '&' : '?';
+        $frame.src = current.url + sep + 'cb=' + Date.now();
+        embedTimer = setTimeout(() => showFallback(current.url), 8000);
+      }, 120);
     });
 
     function updateBtn(){
