@@ -94,17 +94,9 @@
     .btn.ghost{ background:#fff; color:#1b2a41; border:1px solid var(--border); }
     .btn.link{ background:transparent; color:#1b2a41; border:0; text-decoration:underline; padding:0; }
 
-    /* NEW: Sign-in modal (appears when embed fails) */
-    .login-mask{
-      position:fixed; inset:0; display:none;
-      align-items:center; justify-content:center;
-      background:rgba(27,42,65,.45); z-index:9999;
-    }
-    .login-card{
-      width:min(520px,92%); background:#fff; border:1px solid var(--border);
-      border-radius:14px; box-shadow:0 12px 28px rgba(0,0,0,.12);
-      padding:18px;
-    }
+    /* (Modal styles remain from previous version; not altered) */
+    .login-mask{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(27,42,65,.45); z-index:9999; }
+    .login-card{ width:min(520px,92%); background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:0 12px 28px rgba(0,0,0,.12); padding:18px; }
     .login-card h3{ margin:0 0 8px; font-size:18px; font-weight:800; color:var(--text); }
     .login-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
   </style>
@@ -163,6 +155,8 @@
             <div>
               <h2 class="h2" id="currTitle">Select a micro survey</h2>
               <div class="muted" id="currDate"></div>
+              <!-- NEW notice sits right below the title/date -->
+              <div class="muted" id="currNote" style="margin-top:6px; line-height:1.45;"></div>
             </div>
             <div class="status"><span id="currBadge" class="pill unfinished">Unfinished</span></div>
           </div>
@@ -170,7 +164,7 @@
         <div class="bd">
           <iframe id="formFrame" title="Survey"></iframe>
 
-          <!-- Fallback shown if the iframe can’t load (user not signed in / tenant blocks iframes) -->
+          <!-- Fallback shown if the iframe can’t load (kept) -->
           <div id="formFallback" class="fallback">
             <div><b>Can’t show the survey here.</b> You may need to sign in to Microsoft 365 or open the survey in a separate tab.</div>
             <div class="actions">
@@ -211,7 +205,7 @@
     </section>
   </main>
 
-  <!-- NEW: Microsoft sign-in modal -->
+  <!-- Existing (kept) Microsoft sign-in modal -->
   <div id="loginGate" class="login-mask" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <div class="login-card">
       <h3 id="loginTitle">Sign in to Microsoft 365</h3>
@@ -266,11 +260,12 @@
 
     const $title  = document.getElementById('currTitle');
     const $date   = document.getElementById('currDate');
+    const $note   = document.getElementById('currNote');   // NEW
     const $badge  = document.getElementById('currBadge');
     const $btn    = document.getElementById('btnComplete');
     const $filters= document.getElementById('filters');
 
-    /* NEW: sign-in modal refs */
+    /* (Modal refs kept) */
     const $loginGate = document.getElementById('loginGate');
     const $loginNow = document.getElementById('loginNow');
     const $loginContinue = document.getElementById('loginContinue');
@@ -353,7 +348,6 @@
     function showFallback(url){
       $openNewTab.href = url || '#';
       $fallback.style.display = 'block';
-      // NEW: also show sign-in modal to guide the user
       openLoginGate(url);
     }
     function hideFallback(){
@@ -361,116 +355,11 @@
       closeLoginGate();
     }
 
-    /* NEW: login modal helpers */
+    /* Modal helpers (kept) */
     function openLoginGate(url){
       $loginOpenSurvey.href = url || '#';
       $loginGate.style.display = 'flex';
     }
-    function closeLoginGate(){
-      $loginGate.style.display = 'none';
-    }
-    // Allow Esc to close modal
+    function closeLoginGate(){ $loginGate.style.display = 'none'; }
     document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeLoginGate(); });
-    // Mark that the user attempted login (optional hint)
-    $loginNow.addEventListener('click', ()=>{ localStorage.setItem('ireacch:ms-login-at', Date.now().toString()); });
-    // After signing in, try the embed again (no full reload needed)
-    $loginContinue.addEventListener('click', ()=>{
-      closeLoginGate();
-      if (!current) return;
-      // retry the embed quickly
-      $frame.src = 'about:blank';
-      setTimeout(()=> loadSurvey(current.id), 100);
-    });
-
-    /* Load a survey with embed watchdog */
-    function loadSurvey(id){
-      const s = SURVEYS.find(x => x.id === id); if(!s) return;
-      current = s;
-
-      $title.textContent = labelForPanel(s);
-      const dateText = getDisplayDate(s.id, s);
-      $date.textContent = dateText ? `Published: ${dateText}` : '';
-
-      const isDone = (getStatus(id) === 'done');
-      $badge.textContent = isDone ? 'Completed' : 'Unfinished';
-      $badge.className   = isDone ? 'pill done' : 'pill unfinished';
-
-      hideFallback();               // reset fallback + modal
-      $frame.src = 'about:blank';   // reset frame quickly
-
-      // Start embed attempt
-      $frame.src = s.url;
-      $openNewTab.href = s.url;
-
-      // If the iframe loads, hide fallback; otherwise show after timeout
-      if (embedTimer) clearTimeout(embedTimer);
-      embedTimer = setTimeout(() => showFallback(s.url), 2500);
-
-      // Some browsers fire load even if content is blocked; still treat as success
-      $frame.onload = () => {
-        if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
-        hideFallback();
-      };
-
-      renderList(id);
-      updateBtn();
-    }
-
-    /* Retry button below the iframe */
-    $retryEmbed.addEventListener('click', () => {
-      if (!current) return;
-      hideFallback();
-      if (embedTimer) clearTimeout(embedTimer);
-      $frame.src = 'about:blank';
-      setTimeout(() => loadSurvey(current.id), 100);
-    });
-
-    function updateBtn(){
-      if(!current){ $btn.disabled = true; return; }
-      const done = getStatus(current.id) === 'done';
-      $btn.textContent = done ? 'Completed' : 'Mark as completed';
-      $btn.disabled = done;
-    }
-
-    document.getElementById('btnComplete').onclick = () => {
-      if(!current) return;
-      setStatus(current.id,'done');
-      loadSurvey(current.id);
-    };
-
-    /* Admin helper (?admin=1) — unchanged */
-    const urlParams = new URLSearchParams(location.search);
-    if(urlParams.get("admin")==="1"){
-      const admin = document.getElementById('admin');
-      admin.style.display='block';
-      document.getElementById('aAdd').onclick=()=>{
-        const title=document.getElementById('aTitle').value.trim();
-        const minutes=parseInt(document.getElementById('aMinutes').value.trim()||"1",10);
-        const audience=document.getElementById('aAudience').value.trim();
-        const school=document.getElementById('aSchool').value.trim();
-        const url=document.getElementById('aUrl').value.trim();
-        if(!title||!url){alert("Title and URL are required");return;}
-        SURVEYS.push({id:slugify(title),title,minutes,audience,school:school||"All",url});
-        renderList(current?.id);
-        ['aTitle','aMinutes','aAudience','aSchool','aUrl'].forEach(id=>document.getElementById(id).value="");
-      };
-      document.getElementById('aExport').onclick=()=>{
-        const out=document.getElementById('aOut');
-        out.textContent=JSON.stringify(SURVEYS,null,2);
-        out.style.display="block";
-        window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
-      };
-    }
-    function slugify(s){
-      return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'').slice(0,60);
-    }
-
-    /* Boot */
-    (async()=>{
-      await Promise.all([loadSurveys(), loadLive()]);
-      renderList();
-      if(SURVEYS[0]) loadSurvey(SURVEYS[0].id);
-    })();
-  </script>
-</body>
-</html>
+    $loginNow.addEventListener('click', ()=>{ localSt
