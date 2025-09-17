@@ -67,26 +67,28 @@
     .h2{ margin:0; color:var(--text); font-size:18px; font-weight:800; }
     .muted{ color:var(--muted); font-size:12px; }
 
-    iframe{ width:100%; height:600px; border:0; border-radius:12px; background:#fff; }
+    /* Iframe area */
+    .frame-wrap{ position:relative; }
+    iframe{ width:100%; height:600px; border:0; border-radius:12px; background:#fff; display:block; }
 
-    .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center; }
-    .btn{ appearance:none; border:0; border-radius:999px; padding:10px 16px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--accent-2),var(--accent)); cursor:pointer; }
-    .btn[disabled]{ opacity:.45; cursor:not-allowed; }
-
-    .complete-note{ color:var(--red-pill); font-size:13px; font-weight:700; line-height:1.2; }
-
-    /* Fallback box */
+    /* Fallback overlay (always shown initially) */
     .fallback{
-      display:none;
-      margin-top:12px;
-      padding:12px 14px;
-      border:1px dashed var(--border);
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
+      gap:10px; text-align:center;
+      padding:16px;
       border-radius:12px;
-      background:#fffdfa;
+      background:rgba(255,255,255,0.92);
+      border:1px dashed var(--border);
     }
-    .fallback .actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .fallback .actions{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .btn{ appearance:none; border:0; border-radius:999px; padding:10px 16px; font-weight:800; color:#fff; background:linear-gradient(135deg,var(--accent-2),var(--accent)); cursor:pointer; }
     .btn.ghost{ background:#fff; color:#1b2a41; border:1px solid var(--border); }
     .btn.link{ background:transparent; color:#1b2a41; border:0; text-decoration:underline; padding:0; }
+    .btn[disabled]{ opacity:.45; cursor:not-allowed; }
+
+    .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center; }
+    .complete-note{ color:var(--red-pill); font-size:13px; font-weight:700; line-height:1.2; }
   </style>
 </head>
 <body>
@@ -141,19 +143,22 @@
             <div class="status"><span id="currBadge" class="pill unfinished">Unfinished</span></div>
           </div>
         </div>
-        <div class="bd">
-          <iframe id="formFrame" title="Survey"></iframe>
 
-          <!-- Fallback when embed is blocked -->
-          <div id="formFallback" class="fallback">
-            <div><b>Can’t show the survey here.</b></div>
-            <div class="actions">
-              <a id="openNewTab" class="btn ghost" target="_blank" rel="noopener">Open survey in a new tab</a>
-              <button id="btnSignin" class="btn ghost" type="button">Sign in to Microsoft</button>
-              <button id="retryEmbed" class="btn link" type="button">Try again</button>
-            </div>
-            <div class="muted" style="margin-top:6px">
-              Tip: if you weren’t logged in, click <b>Sign in to Microsoft</b>, complete sign-in in the popup, then click <b>Try again</b>.
+        <div class="bd">
+          <div class="frame-wrap">
+            <iframe id="formFrame" title="Survey"></iframe>
+
+            <!-- Fallback overlay (covers iframe until user opts to try embed) -->
+            <div id="formFallback" class="fallback" aria-live="polite">
+              <div><b>We can’t show the survey here.</b></div>
+              <div class="actions">
+                <a id="openNewTab" class="btn ghost" target="_blank" rel="noopener">Open in a new tab</a>
+                <button id="btnSignin" class="btn ghost" type="button">Sign in to Microsoft</button>
+                <button id="showHere" class="btn link" type="button">Try to show here (beta)</button>
+              </div>
+              <div class="muted" style="margin-top:6px">
+                Tip: click <b>Sign in to Microsoft</b>, finish the popup, then use <b>Open in a new tab</b> or <b>Try to show here</b>.
+              </div>
             </div>
           </div>
 
@@ -176,7 +181,7 @@
         <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
         <input id="aSchool" placeholder="School/College (optional)"/>
       </div>
-        <input id="aUrl" placeholder="Microsoft Forms URL"/>
+      <input id="aUrl" placeholder="Microsoft Forms URL"/>
       <div class="controls">
         <button id="aAdd" class="btn">Add to config (in memory)</button>
         <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
@@ -186,7 +191,7 @@
   </main>
 
   <script>
-    /* ---------- Load surveys + LIVE submission dates ---------- */
+    /* ------------ Load surveys + LIVE submission dates ------------ */
     let SURVEYS = [];
     const LIVE = { updatedAt: null, surveys: {} };
 
@@ -205,7 +210,7 @@
       }catch{}
     }
 
-    /* ---------- Local completion status ---------- */
+    /* ------------ Local completion status ------------ */
     const statusKey = id => `survey-status:${id}`;
     const whenKey   = id => `survey-completed-at:${id}`;
     const getStatus = id => localStorage.getItem(statusKey(id)) || "not";
@@ -216,13 +221,13 @@
       updateBtn();
     }
 
-    /* ---------- UI refs ---------- */
+    /* ------------ UI refs ------------ */
     const $list   = document.getElementById('list');
     const $frame  = document.getElementById('formFrame');
-    const $fallback   = document.getElementById('formFallback');
+    const $fallback = document.getElementById('formFallback');
     const $openNewTab = document.getElementById('openNewTab');
-    const $retryEmbed = document.getElementById('retryEmbed');
     const $btnSignin  = document.getElementById('btnSignin');
+    const $showHere   = document.getElementById('showHere');
 
     const $title  = document.getElementById('currTitle');
     const $date   = document.getElementById('currDate');
@@ -231,7 +236,6 @@
     const $filters= document.getElementById('filters');
 
     let current = null, filter = "all";
-    let embedTimer = null;
 
     /* Filters */
     [...$filters.querySelectorAll('a')].forEach(a=>{
@@ -301,66 +305,7 @@
       });
     }
 
-    /* Fallback helpers — hide iframe while fallback is shown */
-    function showFallback(url){
-      $openNewTab.href = url || '#';
-      $frame.style.display = 'none';
-      $fallback.style.display = 'block';
-    }
-    function hideFallback(){
-      $fallback.style.display = 'none';
-      $frame.style.display = 'block';
-    }
-
-    /* Only consider these hosts as a successful embed */
-    function isAllowedFormsHost(href){
-      if(!href) return false;
-      try{
-        const u = new URL(href, location.href);
-        return /(^|\.)forms\.office\.com$/.test(u.hostname) || /(^|\.)office\.com$/.test(u.hostname);
-      }catch{ return false; }
-    }
-
-    /* Try to embed the form, ignoring about:blank onload */
-    function tryEmbed(url){
-      // show fallback by default; we'll hide on confirmed success
-      showFallback(url);
-
-      // Clear any previous timer
-      if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
-
-      // Reset iframe to a clean state (about:blank will fire onload; we ignore it)
-      $frame.onload = null;
-      $frame.src = 'about:blank';
-
-      // Real URL with cache-buster
-      const sep = url.includes('?') ? '&' : '?';
-      const realURL = url + sep + 'cb=' + Date.now();
-
-      // Set onload to detect successful loads only
-      $frame.onload = () => {
-        const cur = $frame.src || '';
-        if (isAllowedFormsHost(cur)) {
-          // success: show iframe, hide fallback
-          hideFallback();
-          // guard: cancel watchdog if any
-          if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
-        } else {
-          // onload from about:blank or some blocked redirect — keep fallback visible
-        }
-      };
-
-      // Kick to real URL
-      setTimeout(() => { $frame.src = realURL; }, 50);
-
-      // Watchdog: if nothing good happens in time, keep fallback up (already visible)
-      embedTimer = setTimeout(() => {
-        // nothing to do; fallback is already showing. Leave iframe hidden.
-        // Optionally, we could try once more automatically.
-      }, 5000);
-    }
-
-    /* Load a survey with robust embed logic */
+    /* Load a survey (fallback overlay is shown by default) */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -373,20 +318,22 @@
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
+      // Keep overlay visible; set frame src (will show blocked icon if tenant forbids)
       $openNewTab.href = s.url;
+      const sep = s.url.includes('?') ? '&' : '?';
+      $frame.src = s.url + sep + 'cb=' + Date.now();
 
-      tryEmbed(s.url);
+      $fallback.style.display = 'flex'; // Always start with overlay visible
       renderList(id);
       updateBtn();
     }
 
-    /* Retry (after sign-in etc.) */
-    $retryEmbed.addEventListener('click', () => {
-      if (!current) return;
-      tryEmbed(current.url);
+    /* “Show here (beta)” just hides the overlay; if tenant allows iframes, it will display; otherwise users see the block icon */
+    $showHere.addEventListener('click', () => {
+      $fallback.style.display = 'none';
     });
 
-    /* Open Microsoft login in a popup, then retry when the popup closes */
+    /* Sign-in popup (helps SSO, then user can open in new tab or try again) */
     $btnSignin.addEventListener('click', () => {
       const LOGIN_URL = 'https://login.microsoftonline.com/';
       const w = 640, h = 720;
@@ -394,21 +341,8 @@
       const top  = (screen.height - h) / 2;
       const authWin = window.open(LOGIN_URL, 'mslogin',
         `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-
-      if (!authWin) {
-        // Popup blocked — fall back to opening the survey in a new tab for SSO
-        if (current?.url) window.open(current.url, '_blank', 'noopener');
-        return;
-      }
-
-      const poll = setInterval(() => {
-        if (authWin.closed) {
-          clearInterval(poll);
-          if (current?.url) tryEmbed(current.url);
-        }
-      }, 600);
-      // safety: stop polling after 2 minutes even if window left open
-      setTimeout(() => clearInterval(poll), 120000);
+      // If popup blocked, fall back to opening the form itself
+      if (!authWin && current?.url) window.open(current.url, '_blank', 'noopener');
     });
 
     function updateBtn(){
