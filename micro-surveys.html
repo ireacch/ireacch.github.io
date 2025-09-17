@@ -67,11 +67,10 @@
     .h2{ margin:0; color:var(--text); font-size:18px; font-weight:800; }
     .muted{ color:var(--muted); font-size:12px; }
 
-    /* Iframe area */
     .frame-wrap{ position:relative; }
     iframe{ width:100%; height:600px; border:0; border-radius:12px; background:#fff; display:block; }
 
-    /* Fallback overlay (always shown initially) */
+    /* Fallback overlay */
     .fallback{
       position:absolute; inset:0;
       display:flex; flex-direction:column; justify-content:center; align-items:center;
@@ -89,6 +88,7 @@
 
     .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; align-items:center; }
     .complete-note{ color:var(--red-pill); font-size:13px; font-weight:700; line-height:1.2; }
+    .note{ font-size:12px; color:#b45309; }
   </style>
 </head>
 <body>
@@ -148,17 +148,18 @@
           <div class="frame-wrap">
             <iframe id="formFrame" title="Survey"></iframe>
 
-            <!-- Fallback overlay (covers iframe until user opts to try embed) -->
+            <!-- Fallback overlay -->
             <div id="formFallback" class="fallback" aria-live="polite">
               <div><b>We can’t show the survey here.</b></div>
               <div class="actions">
                 <a id="openNewTab" class="btn ghost" target="_blank" rel="noopener">Open in a new tab</a>
                 <button id="btnSignin" class="btn ghost" type="button">Sign in to Microsoft</button>
-                <button id="showHere" class="btn link" type="button">Try to show here (beta)</button>
+                <button id="btnRefresh" class="btn link" type="button">Refresh</button>
               </div>
               <div class="muted" style="margin-top:6px">
-                Tip: click <b>Sign in to Microsoft</b>, finish the popup, then use <b>Open in a new tab</b> or <b>Try to show here</b>.
+                Tip: click <b>Sign in to Microsoft</b>, finish the popup, then use <b>Open in a new tab</b> or <b>Refresh</b>.
               </div>
+              <div id="popupNote" class="note" style="display:none;">Your browser blocked the automatic sign-in popup — please click “Sign in to Microsoft”.</div>
             </div>
           </div>
 
@@ -227,7 +228,8 @@
     const $fallback = document.getElementById('formFallback');
     const $openNewTab = document.getElementById('openNewTab');
     const $btnSignin  = document.getElementById('btnSignin');
-    const $showHere   = document.getElementById('showHere');
+    const $btnRefresh = document.getElementById('btnRefresh');
+    const $popupNote  = document.getElementById('popupNote');
 
     const $title  = document.getElementById('currTitle');
     const $date   = document.getElementById('currDate');
@@ -305,7 +307,24 @@
       });
     }
 
-    /* Load a survey (fallback overlay is shown by default) */
+    /* ---- Auto sign-in attempt (may be blocked by popup blockers) ---- */
+    function tryAutoSignin(){
+      const LOGIN_URL = 'https://login.microsoftonline.com/';
+      const w = 640, h = 720;
+      const left = (screen.width - w) / 2;
+      const top  = (screen.height - h) / 2;
+      const win = window.open(LOGIN_URL, 'mslogin',
+        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
+      if (!win) {
+        // blocked
+        $popupNote.style.display = 'block';
+        return;
+      }
+      // Close the popup automatically after a short while (if allowed).
+      setTimeout(() => { try { win.close(); } catch(_){} }, 4000);
+    }
+
+    /* Load a survey: set up frame, overlay, auto sign-in attempt */
     function loadSurvey(id){
       const s = SURVEYS.find(x => x.id === id); if(!s) return;
       current = s;
@@ -318,31 +337,36 @@
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
-      // Keep overlay visible; set frame src (will show blocked icon if tenant forbids)
+      $popupNote.style.display = 'none';
+
+      // Always keep overlay visible (tenant may block iframe).
       $openNewTab.href = s.url;
+
+      // Load the iframe behind the overlay (for tenants that do allow it).
       const sep = s.url.includes('?') ? '&' : '?';
       $frame.src = s.url + sep + 'cb=' + Date.now();
+      document.getElementById('formFallback').style.display = 'flex';
 
-      $fallback.style.display = 'flex'; // Always start with overlay visible
+      // Attempt auto sign-in (may be blocked by browser).
+      tryAutoSignin();
+
       renderList(id);
       updateBtn();
     }
 
-    /* “Show here (beta)” just hides the overlay; if tenant allows iframes, it will display; otherwise users see the block icon */
-    $showHere.addEventListener('click', () => {
-      $fallback.style.display = 'none';
+    /* Manual sign-in button */
+    document.getElementById('btnSignin').addEventListener('click', () => {
+      $popupNote.style.display = 'none';
+      tryAutoSignin();
     });
 
-    /* Sign-in popup (helps SSO, then user can open in new tab or try again) */
-    $btnSignin.addEventListener('click', () => {
-      const LOGIN_URL = 'https://login.microsoftonline.com/';
-      const w = 640, h = 720;
-      const left = (screen.width - w) / 2;
-      const top  = (screen.height - h) / 2;
-      const authWin = window.open(LOGIN_URL, 'mslogin',
-        `width=${w},height=${h},left=${left},top=${top},resizable=yes,scrollbars=yes`);
-      // If popup blocked, fall back to opening the form itself
-      if (!authWin && current?.url) window.open(current.url, '_blank', 'noopener');
+    /* Refresh button re-loads the iframe src (useful after sign-in) */
+    document.getElementById('btnRefresh').addEventListener('click', () => {
+      if (!current) return;
+      const sep = current.url.includes('?') ? '&' : '?';
+      $frame.src = current.url + sep + 'cb=' + Date.now();
+      // Keep the overlay; if tenant allows embedding, you can manually hide overlay in code here,
+      // but most universities block iframes for Forms, so open-in-new-tab remains the reliable path.
     });
 
     function updateBtn(){
