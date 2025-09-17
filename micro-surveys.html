@@ -76,12 +76,7 @@
 
     .complete-note{ color:var(--red-pill); font-size:13px; font-weight:700; line-height:1.2; }
 
-    .admin{ margin-top:26px; border-top:1px dashed var(--border); padding-top:16px; }
-    .admin input{ width:100%; padding:10px; border:1px solid var(--border); border-radius:10px; margin:6px 0; }
-    .admin .grid{ display:grid; grid-template-columns:2fr 1fr; gap:10px; }
-    code.json-out{ display:block; white-space:pre-wrap; background:#0f172a; color:#e2e8f0; padding:10px; border-radius:10px; margin-top:10px; font-size:.85rem; }
-
-    /* Fallback note under iframe */
+    /* Fallback under iframe (simple, 2 options) */
     .fallback{
       display:none;
       margin-top:12px;
@@ -108,18 +103,17 @@
   </header>
 
   <main class="page">
-    <!-- INTRO CARD (unchanged) -->
+    <!-- Intro -->
     <section class="intro-card" aria-labelledby="intro-heading">
       <div class="intro-grid">
         <div>
           <h2 id="intro-heading">Speak up for research culture: I-REACCH Micro Survey</h2>
           <p>The Wellcome-funded I-REACCH project is piloting interventions to support a more inclusive and supportive research culture at the University of Leicester. These anonymous micro-surveys are designed to capture perceptions and establish a baseline for evaluating I-REACCH’s interventions.</p>
           <h2>Why take part in the micro-surveys?</h2>
-          <p>Help shape a more inclusive and supportive research culture at Leicester – one click at a time! Each weekly I-REACCH micro-survey has just one question and takes less than a minute. It’s quick, anonymous, and open to all research staff, research-enabling staff, and PGRs.</p>
+          <p>Each weekly micro-survey has just one question and takes less than a minute. It’s quick, anonymous, and open to all research staff, research-enabling staff, and PGRs.</p>
           <h2>What will happen to your responses?</h2>
-          <p>The survey is totally anonymous. You may be asked to log in with your University of Leicester email; the system won't collect your name or your email address.</p>
-          <p>If you would like to find out more before deciding to participate, please <a href="mailto:ireacch@leicester.ac.uk">contact us</a>.</p>
-          <p>By completing the survey, you confirm that you have read the information above and consent to take part in the study.</p>
+          <p>The survey is anonymous. You may be asked to sign in with your University email to access the form; your identity isn’t collected.</p>
+          <p>Questions? <a href="mailto:ireacch@leicester.ac.uk">contact us</a>.</p>
         </div>
         <figure class="intro-figure" aria-hidden="true">
           <img src="assets/img/speak-up.png" alt="">
@@ -127,9 +121,9 @@
       </div>
     </section>
 
-    <!-- MAIN CONTENT -->
+    <!-- Main: list + current survey -->
     <div class="runner">
-      <!-- LEFT: list (unchanged) -->
+      <!-- Left: list -->
       <aside class="panel" aria-labelledby="list-heading">
         <div class="hd">
           <h3 id="list-heading" class="side-title">Survey List</h3>
@@ -142,7 +136,7 @@
         <div class="bd"><div id="list" class="list"></div></div>
       </aside>
 
-      <!-- RIGHT: current survey with fallback -->
+      <!-- Right: current survey -->
       <section class="panel" aria-live="polite">
         <div class="hd">
           <div class="head-row">
@@ -156,16 +150,15 @@
         <div class="bd">
           <iframe id="formFrame" title="Survey"></iframe>
 
-          <!-- Fallback shown if the iframe can’t load (user not signed in / tenant blocks iframes) -->
+          <!-- Simple fallback -->
           <div id="formFallback" class="fallback">
-            <div><b>Can’t show the survey here.</b> You may need to sign in to Microsoft 365 or open the survey in a separate tab.</div>
+            <div><b>Can’t show the survey here.</b></div>
             <div class="actions">
               <a id="openNewTab" class="btn ghost" target="_blank" rel="noopener">Open survey in a new tab</a>
-              <a class="btn ghost" href="https://login.microsoftonline.com/" target="_blank" rel="noopener">Sign in to Microsoft</a>
-              <button id="retryEmbed" class="btn link">Try the embed again</button>
+              <button id="retryEmbed" class="btn link" type="button">Try again</button>
             </div>
             <div class="muted" style="margin-top:6px">
-              Tip: If you just signed in, come back to this page and click “Try the embed again”.
+              Tip: if you weren’t logged in, use “Open survey in a new tab”, sign in, then come back and click “Try again”.
             </div>
           </div>
 
@@ -177,7 +170,7 @@
       </section>
     </div>
 
-    <!-- Admin helper (unchanged) -->
+    <!-- Admin helper (optional) -->
     <section id="admin" class="admin" style="display:none">
       <h2 style="margin:0 0 8px">Admin • add a survey (JSON helper)</h2>
       <div class="grid">
@@ -188,7 +181,7 @@
         <input id="aAudience" placeholder="Audience (e.g., Staff/PGR)"/>
         <input id="aSchool" placeholder="School/College (optional)"/>
       </div>
-      <input id="aUrl" placeholder="Microsoft Forms embed URL"/>
+      <input id="aUrl" placeholder="Microsoft Forms URL"/>
       <div class="controls">
         <button id="aAdd" class="btn">Add to config (in memory)</button>
         <button id="aExport" class="btn" style="background:var(--bg-soft);color:var(--text)">Export JSON</button>
@@ -315,14 +308,12 @@
       });
     }
 
-    /* Show/hide fallback helpers */
+    /* Fallback helpers */
     function showFallback(url){
       $openNewTab.href = url || '#';
       $fallback.style.display = 'block';
     }
-    function hideFallback(){
-      $fallback.style.display = 'none';
-    }
+    function hideFallback(){ $fallback.style.display = 'none'; }
 
     /* Load a survey with embed watchdog */
     function loadSurvey(id){
@@ -337,17 +328,14 @@
       $badge.textContent = isDone ? 'Completed' : 'Unfinished';
       $badge.className   = isDone ? 'pill done' : 'pill unfinished';
 
-      hideFallback();               // reset fallback
-      $frame.src = 'about:blank';   // reset frame quickly
-      // Start embed attempt
+      hideFallback();
+      $frame.src = 'about:blank';
       $frame.src = s.url;
       $openNewTab.href = s.url;
 
-      // If the iframe loads, hide fallback; otherwise show after timeout
       if (embedTimer) clearTimeout(embedTimer);
       embedTimer = setTimeout(() => showFallback(s.url), 2500);
 
-      // Some browsers fire load even if content is blocked; still treat as success
       $frame.onload = () => {
         if (embedTimer) { clearTimeout(embedTimer); embedTimer = null; }
         hideFallback();
@@ -357,11 +345,10 @@
       updateBtn();
     }
 
-    /* Retry button */
+    /* Retry */
     $retryEmbed.addEventListener('click', () => {
       if (!current) return;
       hideFallback();
-      // Re-attempt the embed
       if (embedTimer) clearTimeout(embedTimer);
       $frame.src = 'about:blank';
       setTimeout(() => loadSurvey(current.id), 100);
@@ -380,7 +367,7 @@
       loadSurvey(current.id);
     };
 
-    /* Admin helper (?admin=1) — unchanged */
+    /* Admin helper (?admin=1) */
     const urlParams = new URLSearchParams(location.search);
     if(urlParams.get("admin")==="1"){
       const admin = document.getElementById('admin');
