@@ -9,8 +9,9 @@
   <link rel="stylesheet" href="assets/css/header.css"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- SheetJS for Excel export -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.19.3/dist/xlsx.full.min.js"></script>
+
+  <!-- SheetJS for Excel export (newer, stable build) -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
   <style>
     :root{
@@ -56,13 +57,18 @@
     canvas{max-width:100%}
     .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
     .ai-small{color:var(--muted);font-size:.95rem}
+
+    /* New: minimalist KPI header + collapsible detail */
+    .kpi-core{display:flex;gap:18px;flex-wrap:wrap}
+    .kpi-detail{display:none;margin-top:10px}
+    .kpi-toggle{cursor:pointer}
   </style>
 </head>
 <body>
   <header class="hero-slab">
     <div class="wrap">
       <h1 class="h1">Dashboard <span class="pill">beta</span></h1>
-      <div class="sub">Clear, reproducible summaries of each micro-survey — with optional AI text on top of exact numbers.</div>
+      <div class="sub">Clear, reproducible summaries of each micro-survey — with Copilot-ready export for secure AI summaries in Microsoft 365.</div>
     </div>
   </header>
 
@@ -80,20 +86,30 @@
         </div>
         <div class="row" style="gap:8px">
           <button id="btnExportExcel" class="btn ghost" title="Export current survey to Excel (Copilot-ready)">Export to Excel</button>
+          <button id="btnCopyCopilot" class="btn ghost" title="Copy a smart Copilot prompt tailored to this survey">Copy Copilot prompt</button>
           <button id="btnRefresh" class="btn ghost">Reload data</button>
         </div>
       </div>
 
+      <!-- Minimal KPIs (supervisor feedback: avoid overload) -->
       <div class="kpis" style="margin-top:12px">
-        <div class="kpi"><div class="muted">Responses</div><div class="v" id="kpi-total">–</div></div>
-        <div class="kpi"><div class="muted">Scored</div><div class="v" id="kpi-scored">–</div></div>
-        <div class="kpi"><div class="muted">Avg.</div><div class="v" id="kpi-avg">–</div></div>
-        <div class="kpi"><div class="muted">Median</div><div class="v" id="kpi-med">–</div></div>
-        <div class="kpi"><div class="muted">Positive (4–5)</div><div class="v" id="kpi-pos">–</div></div>
-        <div class="kpi"><div class="muted">Neutral (3)</div><div class="v" id="kpi-neu">–</div></div>
-        <div class="kpi"><div class="muted">Negative (1–2)</div><div class="v" id="kpi-neg">–</div></div>
-        <div class="kpi"><div class="muted">Highlights</div><div class="v" id="kpi-flags"></div></div>
+        <div class="kpi-core">
+          <div class="kpi"><div class="muted">Responses</div><div class="v" id="kpi-total">–</div></div>
+          <div class="kpi"><div class="muted">Avg.</div><div class="v" id="kpi-avg">–</div></div>
+          <div class="kpi"><div class="muted">Positive (4–5)</div><div class="v" id="kpi-pos">–</div></div>
+          <div class="kpi"><div class="muted">Negative (1–2)</div><div class="v" id="kpi-neg">–</div></div>
+        </div>
+
+        <div class="kpi-toggle pill" id="toggleDetail" style="margin-top:8px">more detail</div>
+
+        <div class="kpi-detail" id="kpiDetail">
+          <div class="kpi"><div class="muted">Scored</div><div class="v" id="kpi-scored">–</div></div>
+          <div class="kpi"><div class="muted">Median</div><div class="v" id="kpi-med">–</div></div>
+          <div class="kpi"><div class="muted">Neutral (3)</div><div class="v" id="kpi-neu">–</div></div>
+          <div class="kpi"><div class="muted">Highlights</div><div class="v" id="kpi-flags"></div></div>
+        </div>
       </div>
+
       <div class="hint" style="margin-top:6px">
         % values are based on <b>scored</b> responses (<span id="kpi-scored-note">n=–</span>). Data: <code>data/datasets.json</code> + CSVs.
       </div>
@@ -153,18 +169,10 @@
       <canvas id="likertCompare" height="240"></canvas>
     </section>
 
-    <!-- AI INSIGHTS -->
+    <!-- COPILOT HANDOFF (no external AI) -->
     <section class="panel pad">
-      <h2 class="h2">AI insights</h2>
-      <div class="row">
-        <input id="aiPrompt" class="pill" style="padding:10px 12px;width:min(680px,100%)" placeholder="Ask AI about these results (e.g., ‘key risks by theme?’)"/>
-        <button id="btnExplain" class="btn">Generate insights</button>
-      </div>
-      <div class="ai-box" id="aiOut" style="display:none;margin-top:10px">
-        <div id="aiSummary" class="ai-small"></div>
-        <div id="aiActions" class="ai-small" style="margin-top:8px"></div>
-      </div>
-      <div class="hint" style="margin-top:6px">No Azure OpenAI? Export to Excel above and use <b>Copilot in Excel</b> for secure analysis inside Microsoft 365.</div>
+      <h2 class="h2">Copilot analysis (Excel/Teams)</h2>
+      <div class="hint">Use <b>Export to Excel</b> above, open it in Excel/Teams, then paste the copied prompt to get a full AI summary, comparisons, and actions — fully inside Microsoft 365.</div>
     </section>
   </main>
 
@@ -302,13 +310,15 @@
     }
 
     function fillKPIs(a){
+      // core KPIs
       $('#kpi-total').textContent = a.total;
-      $('#kpi-scored').textContent = a.scored;
       $('#kpi-avg').textContent = a.avg? a.avg.toFixed(2) : "–";
-      $('#kpi-med').textContent = a.med? (Number.isInteger(a.med)? a.med : a.med.toFixed(1)) : "–";
       $('#kpi-pos').textContent = a.posPct + "%";
-      $('#kpi-neu').textContent = (a.dist[2]?.p ?? 0) + "%";
       $('#kpi-neg').textContent = a.negPct + "%";
+      // detail KPIs
+      $('#kpi-scored').textContent = a.scored;
+      $('#kpi-med').textContent = a.med? (Number.isInteger(a.med)? a.med : a.med.toFixed(1)) : "–";
+      $('#kpi-neu').textContent = (a.dist[2]?.p ?? 0) + "%";
       $('#kpi-scored-note').textContent = "n=" + a.scored;
 
       const extremes = [];
@@ -422,34 +432,53 @@
       link.click();
     }
 
-    /* ------------ EXPORT TO EXCEL (Copilot-ready) ------------ */
+    /* ------------ COPILOT-READY EXPORT ------------ */
+    function safeName(s){ return (s||'survey').replace(/[^a-z0-9]+/gi,'_'); }
+    function makePromptsSheet(cur, compare){
+      const base = [
+        ["Try asking Copilot (paste these into the Copilot box in Excel/Teams):"],
+        [""],
+        ["Summarise this survey in 5 bullets. Use only the numbers in the Topline and Distribution sheets. End with 3 recommended actions."],
+        ["Highlight the biggest positives and biggest risks in one paragraph, citing the Topline numbers."],
+        ["Create a bar chart of the Distribution and explain what it shows in 2 sentences."]
+      ];
+      if(compare){
+        base.push(
+          [""],
+          ["Compare the current survey with the comparison sheet. Report change in average and change in % positive (in percentage points). If change ≥ 5pp, suggest one likely reason using the anonymised comments."]
+        );
+      }
+      return XLSX.utils.aoa_to_sheet(base);
+    }
+
     function exportToExcel(){
       const sel = $('#surveySelect').value;
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
 
-      // Sheet 1: Topline (as AoA)
+      // Sheet 1: Topline
       const topline = [
         [cur.title, "Topline"],
         ["Responses", cur.total],
         ["Scored (n)", cur.scored],
-        ["Average", cur.avg.toFixed(2)],
-        ["Median", Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)],
-        ["Positive (4–5)", cur.posPct + "%"],
-        ["Neutral (3)", (cur.dist[2]?.p||0) + "%"],
-        ["Negative (1–2)", cur.negPct + "%"],
-        [],
-        ["Narrative"],
-        [document.getElementById("plainSummary").textContent || ""]
+        ["Average", Number(cur.avg.toFixed(2))],
+        ["Median", Number.isInteger(cur.med)?cur.med:Number(cur.med.toFixed(1))],
+        ["Positive (4–5)", cur.posPct/100],
+        ["Neutral (3)", (cur.dist[2]?.p||0)/100],
+        ["Negative (1–2)", cur.negPct/100]
       ];
       const wsTop = XLSX.utils.aoa_to_sheet(topline);
+      // Mark percentage cells as percentages for Excel
+      wsTop['B6'] && (wsTop['B6'].z = '0%');
+      wsTop['B7'] && (wsTop['B7'].z = '0%');
+      wsTop['B8'] && (wsTop['B8'].z = '0%');
 
       // Sheet 2: Distribution
-      const distAoA = [["Score","Count","%"]].concat(cur.dist.map(d=>[d.score,d.n,d.p]));
+      const distAoA = [["Score","Count","Percent"]].concat(cur.dist.map(d=>[d.score,d.n,d.p/100]));
       const wsDist = XLSX.utils.aoa_to_sheet(distAoA);
+      for(let r=2;r<=6;r++){ const cell=`C${r}`; if(wsDist[cell]) wsDist[cell].z='0%'; }
 
       // Sheet 3: Responses (anonymised)
-      // Only mapped score + free-text comment (when available)
       const sDef = ALL.find(s=>s.id===cur.id);
       const rows = (sDef?.rows || []).map(r=>{
         const sc = sDef?.scoreCol ? toScore(r[sDef.scoreCol]) : null;
@@ -458,85 +487,69 @@
       });
       const wsResp = XLSX.utils.json_to_sheet(rows, { header:["Score (1-5)","Comment"] });
 
+      // Optional comparison sheet (if compare is on and target exists)
+      const compareOn = $('#compareToggle').checked && ALL.length>1;
+      let wsCmp = null;
+      if(compareOn){
+        const other = per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id) || cur;
+        const cmpAoA = [
+          ["Metric", cur.title, other.title],
+          ["Average", Number(cur.avg.toFixed(2)), Number(other.avg.toFixed(2))],
+          ["% Positive (4–5)", cur.posPct/100, other.posPct/100]
+        ];
+        wsCmp = XLSX.utils.aoa_to_sheet(cmpAoA);
+        wsCmp['B3'] && (wsCmp['B3'].z='0%'); wsCmp['C3'] && (wsCmp['C3'].z='0%');
+      }
+
+      // Prompts
+      const wsPrompts = makePromptsSheet(cur, !!wsCmp);
+
+      // Build workbook
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, wsTop, "Topline");
       XLSX.utils.book_append_sheet(wb, wsDist, "Distribution");
       XLSX.utils.book_append_sheet(wb, wsResp, "Responses (anonymised)");
+      if(wsCmp) XLSX.utils.book_append_sheet(wb, wsCmp, "Compare");
+      XLSX.utils.book_append_sheet(wb, wsPrompts, "Prompts");
 
-      const fname = (cur.title || "survey").replace(/[^a-z0-9]+/gi,'_') + "_copilot.xlsx";
+      const fname = `${safeName(cur.title)}_Copilot.xlsx`;
       XLSX.writeFile(wb, fname);
     }
 
-    /* ------------ AI endpoint wiring (kept; optional) ------------ */
-    const AI_URL = "/api/ai";
-    async function callAIInsights(payload){
-      const res = await fetch(AI_URL, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if(!res.ok) throw new Error('AI endpoint failed');
-      return res.json();
-    }
-    function buildAIPayload(){
+    /* ------------ Copilot prompt copier (no external AI) ------------ */
+    function buildCopilotPrompt(){
       const sel = $('#surveySelect').value;
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
-      const themes = Array.from(document.querySelectorAll('#themeList b')).map(b=>{
-        const parentText = b.parentElement?.textContent || '';
-        const m = parentText.match(/\((\d+)\)\s*$/);
-        return { label: b.textContent.trim(), count: m ? Number(m[1]) : undefined };
-      });
-      const quotes = Array.from(document.querySelectorAll('#themeQuotes li'))
-        .map(li => li.textContent.replace(/^“|”$/g,'').trim())
-        .slice(0,5);
-      return {
-        surveyTitle: cur.title,
-        userPrompt: ($('#aiPrompt')?.value || '').trim(),
-        kpis: {
-          total: cur.total, scored: cur.scored,
-          avg: Number(cur.avg.toFixed(2)),
-          median: Number.isInteger(cur.med) ? cur.med : Number(cur.med.toFixed(1)),
-          posPct: cur.posPct, neuPct: cur.dist[2]?.p || 0, negPct: cur.negPct
-        },
-        distribution: cur.dist.map(d => ({ score: d.score, n: d.n, pct: d.p })),
-        themes, sampleQuotes: quotes
-      };
+      const neu = cur.dist[2]?.p || 0;
+      const compareOn = $('#compareToggle').checked && ALL.length>1;
+      const other = compareOn
+        ? (per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id))
+        : null;
+
+      const lines = [];
+      lines.push("You are Copilot in Excel. Using only the numbers in this workbook:");
+      lines.push(`1) Summarise "${cur.title}" in 5 bullets using Topline and Distribution. Include average, % positive, % negative, and 1–2 notable distribution points.`);
+      if(other){
+        lines.push(`2) Compare "${cur.title}" with "${other.title}". Report change in average and change in % positive in percentage points. If change ≥ 5pp, suggest a likely reason using comments from the Responses (anonymised) sheet.`);
+      }
+      lines.push("3) List 3 clear recommended actions for the next cycle.");
+      lines.push("4) Create a chart that best shows the distribution and insert it here.");
+      return lines.join("\n");
     }
-    async function generateInsights(){
-      const btn = $('#btnExplain');
-      const out = $('#aiOut');
-      const sDiv = $('#aiSummary');
-      const aDiv = $('#aiActions');
 
-      btn.disabled = true; btn.textContent = 'Thinking…';
-      sDiv.textContent = ''; aDiv.innerHTML = ''; out.style.display='block';
-
+    async function copyCopilotPrompt(){
+      const text = buildCopilotPrompt();
       try{
-        const payload = buildAIPayload();
-        const data = await callAIInsights(payload);
-
-        sDiv.textContent = data.summary || '—';
-
-        const prompt = ($('#aiPrompt')?.value || '').trim();
-        const qa = (prompt && data.answer)
-          ? `<div style="margin:.4rem 0"><b>Answer:</b> ${data.answer}</div>`
-          : '';
-
-        const risks = (data.risks && data.risks.length)
-          ? `<div class="muted" style="margin:.4rem 0"><b>Risks:</b> ${data.risks.join('; ')}</div>`
-          : '';
-
-        const actions = (data.actions && data.actions.length)
-          ? data.actions.map(x=>`<li>${x}</li>`).join('')
-          : '<li>No specific actions returned.</li>';
-
-        aDiv.innerHTML = `${qa}${risks}<b>Recommended actions</b><ul style="margin:.2rem 0 0 1rem">${actions}</ul>`;
-      }catch(e){
-        sDiv.textContent = 'Sorry — could not generate AI insights.';
-        aDiv.textContent = String(e?.message || e);
-      }finally{
-        btn.disabled = false; btn.textContent = 'Generate insights';
+        await navigator.clipboard.writeText(text);
+        $('#btnCopyCopilot').textContent = 'Prompt copied!';
+        setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200);
+      }catch{
+        const ta = document.createElement('textarea'); ta.value = text;
+        document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch{}
+        document.body.removeChild(ta);
+        $('#btnCopyCopilot').textContent = 'Prompt copied!';
+        setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200);
       }
     }
 
@@ -570,9 +583,15 @@
     $('#btnCopySummary').addEventListener('click', copySummary);
     $('#btnDownloadLikert').addEventListener('click', downloadLikertPNG);
     $('#btnExportExcel').addEventListener('click', exportToExcel);
+    $('#btnCopyCopilot').addEventListener('click', copyCopilotPrompt);
 
-    // AI button → serverless endpoint (optional)
-    $('#btnExplain').addEventListener('click', generateInsights);
+    // Minimalism toggle (avoid too many values by default)
+    $('#toggleDetail').addEventListener('click', ()=>{
+      const box = $('#kpiDetail');
+      const open = box.style.display === 'block';
+      box.style.display = open ? 'none' : 'block';
+      $('#toggleDetail').textContent = open ? 'more detail' : 'hide detail';
+    });
 
     /* ------------ boot ------------ */
     (async function init(){
