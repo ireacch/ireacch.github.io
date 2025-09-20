@@ -19,7 +19,7 @@
       --border:#e6ecf1; --text:#1b2a41; --muted:#556070;
       --band:#cfe4e7; --white:#fff;
       --grad-a:#4a1ea8; --grad-b:#0aa0ff;
-      --good:#22a06b; --bad:#d14d4d;
+      --good:#22a06b; --bad:#d14d4d; --warn:#c07c00;
     }
     .hero-slab{background:var(--band);padding:28px 0 22px;border-bottom:1px solid #c3d6d9}
     .wrap{max-width:var(--page-max);margin:0 auto;padding:0 24px}
@@ -44,6 +44,7 @@
     .chip{font-weight:800;padding:.15rem .5rem;border-radius:999px}
     .chip.good{background:#eaf7f1;color:var(--good)}
     .chip.bad{background:#fdecec;color:var(--bad)}
+    .chip.warn{background:#fff4de;color:var(--warn)}
 
     .grid-2{display:grid;grid-template-columns:1fr 360px;gap:18px}
     @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
@@ -58,10 +59,22 @@
     .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
     .ai-small{color:var(--muted);font-size:.95rem}
 
-    /* New: minimalist KPI header + collapsible detail */
+    /* Minimal KPI detail toggle */
     .kpi-core{display:flex;gap:18px;flex-wrap:wrap}
     .kpi-detail{display:none;margin-top:10px}
     .kpi-toggle{cursor:pointer}
+
+    /* Compare extras */
+    .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .cmp-table{width:100%;border-collapse:collapse}
+    .cmp-table th,.cmp-table td{border:1px solid var(--border);padding:8px 10px;text-align:center}
+    .cmp-table th{background:#f7f9fb}
+    .badge{padding:2px 8px;border-radius:999px;font-weight:800;font-size:.8rem;display:inline-block}
+    .badge.ok{background:#eaf7f1;color:var(--good)}
+    .badge.risk{background:#fdecec;color:var(--bad)}
+    .badge.smalln{background:#fff4de;color:var(--warn)}
+    .methods{font-size:.92rem;line-height:1.4;color:#2a3b52}
+    details summary{cursor:pointer;font-weight:800}
   </style>
 </head>
 <body>
@@ -86,18 +99,20 @@
         </div>
         <div class="row" style="gap:8px">
           <button id="btnExportExcel" class="btn ghost" title="Export current survey to Excel (Copilot-ready)">Export to Excel</button>
+          <button id="btnCopyWord" class="btn ghost" title="Copy topline + narrative for Word">Copy to Word</button>
           <button id="btnCopyCopilot" class="btn ghost" title="Copy a smart Copilot prompt tailored to this survey">Copy Copilot prompt</button>
           <button id="btnRefresh" class="btn ghost">Reload data</button>
         </div>
       </div>
 
-      <!-- Minimal KPIs (supervisor feedback: avoid overload) -->
+      <!-- Minimal KPIs -->
       <div class="kpis" style="margin-top:12px">
         <div class="kpi-core">
           <div class="kpi"><div class="muted">Responses</div><div class="v" id="kpi-total">–</div></div>
           <div class="kpi"><div class="muted">Avg.</div><div class="v" id="kpi-avg">–</div></div>
           <div class="kpi"><div class="muted">Positive (4–5)</div><div class="v" id="kpi-pos">–</div></div>
           <div class="kpi"><div class="muted">Negative (1–2)</div><div class="v" id="kpi-neg">–</div></div>
+          <div class="kpi hide" id="kpi-smalln"><div class="muted">Note</div><div class="v"><span class="chip warn">small n</span></div></div>
         </div>
 
         <div class="kpi-toggle pill" id="toggleDetail" style="margin-top:8px">more detail</div>
@@ -157,22 +172,64 @@
       </aside>
     </section>
 
-    <!-- COMPARE -->
+    <!-- COMPARE (Upgraded) -->
     <section id="comparePanel" class="panel pad hide" style="margin-bottom:18px">
       <div class="row">
-        <h2 class="h2" style="margin:0">Compare Q1/Q2</h2>
-        <div class="row">
-          <div class="pill">Δ Avg <span id="delta-avg" class="chip" style="margin-left:6px">–</span></div>
-          <div class="pill">Δ Positive <span id="delta-pos" class="chip" style="margin-left:6px">–</span></div>
+        <h2 class="h2" style="margin:0">Compare datasets</h2>
+      </div>
+
+      <!-- Topline table with deltas + significance -->
+      <div style="overflow-x:auto;margin-bottom:14px">
+        <table class="cmp-table" id="cmpTopline" aria-label="Topline comparison"></table>
+      </div>
+
+      <!-- Δ distribution (percentage-point change by score) -->
+      <div style="margin-bottom:14px">
+        <h3 class="h2" style="font-size:1.1rem">Distribution change (percentage points)</h3>
+        <canvas id="likertDelta" height="200"></canvas>
+        <div class="hint">Positive bars mean the second dataset has a higher share for that score.</div>
+      </div>
+
+      <!-- Theme drift -->
+      <div class="compare-grid" style="margin-bottom:14px">
+        <div class="panel pad" style="border:1px dashed var(--border)">
+          <b>Theme overlap</b>
+          <div id="cmpThemes" class="ai-small" style="margin-top:6px">—</div>
+        </div>
+        <div class="panel pad" style="border:1px dashed var(--border)">
+          <b>Representative quotes</b>
+          <ul id="cmpQuotes" class="ai-small" style="margin-top:6px;margin-left:1rem"></ul>
         </div>
       </div>
-      <canvas id="likertCompare" height="240"></canvas>
+
+      <!-- Narrative -->
+      <div class="ai-box">
+        <b>One-paragraph summary</b>
+        <div id="cmpNarrative" class="ai-small" style="margin-top:6px">—</div>
+      </div>
     </section>
 
-    <!-- COPILOT HANDOFF (no external AI) -->
+    <!-- METHODS -->
+    <section class="panel pad methods">
+      <details>
+        <summary>Methods & definitions</summary>
+        <div style="margin-top:10px">
+          <ul>
+            <li><b>Scores</b>: 1..5 Likert mapped from text labels (e.g., 1=“Extremely unvalued”, 5=“Extremely valued”).</li>
+            <li><b>% Positive</b>: share of scored responses that are 4 or 5. <b>% Negative</b>: share that are 1 or 2. Base size shown as n.</li>
+            <li><b>Small n</b>: if n&lt;30, a “small n” tag appears — interpret cautiously.</li>
+            <li><b>Meaningful change</b>: Δ≥5 percentage points <i>and</i> two-proportion test p&lt;.05; otherwise shown as small/uncertain.</li>
+            <li><b>Theme extraction</b>: simple tokenization with stopwords removed; top frequent terms; theme drift = overlap vs new vs dropped terms. Quotes are anonymised.</li>
+            <li><b>Average/median</b>: reported descriptively; medians are preferred for skewed distributions.</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <!-- COPILOT HANDOFF -->
     <section class="panel pad">
       <h2 class="h2">Copilot analysis (Excel/Teams)</h2>
-      <div class="hint">Use <b>Export to Excel</b> above, open it in Excel/Teams, then paste the copied prompt to get a full AI summary, comparisons, and actions — fully inside Microsoft 365.</div>
+      <div class="hint">Use <b>Export to Excel</b> above, open it in Excel/Teams, then (when available) paste the copied prompt to get a full AI summary, comparisons, and actions — fully inside Microsoft 365.</div>
     </section>
   </main>
 
@@ -277,7 +334,7 @@
         if(v!=null) scores.push(v);
         if(s.textCol && r[s.textCol]) texts.push(r[s.textCol]);
       }
-      const total=s.rows.length, scored=scores.length, blanks=total-scored;
+      const total=s.rows.length, scored=scores.length;
       const avg=scored? scores.reduce((a,b)=>a+b,0)/scored : 0;
       const med=scored? median(scores) : 0;
       const posPct=scored? Math.round(100*scores.filter(v=>v>=4).length/scored) : 0;
@@ -287,16 +344,16 @@
       const perc = roundPercentsTo100(counts);
 
       const dist=[1,2,3,4,5].map((v,i)=>({score:v, n:counts[i], p:perc[i]}));
-      return { id:s.id,title:s.title,total,scored,blanks,avg,med,posPct,negPct,dist,texts };
+      return { id:s.id,title:s.title,total,scored,avg,med,posPct,negPct,dist,texts };
     }
     function summariseAll(){ return ALL.map(s=>summarise(s)); }
 
     /* ------------ UI + charts ------------ */
-    let chLikert, chCompare;
+    let chLikert, chDelta;
 
     function buildSelects(){
       const sel=$('#surveySelect'), cmp=$('#compareSelect');
-      const prev=sel.value, prevCmp=cmp.value;
+      const prev=sel.value;
       sel.innerHTML=""; cmp.innerHTML="";
       ALL.forEach(s=>{
         sel.insertAdjacentHTML('beforeend', `<option value="${s.id}">${s.title}</option>`);
@@ -310,16 +367,15 @@
     }
 
     function fillKPIs(a){
-      // core KPIs
       $('#kpi-total').textContent = a.total;
       $('#kpi-avg').textContent = a.avg? a.avg.toFixed(2) : "–";
       $('#kpi-pos').textContent = a.posPct + "%";
       $('#kpi-neg').textContent = a.negPct + "%";
-      // detail KPIs
       $('#kpi-scored').textContent = a.scored;
       $('#kpi-med').textContent = a.med? (Number.isInteger(a.med)? a.med : a.med.toFixed(1)) : "–";
       $('#kpi-neu').textContent = (a.dist[2]?.p ?? 0) + "%";
       $('#kpi-scored-note').textContent = "n=" + a.scored;
+      $('#kpi-smalln').classList.toggle('hide', !(a.scored>0 && a.scored<30));
 
       const extremes = [];
       if(a.dist[0].n) extremes.push(`<span class="chip bad">${a.dist[0].n} × score 1</span>`);
@@ -341,15 +397,19 @@
       $('#quickActions').innerHTML = actions.map(x=>`<li>${x}</li>`).join('');
     }
 
-    function themesAndQuotes(texts){
-      const stop=new Set("the,and,to,of,in,for,a,on,is,are,it,with,that,this,at,as,be,or,we,our,your,i,have,has,was,were,from,by,an,you,they,them,not,sure".split(','));
+    function getTopTerms(texts, k=7){
+      const stop=new Set("the,and,to,of,in,for,a,on,is,are,it,with,that,this,at,as,be,or,we,our,your,i,have,has,was,were,from,by,an,you,they,them,not,sure,very,more,less,also".split(','));
       const freq={};
       texts.forEach(t=>{
         t.toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).forEach(w=>{
           if(!w||stop.has(w)||w.length<3) return; freq[w]=(freq[w]||0)+1;
         });
       });
-      const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([label,count])=>({label,count}));
+      return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,k).map(([label,count])=>({label,count}));
+    }
+
+    function themesAndQuotes(texts){
+      const top=getTopTerms(texts,5);
       $('#themeList').innerHTML = top.length ? top.map(t=>`• <b>${t.label}</b> (${t.count})`).join('<br>') : '—';
       const q=[];
       if(top[0]) for(const t of texts){ if(t.toLowerCase().includes(top[0].label) && q.length<2) q.push(t); }
@@ -372,21 +432,90 @@
       $('#likertCaption').textContent = cap;
     }
 
-    function drawCompare(a,b){
-      const ctx = document.getElementById('likertCompare');
-      if(chCompare) chCompare.destroy();
-      const ds = [0,1,2,3,4].map(i=>({
-        label:String(i+1),
-        data:[a.dist[i].n, b.dist[i].n],
-        backgroundColor:palette5[i],
-        stack:'x'
-      }));
-      chCompare = new Chart(ctx,{ type:'bar', data:{ labels:[a.title, b.title], datasets:ds },
-        options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true}, y:{stacked:true} }, plugins:{legend:{position:'bottom'}} }
+    /* ------------ Compare utilities ------------ */
+    // Standard normal CDF (for two-proportion test)
+    function cdfStandardNormal(z){
+      const t = 1 / (1 + 0.2316419 * Math.abs(z));
+      const d = 0.3989423 * Math.exp(-z*z/2);
+      const p = d * t * (0.3193815 + t*(-0.3565638 + t*(1.781478 + t*(-1.821256 + t*1.330274))));
+      return z>=0 ? 1-p : p;
+    }
+    // two-proportion z test → p-value
+    function twoPropP(p1, n1, p2, n2){
+      if(n1===0 || n2===0) return 1;
+      const phat = (p1*n1 + p2*n2) / (n1+n2);
+      const se = Math.sqrt(phat*(1-phat)*(1/n1 + 1/n2));
+      if(se===0) return 1;
+      const z = (p1 - p2) / se;
+      const p = 2 * (1 - cdfStandardNormal(Math.abs(z)));
+      return p;
+    }
+    function fmtPP(x){ const s = (x>=0?'+':'')+Math.round(x)+' pp'; const cls = x>0?'good':(x<0?'bad':''); return `<span class="chip ${cls}">${s}</span>`; }
+    function fmtDelta(x, dp=2){ const s=(x>=0?'+':'')+x.toFixed(dp); const cls=x>0?'good':(x<0?'bad':''); return `<span class="chip ${cls}">${s}</span>`; }
+    function fmtMed(m){ return Number.isInteger(m)? m : m.toFixed(1); }
+    function escapeQuote(s){ return (s||'').replace(/"/g,'&quot;'); }
+
+    function buildToplineTable(a,b){
+      const p1 = a.posPct/100, p2 = b.posPct/100;
+      const pval = twoPropP(p1,a.scored,p2,b.scored);
+      const dPosBA = (b.posPct - a.posPct);
+      const dNegBA = (b.negPct - a.negPct);
+      const meaningful = (Math.abs(dPosBA) >= 5) && (pval < 0.05);
+      const sigBadge = meaningful ? `<span class="badge ${dPosBA>=0?'ok':'risk'}">${dPosBA>=0?'meaningful ↑':'meaningful ↓'}</span>` : `<span class="badge smalln">small/uncertain</span>`;
+
+      const warnA = (a.scored>0 && a.scored<30) ? `<span class="badge smalln">small n</span>` : '';
+      const warnB = (b.scored>0 && b.scored<30) ? `<span class="badge smalln">small n</span>` : '';
+
+      const html = `
+        <tr>
+          <th>Metric</th><th>${a.title}<div class="muted">n=${a.scored}</div>${warnA}</th><th>${b.title}<div class="muted">n=${b.scored}</div>${warnB}</th><th>Δ (B−A)</th><th>Meaningfulness</th>
+        </tr>
+        <tr><td>% Positive (4–5)</td><td>${a.posPct}%</td><td>${b.posPct}%</td><td>${fmtPP(dPosBA)}</td><td>${sigBadge}</td></tr>
+        <tr><td>% Negative (1–2)</td><td>${a.negPct}%</td><td>${b.negPct}%</td><td>${fmtPP(dNegBA)}</td><td>${Math.abs(dNegBA)>=5?'large change':'—'}</td></tr>
+        <tr><td>Median</td><td>${fmtMed(a.med)}</td><td>${fmtMed(b.med)}</td><td>${fmtDelta(b.med - a.med)}</td><td>descriptive</td></tr>
+        <tr><td>Average</td><td>${a.avg.toFixed(2)}</td><td>${b.avg.toFixed(2)}</td><td>${fmtDelta(b.avg - a.avg,2)}</td><td>descriptive</td></tr>`;
+      $('#cmpTopline').innerHTML = html;
+      return {dPosBA, dNegBA, meaningful};
+    }
+
+    function drawDeltaDistribution(a,b){
+      const delta = [0,1,2,3,4].map(i => (b.dist[i].p - a.dist[i].p)); // in pp
+      const ctx = document.getElementById('likertDelta');
+      if(chDelta) chDelta.destroy();
+      chDelta = new Chart(ctx, {
+        type:'bar',
+        data:{ labels:['1','2','3','4','5'], datasets:[{label:'Δ pp (B−A)', data:delta, backgroundColor:delta.map(v=> v>=0 ? '#9ae6b4' : '#fecaca')}]},
+        options:{ scales:{ y:{ beginAtZero:true, ticks:{ callback:val=>val+' pp'} } }, plugins:{legend:{display:false}} }
       });
-      const dAvg=a.avg-b.avg, dPos=a.posPct-b.posPct;
-      const chip=(el,n)=>{ el.textContent=(n>0?'+':'')+(Number.isInteger(n)?n:n.toFixed(2)); el.className='chip ' + (n>=0?'good':'bad'); };
-      chip($('#delta-avg'), dAvg); chip($('#delta-pos'), dPos);
+    }
+
+    function buildThemeDrift(a,b){
+      const A = getTopTerms(a.texts||[],8).map(t=>t.label);
+      const B = getTopTerms(b.texts||[],8).map(t=>t.label);
+      const both = A.filter(x=>B.includes(x));
+      const onlyA = A.filter(x=>!B.includes(x));
+      const onlyB = B.filter(x=>!A.includes(x));
+      $('#cmpThemes').innerHTML =
+        `<div><b>Both:</b> ${both.join(', ') || '—'}</div>
+         <div style="margin-top:6px"><b>New in ${b.title}:</b> ${onlyB.join(', ') || '—'}</div>
+         <div style="margin-top:6px"><b>Dropped since ${a.title}:</b> ${onlyA.join(', ') || '—'}</div>`;
+
+      const quotes=[];
+      for(const t of onlyB){ const q=(b.texts||[]).find(x=>x.toLowerCase().includes(t)); if(q){ quotes.push(`“${escapeQuote(q)}”`); if(quotes.length>=2) break; } }
+      if(quotes.length<2){
+        for(const t of both){ const q=(b.texts||[]).find(x=>x.toLowerCase().includes(t)); if(q){ quotes.push(`“${escapeQuote(q)}”`); if(quotes.length>=2) break; } }
+      }
+      $('#cmpQuotes').innerHTML = quotes.length ? quotes.map(q=>`<li>${q}</li>`).join('') : '<li>No representative quotes.</li>';
+    }
+
+    function buildNarrative(a,b,stats){
+      const dir = (x)=> x>0?'increased':'decreased';
+      const mag = (x)=> Math.abs(Math.round(x));
+      const qual = stats.meaningful ? 'meaningfully' : 'slightly';
+      const medChange = a.med===b.med ? 'are unchanged' : `moved from ${fmtMed(a.med)} to ${fmtMed(b.med)}`;
+      const main = `Compared with <b>${a.title}</b> (n=${a.scored}), <b>${b.title}</b> (n=${b.scored}) shows <b>${dir(stats.dPosBA)}</b> positive responses by <b>${mag(stats.dPosBA)} pp</b> ${stats.meaningful?`(${qual})`:''} and ${dir(stats.dNegBA)} negatives by ${mag(stats.dNegBA)} pp. Medians ${medChange}.`;
+      const caution = (a.scored<30 || b.scored<30) ? ' <span class="badge smalln">small n — interpret cautiously</span>.' : '';
+      $('#cmpNarrative').innerHTML = main + caution;
     }
 
     /* ------------ COPY + DOWNLOAD ------------ */
@@ -424,6 +553,32 @@
       }
     }
 
+    function buildWordText(){
+      const sel = $('#surveySelect').value;
+      const per = summariseAll();
+      const cur = per.find(x=>x.id===sel) || per[0];
+      const neu = cur.dist[2]?.p || 0;
+      return [
+        `Survey: ${cur.title}`,
+        `Responses: ${cur.total} (scored n=${cur.scored})`,
+        `Avg ${cur.avg.toFixed(2)} | Median ${Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)}`,
+        `Positive 4–5: ${cur.posPct}% | Neutral 3: ${neu}% | Negative 1–2: ${cur.negPct}%`,
+        `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`,
+        ``,
+        `Suggested actions:`,
+        ...Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`)
+      ].join('\n');
+    }
+
+    async function copyToWord(){
+      const text = buildWordText();
+      try{
+        await navigator.clipboard.writeText(text);
+        $('#btnCopyWord').textContent = 'Copied!';
+        setTimeout(()=>$('#btnCopyWord').textContent='Copy to Word',1200);
+      }catch(e){ alert("Copy failed: " + e.message); }
+    }
+
     function downloadLikertPNG(){
       if(!window.chLikert) return;
       const link = document.createElement('a');
@@ -445,7 +600,7 @@
       if(compare){
         base.push(
           [""],
-          ["Compare the current survey with the comparison sheet. Report change in average and change in % positive (in percentage points). If change ≥ 5pp, suggest one likely reason using the anonymised comments."]
+          ["Compare the current survey with the Compare sheet. Report change in average and change in % positive (percentage points). If change ≥ 5pp, suggest one likely reason using anonymised comments."]
         );
       }
       return XLSX.utils.aoa_to_sheet(base);
@@ -468,14 +623,10 @@
         ["Negative (1–2)", cur.negPct/100]
       ];
       const wsTop = XLSX.utils.aoa_to_sheet(topline);
-      // Mark percentage cells as percentages for Excel
-      wsTop['B6'] && (wsTop['B6'].z = '0%');
-      wsTop['B7'] && (wsTop['B7'].z = '0%');
-      wsTop['B8'] && (wsTop['B8'].z = '0%');
+      ['B6','B7','B8'].forEach(c=>{ if(wsTop[c]) wsTop[c].z='0%'; });
 
       // Sheet 2: Distribution
-      const distAoA = [["Score","Count","Percent"]].concat(cur.dist.map(d=>[d.score,d.n,d.p/100]));
-      const wsDist = XLSX.utils.aoa_to_sheet(distAoA);
+      const wsDist = XLSX.utils.aoa_to_sheet([["Score","Count","Percent"], ...cur.dist.map(d=>[d.score,d.n,d.p/100])]);
       for(let r=2;r<=6;r++){ const cell=`C${r}`; if(wsDist[cell]) wsDist[cell].z='0%'; }
 
       // Sheet 3: Responses (anonymised)
@@ -487,7 +638,7 @@
       });
       const wsResp = XLSX.utils.json_to_sheet(rows, { header:["Score (1-5)","Comment"] });
 
-      // Optional comparison sheet (if compare is on and target exists)
+      // Optional Compare sheet
       const compareOn = $('#compareToggle').checked && ALL.length>1;
       let wsCmp = null;
       if(compareOn){
@@ -498,10 +649,10 @@
           ["% Positive (4–5)", cur.posPct/100, other.posPct/100]
         ];
         wsCmp = XLSX.utils.aoa_to_sheet(cmpAoA);
-        wsCmp['B3'] && (wsCmp['B3'].z='0%'); wsCmp['C3'] && (wsCmp['C3'].z='0%');
+        ['B3','C3'].forEach(c=>{ if(wsCmp[c]) wsCmp[c].z='0%'; });
       }
 
-      // Prompts
+      // Prompts sheet
       const wsPrompts = makePromptsSheet(cur, !!wsCmp);
 
       // Build workbook
@@ -512,8 +663,7 @@
       if(wsCmp) XLSX.utils.book_append_sheet(wb, wsCmp, "Compare");
       XLSX.utils.book_append_sheet(wb, wsPrompts, "Prompts");
 
-      const fname = `${safeName(cur.title)}_Copilot.xlsx`;
-      XLSX.writeFile(wb, fname);
+      XLSX.writeFile(wb, `${safeName(cur.title)}_Copilot.xlsx`);
     }
 
     /* ------------ Copilot prompt copier (no external AI) ------------ */
@@ -521,7 +671,6 @@
       const sel = $('#surveySelect').value;
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
-      const neu = cur.dist[2]?.p || 0;
       const compareOn = $('#compareToggle').checked && ALL.length>1;
       const other = compareOn
         ? (per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id))
@@ -568,9 +717,13 @@
       const compareOn = $('#compareToggle').checked && ALL.length>1;
       $('#comparePanel').classList.toggle('hide', !compareOn);
       $('#compareSelect').disabled = !compareOn;
+
       if(compareOn){
         const other = per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id) || cur;
-        drawCompare(cur, other);
+        const stats = buildToplineTable(cur, other);
+        drawDeltaDistribution(cur, other);
+        buildThemeDrift(cur, other);
+        buildNarrative(cur, other, stats);
       }
     }
 
@@ -584,6 +737,7 @@
     $('#btnDownloadLikert').addEventListener('click', downloadLikertPNG);
     $('#btnExportExcel').addEventListener('click', exportToExcel);
     $('#btnCopyCopilot').addEventListener('click', copyCopilotPrompt);
+    $('#btnCopyWord').addEventListener('click', copyToWord);
 
     // Minimalism toggle (avoid too many values by default)
     $('#toggleDetail').addEventListener('click', ()=>{
