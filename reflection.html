@@ -2,101 +2,382 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>I-REACCH | Reflection</title>
 
+  <!-- Your shared brand layer -->
   <link rel="stylesheet" href="assets/css/brand.css"/>
-  <link rel="stylesheet" href="assets/css/header.css"/>
-  <link rel="stylesheet" href="assets/css/style.css"/>
 
   <style>
     :root{
-      --border:#e6ecf1; --muted:#556070; --muted-strong:#384454;
-      --bubble-bg:#f7f9fb; --bubble-user:#eaf5ff;
+      --band:#cfe4e7;
+      --border:#e6ecf1;
+      --muted:#556070;
+      --ink:#1a1a1a;
+      --chip:#eef2f7;
+      --grad-a:#5b2ca1;
+      --grad-b:#00b0f0;
+      --radius:16px;
     }
-    .hero{background:var(--ire-hero);border-bottom:1px solid var(--border)}
-    .hero .container{max-width:1200px;margin:0 auto;padding:28px 24px}
-    .hero h1{margin:0 0 6px;font-weight:800;font-size:clamp(1.6rem,2.4vw,2.2rem)}
+
+    /* Hero (same rhythm as other pages) */
+    .hero{background:var(--band);border-bottom:1px solid #c3d6d9;padding:56px 0 36px;margin-bottom:36px}
+    .hero .container{max-width:1200px;padding:0 24px}
+    .hero h1{margin:0 0 6px}
     .hero p{margin:0;color:var(--muted)}
 
-    .reflect-container{max-width:900px;margin:32px auto;padding:0 24px}
-    @media(max-width:640px){.reflect-container{padding:0 16px}}
+    /* Page wrapper */
+    .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+    @media (max-width:640px){.wrap{padding:0 16px}}
 
-    .chat-box{display:flex;flex-direction:column;gap:14px}
-    .bubble{padding:12px 16px;border-radius:12px;max-width:80%;line-height:1.4}
-    .bubble.system{background:var(--bubble-bg);color:var(--muted-strong);align-self:flex-start}
-    .bubble.user{background:var(--bubble-user);color:var(--ire-ink);align-self:flex-end}
+    /* Context pill under hero */
+    .context{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 4px}
+    .pill{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:700;color:#384454;font-size:.85rem}
 
-    .input-wrap{margin-top:12px;display:flex;flex-direction:column;gap:10px}
-    textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;resize:vertical;font:inherit}
-    .btn-row{display:flex;gap:10px;align-items:center}
-    .hint{font-size:.9rem;color:var(--muted)}
+    /* Chat area */
+    .chat{max-width:780px;margin:24px auto}
+    .thread{display:flex;flex-direction:column;gap:10px}
+    .bubble{
+      max-width:680px;
+      padding:12px 14px;border-radius:14px;line-height:1.45;box-shadow:0 8px 22px rgba(0,0,0,.04);
+      background:#f7fbff;border:1px solid var(--border);color:var(--ink)
+    }
+    .bubble.user{align-self:flex-end;background:#eef5ff;border-color:#dfe9ff}
+    .bubble.sys{align-self:flex-start;background:#f7fbff}
+    .typing{width:34px;height:12px;display:inline-block;vertical-align:middle;background:linear-gradient(90deg,#dfe9ff 0,#eef5ff 50%,#dfe9ff 100%);background-size:200% 100%;animation:shimmer 1.2s infinite linear;border-radius:6px}
+    @keyframes shimmer{0%{background-position:0 0}100%{background-position:-200% 0}}
+
+    /* Composer */
+    .composer{
+      position:sticky;bottom:0;background:#fff;margin-top:8px;padding:14px;border:1px solid var(--border);
+      border-radius:var(--radius);box-shadow:0 8px 22px rgba(0,0,0,.06)
+    }
+    .ta{width:100%;min-height:120px;resize:vertical;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font:inherit}
+    .meta{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.85rem;margin:6px 2px 10px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{
+      border:0;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;color:#fff;
+      background:linear-gradient(135deg,var(--grad-a),var(--grad-b))
+    }
+    .btn.ghost{background:#fff;color:#1c2733;border:1px solid var(--border)}
+    .btn.link{background:transparent;color:var(--muted);border:0;text-decoration:underline;padding:8px 6px}
+    .hint{color:var(--muted);font-size:.9rem;margin-top:10px}
+
+    /* Tag chips */
+    .tags{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+    .tag{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:600;font-size:.82rem;cursor:pointer}
+
+    /* Consent row */
+    .consent{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.9rem;color:#384454}
+
+    /* Finish summary panel */
+    .summary{display:none;margin:20px auto 0;max-width:780px;border:1px solid var(--border);border-radius:14px;padding:16px;background:#fff;box-shadow:0 8px 22px rgba(0,0,0,.06)}
+    .summary h3{margin:0 0 8px}
+    .summary pre{white-space:pre-wrap;word-wrap:break-word;background:#f9fbfd;border:1px solid var(--border);border-radius:10px;padding:12px;margin:10px 0 0}
+    .summary .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+    /* A11y focus */
+    .ta:focus,.btn:focus,.tag:focus{outline:2px solid #6366f1;outline-offset:2px}
   </style>
 </head>
 <body>
+
   <!-- Hero -->
   <section class="hero">
     <div class="container">
       <h1>Reflection space</h1>
-      <p>thanks for completing the survey — here’s a space to expand on your thoughts in your own words.</p>
+      <p>Thanks for completing the survey — here’s a space to expand on your thoughts in your own words.</p>
+      <div class="context" id="contextPills" aria-live="polite"></div>
     </div>
   </section>
 
-  <!-- Page -->
-  <main class="reflect-container">
-    <div id="chat" class="chat-box">
-      <div class="bubble system">what made you answer the way you did in the survey?</div>
-    </div>
+  <!-- Chat -->
+  <main class="wrap">
+    <div class="chat">
+      <div class="thread" id="thread" aria-live="polite" aria-relevant="additions"></div>
 
-    <div class="input-wrap">
-      <textarea id="reply" rows="3" placeholder="type your reflection here…"></textarea>
-      <div class="btn-row">
-        <button id="sendBtn" class="btn">send</button>
-        <button id="clearBtn" class="btn ghost">clear</button>
+      <!-- Composer -->
+      <div class="composer" role="group" aria-label="Write your reflection">
+        <textarea id="input" class="ta" placeholder="Type your reflection here… (try for 2–3 sentences)"></textarea>
+        <div class="meta">
+          <span id="progress">1 / 4</span>
+          <span id="counter">0 / 600</span>
+        </div>
+
+        <div class="tags" id="suggestedTags">
+          <button type="button" class="tag">mentoring</button>
+          <button type="button" class="tag">workload</button>
+          <button type="button" class="tag">recognition</button>
+          <button type="button" class="tag">community</button>
+          <button type="button" class="tag">training</button>
+        </div>
+
+        <div class="controls">
+          <button id="send" class="btn" type="button">send</button>
+          <button id="skip" class="btn ghost" type="button">skip question</button>
+          <button id="clear" class="btn ghost" type="button">clear</button>
+          <button id="finish" class="btn ghost" type="button">finish &amp; copy</button>
+          <span id="saved" class="hint" style="display:none">Saved ✓</span>
+        </div>
+
+        <label class="consent">
+          <input type="checkbox" id="consent"/><span>You may use a short anonymised quote from my reflections.</span>
+        </label>
+
+        <div class="hint">Your reflections are anonymous and may be summarised with others. Saved locally on this device.</div>
       </div>
-      <p class="hint">your reflections are anonymous and will be summarised with others.</p>
+
+      <!-- Summary -->
+      <section id="summaryPanel" class="summary" aria-live="polite">
+        <h3>Your reflection summary</h3>
+        <pre id="summaryText"></pre>
+        <div class="actions">
+          <button id="copySummary" class="btn" type="button">Copy to clipboard</button>
+          <button id="downloadTxt" class="btn ghost" type="button">Download .txt</button>
+          <a id="toBest" href="best-practices.html" class="btn ghost">Share as a Best Practice?</a>
+        </div>
+      </section>
     </div>
   </main>
 
   <script>
-    const chat=document.getElementById("chat");
-    const reply=document.getElementById("reply");
-    const sendBtn=document.getElementById("sendBtn");
-    const clearBtn=document.getElementById("clearBtn");
+    /* ---------- Params & context ---------- */
+    const params = new URLSearchParams(location.search);
+    const question = params.get('q') || 'the survey item you just answered';
+    const score = params.get('score'); // "1".."5"
+    const scoreLabel = score ? `Your score: ${score}` : null;
 
-    const prompts=[
-      "thanks — can you give an example or story that illustrates your experience?",
-      "what could your School or College do differently to improve this?",
-      "is there a best practice you’ve seen that others should adopt?",
-      "anything else you’d like to add?"
+    /* ---------- Prompts (score-adaptive) ---------- */
+    const baseLow = [
+      `What made you answer the way you did in the survey?`,
+      `Thanks — could you share a short example or story that illustrates your experience?`,
+      `What would help improve things for you or your team?`,
+      `Anything else you want us to know?`
     ];
-    let step=0;
+    const baseHigh = [
+      `What’s working well that led to your response?`,
+      `Can you share an example others could learn from?`,
+      `What should we protect or scale up?`,
+      `Anything else you’d add?`
+    ];
+    const PROMPTS = (Number(score) >= 4) ? baseHigh : baseLow;
 
-    function addBubble(text,cls){
-      const b=document.createElement("div");
-      b.className="bubble "+cls;
-      b.textContent=text;
-      chat.appendChild(b);
-      chat.scrollTop=chat.scrollHeight;
+    /* ---------- State & storage ---------- */
+    const KEY = 'ireacch-reflection-v1';
+    const load = () => { try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch{ return null } };
+    const save = (obj) => localStorage.setItem(KEY, JSON.stringify(obj));
+
+    const state = load() || {
+      msgs: [],    // {role:'sys'|'user', text:''}
+      i: 0,        // prompt index
+      draft: '',
+      consent: false,
+      meta: {question, score}
+    };
+
+    /* ---------- DOM ---------- */
+    const thread = document.getElementById('thread');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const clearBtn = document.getElementById('clear');
+    const skipBtn  = document.getElementById('skip');
+    const finishBtn= document.getElementById('finish');
+    const counter  = document.getElementById('counter');
+    const progress = document.getElementById('progress');
+    const savedEl  = document.getElementById('saved');
+    const consentEl= document.getElementById('consent');
+    const ctx = document.getElementById('contextPills');
+    const sumPanel = document.getElementById('summaryPanel');
+    const sumText  = document.getElementById('summaryText');
+    const copySum  = document.getElementById('copySummary');
+    const dlTxt    = document.getElementById('downloadTxt');
+    const toBest   = document.getElementById('toBest');
+
+    /* ---------- Helpers ---------- */
+    const limit = 600;
+    const updateCounter = () => counter.textContent = `${input.value.length} / ${limit}`;
+    const setProgress = () => progress.textContent = `${Math.min(state.i+1, PROMPTS.length)} / ${PROMPTS.length}`;
+    const bubble = (text, role='sys') => {
+      const div = document.createElement('div');
+      div.className = `bubble ${role==='user'?'user':'sys'}`;
+      div.textContent = text;
+      thread.appendChild(div);
+      div.scrollIntoView({behavior:'smooth',block:'end'});
+    };
+    const typing = () => {
+      const b = document.createElement('div');
+      b.className = 'bubble sys';
+      b.innerHTML = `<span class="typing" aria-hidden="true"></span><span class="sr-only">typing</span>`;
+      thread.appendChild(b);
+      b.scrollIntoView({behavior:'smooth',block:'end'});
+      return b;
+    };
+    const flashSaved = () => { savedEl.style.display='inline'; clearTimeout(flashSaved._t); flashSaved._t=setTimeout(()=>savedEl.style.display='none', 900); };
+
+    // Build context pills
+    (function buildContext(){
+      ctx.innerHTML = '';
+      const p1 = document.createElement('span');
+      p1.className = 'pill';
+      p1.textContent = `Reflecting on: ${question}`;
+      ctx.appendChild(p1);
+      if(scoreLabel){
+        const p2 = document.createElement('span');
+        p2.className = 'pill';
+        p2.textContent = scoreLabel;
+        ctx.appendChild(p2);
+      }
+    })();
+
+    /* ---------- Render existing history ---------- */
+    function renderFromState(){
+      thread.innerHTML = '';
+      state.msgs.forEach(m => bubble(m.text, m.role));
+      // If fresh, seed first prompt
+      if(state.msgs.length === 0){
+        nextPrompt(true);
+      }
+      input.value = state.draft || '';
+      consentEl.checked = !!state.consent;
+      updateCounter();
+      setProgress();
     }
 
-    sendBtn.addEventListener("click",()=>{
-      const val=reply.value.trim();
+    /* ---------- Prompt engine ---------- */
+    function nextPrompt(initial=false){
+      if(state.i >= PROMPTS.length) return; // no more prompts
+      const t = typing();
+      const delay = initial ? 250 : 650;
+      setTimeout(()=>{
+        t.remove();
+        const text = PROMPTS[state.i];
+        state.msgs.push({role:'sys', text});
+        bubble(text, 'sys');
+        save(state);
+      }, delay);
+    }
+
+    /* ---------- Actions ---------- */
+    function sendMessage(){
+      const val = input.value.trim();
       if(!val) return;
-      addBubble(val,"user");
-      reply.value="";
-      if(step<prompts.length){
-        setTimeout(()=>addBubble(prompts[step++],"system"),400);
-      }else{
-        setTimeout(()=>addBubble("thanks for sharing your reflections ✨","system"),400);
+      // Append user bubble
+      state.msgs.push({role:'user', text:val});
+      bubble(val, 'user');
+      input.value = '';
+      updateCounter();
+      // Advance to next
+      state.i = Math.min(state.i + 1, PROMPTS.length);
+      setProgress();
+      save(state);
+      flashSaved();
+      if(state.i < PROMPTS.length) nextPrompt();
+    }
+
+    function skipMessage(){
+      state.i = Math.min(state.i + 1, PROMPTS.length);
+      setProgress();
+      save(state);
+      if(state.i < PROMPTS.length) nextPrompt();
+    }
+
+    function clearAll(){
+      if(!confirm('Clear your reflections on this device?')) return;
+      localStorage.removeItem(KEY);
+      state.msgs = []; state.i = 0; state.draft=''; state.consent=false;
+      renderFromState();
+      sumPanel.style.display='none';
+    }
+
+    function finish(){
+      // Build structured summary
+      const blocks = [];
+      const pairs = [];
+      // Map system prompts to next user reply if any
+      let lastSys = null;
+      state.msgs.forEach(m=>{
+        if(m.role==='sys'){ lastSys = m.text; }
+        else if(m.role==='user' && lastSys){ pairs.push([lastSys, m.text]); lastSys=null; }
+      });
+      pairs.forEach(([q,a], idx)=>{
+        blocks.push(`${idx+1}. ${q}\n— ${a}`);
+      });
+      const consentLine = state.consent ? '\n\n(Consent to use a short anonymised quote: YES)' : '\n\n(Consent to use a short anonymised quote: NO)';
+      const meta = `Reflecting on: ${question}${score?` · Score: ${score}`:''}\n`;
+      const full = meta + '\n' + blocks.join('\n\n') + consentLine;
+
+      sumText.textContent = full;
+      sumPanel.style.display='block';
+
+      // Pre-fill Best Practices link with a helpful title if we see a "we did / worked" pattern
+      const joined = state.msgs.map(m=>m.text).join(' ').toLowerCase();
+      const suggestTitle = /we (did|tried|set up|introduced)|worked well|what worked/.test(joined)
+        ? 'Idea from reflection'
+        : 'Share a practice';
+      toBest.href = `best-practices.html#bp-title`;
+      toBest.onclick = (e)=>{
+        e.preventDefault();
+        // Best we can do client-side: copy summary to clipboard, then navigate.
+        navigator.clipboard.writeText(full).finally(()=>location.href='best-practices.html');
+      };
+    }
+
+    /* ---------- Events ---------- */
+    // Send / Skip / Clear / Finish
+    sendBtn.addEventListener('click', sendMessage);
+    skipBtn.addEventListener('click', skipMessage);
+    clearBtn.addEventListener('click', clearAll);
+    finishBtn.addEventListener('click', finish);
+
+    // Enter = send, Shift+Enter = newline
+    input.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter' && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
       }
     });
 
-    clearBtn.addEventListener("click",()=>{
-      chat.innerHTML='<div class="bubble system">what made you answer the way you did in the survey?</div>';
-      reply.value="";
-      step=0;
+    // Character counter + draft autosave
+    input.addEventListener('input', ()=>{
+      if(input.value.length > limit) input.value = input.value.slice(0,limit);
+      updateCounter();
+      state.draft = input.value;
+      save(state);
     });
+
+    // Consent
+    consentEl.addEventListener('change', ()=>{
+      state.consent = consentEl.checked; save(state); flashSaved();
+    });
+
+    // Tag chips append as hashtags
+    document.getElementById('suggestedTags').addEventListener('click', e=>{
+      if(!e.target.classList.contains('tag')) return;
+      const t = ` #${e.target.textContent.trim()}`;
+      if(!input.value.includes(t)) input.value += t;
+      input.dispatchEvent(new Event('input'));
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    });
+
+    // Finish actions
+    copySum.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(sumText.textContent); copySum.textContent='Copied!'; setTimeout(()=>copySum.textContent='Copy to clipboard', 900); }catch{}
+    });
+    dlTxt.addEventListener('click', ()=>{
+      const blob = new Blob([sumText.textContent], {type:'text/plain'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='reflection.txt'; a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    // Leave warning if there is unsent text and not finished
+    window.addEventListener('beforeunload', (e)=>{
+      const pending = input.value.trim().length>0 || (state.i < PROMPTS.length && state.msgs.length>0);
+      if(pending){ e.preventDefault(); e.returnValue=''; }
+    });
+
+    /* ---------- Boot ---------- */
+    renderFromState();
   </script>
 </body>
 </html>
