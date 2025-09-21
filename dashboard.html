@@ -45,8 +45,15 @@
     .chip.bad{background:#fdecec;color:var(--bad)}
     .chip.warn{background:#fff4de;color:var(--warn)}
 
-    .grid-2{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    /* Wider right column so Themes & quotes has room; nothing moves, just breathes */
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr minmax(380px, 480px);
+      gap:18px;
+      align-items:start;
+    }
     @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
+
     .mini-grid{display:grid;grid-template-columns:260px 1fr;gap:18px}
     @media (max-width:900px){.mini-grid{grid-template-columns:1fr}}
     .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden;width:100%}
@@ -74,28 +81,53 @@
     .badge.smalln{background:#fff4de;color:var(--warn)}
 
     /* Summary + themes */
-    .summary-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+    .summary-grid{
+      display:grid;
+      grid-template-columns:minmax(0, 2.2fr) minmax(300px, 1fr);
+      gap:14px;
+      align-items:start;
+    }
     @media (max-width:960px){.summary-grid{grid-template-columns:1fr}}
     .actions-list{margin:.2rem 0 0 1rem}
+    /* give actions a bit more legibility and prevent cramp */
+    .actions-list li{margin-bottom:.35rem; overflow-wrap:anywhere;}
 
-    .theme-chips{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+    #quickActionsWrap{min-width:300px}
+
+    .theme-chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      min-width:0;
+      align-content:flex-start;
+    }
     .theme-chip{
+      display:inline-flex;            /* pill that can grow vertically */
+      flex-wrap:wrap;
       background:var(--chip);
       border:1px solid var(--border);
       border-radius:999px;
-      padding:4px 10px;
+      padding:6px 12px;
       font-weight:700;
       font-size:.85rem;
-      word-break: break-word;      /* prevent cut-offs */
-      white-space:normal;          /* allow wrapping within chip */
-      overflow:visible;
-      text-overflow:clip;
+      line-height:1.2;
+      white-space:normal;            /* allow multi-line in wide phrases */
+      word-break:break-word;         /* break long words instead of clipping */
       max-width:100%;
     }
+
     .quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
     @media (max-width:960px){.quote-grid{grid-template-columns:1fr}}
     .quote-card{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#fff}
-    .quote-card p{margin:0;line-height:1.4;max-height:3.6em;overflow:hidden;text-overflow:ellipsis}
+    /* clean 3-line clamp so nothing looks cut mid-line */
+    .quote-card p{
+      margin:0;
+      line-height:1.4;
+      display:-webkit-box;
+      -webkit-line-clamp:3;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
 
     .methods{font-size:.92rem;line-height:1.4;color:#2a3b52}
     details summary{cursor:pointer;font-weight:800}
@@ -362,8 +394,7 @@
       const avg=scored? scores.reduce((a,b)=>a+b,0)/scored : 0;
       const med=scored? median(scores) : 0;
       const posPct=scored? Math.round(100*scores.filter(v=>v>=4).length/scored) : 0;
-      /* FIX: correct negative % calculation */
-      const negPct=scored? Math.round(100 * scores.filter(v=>v<=2).length / scored) : 0;
+      const negPct=scored? Math.round(100*scores.filter(v=>v<=2).length/scored) : 0;
 
       const counts=[1,2,3,4,5].map(v=>scores.filter(x=>x===v).length);
       const perc = roundPercentsTo100(counts);
@@ -391,7 +422,6 @@
       $('#compareSelect').disabled = !$('#compareToggle').checked;
       $('#comparePanel').classList.toggle('hide', !$('#compareToggle').checked);
 
-      // re-order sections when compare is ON
       reorderForCompare();
     }
 
@@ -419,7 +449,7 @@
         `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neu}%</b> neutral (3), and <b>${neg}%</b> negative (1–2). `
         + `Average is <b>${a.avg.toFixed(2)}</b> (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`;
 
-      // Data-responsive actions (hide box if none)
+      /* Data-responsive quick actions (hide if none) */
       const actions=[];
       if(pos<60) actions.push("Run a short focus group to understand low sentiment.");
       if(neu>=20) actions.push("Probe why many are neutral; clarify expectations or supports.");
@@ -456,7 +486,6 @@
       const grid = $('#quoteGrid');
       grid.innerHTML = '';
       const quotes = [];
-      // Collect up to 4 short quotes related to top themes
       for(const theme of top){
         for(const q of (texts||[])){
           if(q.toLowerCase().includes(theme.label) && !quotes.includes(q)){
@@ -484,7 +513,7 @@
       const ctx = document.getElementById('likertBar');
       if(chLikert) chLikert.destroy();
       chLikert = new Chart(ctx,{ type:'bar', data:{ labels:[''], datasets:ds },
-        options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} }, plugins:{legend:{position:'bottom'}} }
+        options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} }, plugins:{legend:{position:'bottom', labels:{ boxWidth:12, padding:8 }}} }
       });
       const cap = dist.map(d=>`${d.score}: ${d.n} (${d.p}%)`).join(' • ');
       $('#likertCaption').textContent = cap;
@@ -535,7 +564,7 @@
     }
 
     function drawDeltaDistribution(a,b){
-      const delta = [0,1,2,3,4].map(i => (b.dist[i].p - a.dist[i].p)); // in pp
+      const delta = [0,1,2,3,4].map(i => (b.dist[i].p - a.dist[i].p));
       const ctx = document.getElementById('likertDelta');
       if(chDelta) chDelta.destroy();
       chDelta = new Chart(ctx, {
@@ -636,7 +665,6 @@
     }
 
     function downloadLikertPNG(){
-      /* FIX: check the actual variable, not window.chLikert */
       if(!chLikert) return;
       const link = document.createElement('a');
       link.download = `${$('#surveySelect').value || 'survey'}-likert.png`;
@@ -741,7 +769,6 @@
     async function copyCopilotPrompt(){
       const text = buildCopilotPrompt();
       try{
-        /* FIX: stray characters removed */
         await navigator.clipboard.writeText(text);
         $('#btnCopyCopilot').textContent = 'Prompt copied!';
         setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200);
