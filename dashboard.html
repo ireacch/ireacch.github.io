@@ -73,17 +73,29 @@
     .badge.risk{background:#fdecec;color:var(--bad)}
     .badge.smalln{background:#fff4de;color:var(--warn)}
 
-    /* New: better summary + themes layout */
+    /* Summary + themes */
     .summary-grid{display:grid;grid-template-columns:2fr 1fr;gap:14px}
     @media (max-width:960px){.summary-grid{grid-template-columns:1fr}}
     .actions-list{margin:.2rem 0 0 1rem}
-    .theme-chips{display:flex;flex-wrap:wrap;gap:6px}
-    .theme-chip{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:700;font-size:.85rem}
+
+    .theme-chips{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+    .theme-chip{
+      background:var(--chip);
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:4px 10px;
+      font-weight:700;
+      font-size:.85rem;
+      word-break: break-word;      /* prevent cut-offs */
+      white-space:normal;          /* allow wrapping within chip */
+      overflow:visible;
+      text-overflow:clip;
+      max-width:100%;
+    }
     .quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
     @media (max-width:960px){.quote-grid{grid-template-columns:1fr}}
     .quote-card{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#fff}
-    /* SHOW FULL QUOTE TEXT (no clipping) */
-    .quote-card p{margin:0;line-height:1.4;word-break:break-word}
+    .quote-card p{margin:0;line-height:1.4;max-height:3.6em;overflow:hidden;text-overflow:ellipsis}
 
     .methods{font-size:.92rem;line-height:1.4;color:#2a3b52}
     details summary{cursor:pointer;font-weight:800}
@@ -189,7 +201,6 @@
           <tbody id="scoreTable"></tbody>
         </table>
         <div>
-          <!-- shorter height for less visual weight -->
           <canvas id="likertBar" height="160" aria-label="Likert distribution"></canvas>
           <div id="likertCaption" class="likert-caption"></div>
         </div>
@@ -208,7 +219,7 @@
           <div>
             <div id="plainSummary" class="ai-small">—</div>
           </div>
-          <div id="quickActionsBox">
+          <div id="quickActionsWrap">
             <b>Quick actions</b>
             <ul id="quickActions" class="ai-small actions-list"></ul>
           </div>
@@ -351,9 +362,12 @@
       const avg=scored? scores.reduce((a,b)=>a+b,0)/scored : 0;
       const med=scored? median(scores) : 0;
       const posPct=scored? Math.round(100*scores.filter(v=>v>=4).length/scored) : 0;
-      const negPct=scored? Math.round(100+scores.filter(v=>v<=2).length/scored)-100 : 0; // keep integers
+      /* FIX: correct negative % calculation */
+      const negPct=scored? Math.round(100 * scores.filter(v=>v<=2).length / scored) : 0;
+
       const counts=[1,2,3,4,5].map(v=>scores.filter(x=>x===v).length);
       const perc = roundPercentsTo100(counts);
+
       const dist=[1,2,3,4,5].map((v,i)=>({score:v, n:counts[i], p:perc[i]}));
       return { id:s.id,title:s.title,total,scored,avg,med,posPct,negPct,dist,texts };
     }
@@ -405,23 +419,20 @@
         `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neu}%</b> neutral (3), and <b>${neg}%</b> negative (1–2). `
         + `Average is <b>${a.avg.toFixed(2)}</b> (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`;
 
-      // Data-responsive quick actions
+      // Data-responsive actions (hide box if none)
       const actions=[];
-      if(pos < 60) actions.push("Run a short focus group to understand low sentiment.");
-      if(neg >= 25) actions.push("Follow up with the bottom-scoring group confidentially.");
-      if(neu >= 20) actions.push("Probe why many are neutral; clarify expectations or supports.");
-      const lowTailPct = (a.dist[0]?.p||0) + (a.dist[1]?.p||0);
-      if(lowTailPct >= 10) actions.push("Escalate risks: review issues behind scores 1–2.");
-      if(a.scored > 0 && a.scored < 30) actions.push("Interpret with caution; widen the sample before acting.");
+      if(pos<60) actions.push("Run a short focus group to understand low sentiment.");
+      if(neu>=20) actions.push("Probe why many are neutral; clarify expectations or supports.");
+      if(a.dist[0].n + a.dist[1].n >= 10) actions.push("Follow up with the bottom-scoring group confidentially.");
 
-      const qaWrap = document.getElementById('quickActionsBox');
-      const qa = document.getElementById('quickActions');
+      const qa = $('#quickActions');
+      const wrap = $('#quickActionsWrap');
       if(actions.length){
-        qa.innerHTML = actions.slice(0,3).map(x=>`<li>${x}</li>`).join('');
-        qaWrap.style.display = 'block';
+        qa.innerHTML = actions.map(x=>`<li>${x}</li>`).join('');
+        wrap.classList.remove('hide');
       }else{
         qa.innerHTML = '';
-        qaWrap.style.display = 'none';
+        wrap.classList.add('hide');
       }
     }
 
@@ -445,7 +456,7 @@
       const grid = $('#quoteGrid');
       grid.innerHTML = '';
       const quotes = [];
-      // Collect up to 4 quotes related to top themes
+      // Collect up to 4 short quotes related to top themes
       for(const theme of top){
         for(const q of (texts||[])){
           if(q.toLowerCase().includes(theme.label) && !quotes.includes(q)){
@@ -569,18 +580,16 @@
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
       const neu = cur.dist[2]?.p || 0;
-
-      const items = Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`);
       const lines = [
         `${cur.title} — topline`,
         `Responses: ${cur.total} (scored n=${cur.scored})`,
         `Average ${cur.avg.toFixed(2)} (median ${Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)})`,
         `Positive: ${cur.posPct}% • Neutral: ${neu}% • Negative: ${cur.negPct}%`,
-        `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`
+        `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`,
+        ``,
+        `Quick actions:`,
+        ...Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`)
       ];
-      if(items.length){
-        lines.push("", "Quick actions:", ...items);
-      }
       return lines.join('\n');
     }
 
@@ -605,19 +614,16 @@
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
       const neu = cur.dist[2]?.p || 0;
-      const items = Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`);
-
-      const base = [
+      return [
         `Survey: ${cur.title}`,
         `Responses: ${cur.total} (scored n=${cur.scored})`,
         `Avg ${cur.avg.toFixed(2)} | Median ${Number.isInteger(cur.med)?cur.med:cur.med.toFixed(1)}`,
         `Positive 4–5: ${cur.posPct}% | Neutral 3: ${neu}% | Negative 1–2: ${cur.negPct}%`,
-        `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`
-      ];
-      if(items.length){
-        base.push("", "Suggested actions:", ...items);
-      }
-      return base.join('\n');
+        `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`,
+        ``,
+        `Suggested actions:`,
+        ...Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`)
+      ].join('\n');
     }
 
     async function copyToWord(){
@@ -630,7 +636,8 @@
     }
 
     function downloadLikertPNG(){
-      if(!window.chLikert) return;
+      /* FIX: check the actual variable, not window.chLikert */
+      if(!chLikert) return;
       const link = document.createElement('a');
       link.download = `${$('#surveySelect').value || 'survey'}-likert.png`;
       link.href = chLikert.toBase64Image();
@@ -734,8 +741,8 @@
     async function copyCopilotPrompt(){
       const text = buildCopilotPrompt();
       try{
-        await navigator.clipboard.writeText(text;
-        );
+        /* FIX: stray characters removed */
+        await navigator.clipboard.writeText(text);
         $('#btnCopyCopilot').textContent = 'Prompt copied!';
         setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200);
       }catch{
