@@ -87,7 +87,7 @@
 
   <main class="wrap" style="margin:20px auto 40px">
     <!-- CONTROLS + KPIs -->
-    <section class="panel pad" style="margin-bottom:18px">
+    <section id="controlsPanel" class="panel pad" style="margin-bottom:18px">
       <div class="row">
         <div class="row" style="gap:10px">
           <span class="pill">Dataset</span>
@@ -130,48 +130,6 @@
       </div>
     </section>
 
-    <!-- RESPONSE DISTRIBUTION -->
-    <section class="panel pad" style="margin-bottom:18px">
-      <div class="row">
-        <h2 class="h2" style="margin:0">Response distribution</h2>
-        <div class="row" style="gap:8px">
-          <button id="btnDownloadLikert" class="btn ghost tiny" title="Download chart as PNG">Download PNG</button>
-        </div>
-      </div>
-      <div class="mini-grid">
-        <table class="mini-table" aria-label="Score table">
-          <thead><tr><th>Score</th><th>Count</th><th>%</th></tr></thead>
-          <tbody id="scoreTable"></tbody>
-        </table>
-        <div>
-          <canvas id="likertBar" height="220" aria-label="Likert distribution"></canvas>
-          <div id="likertCaption" class="likert-caption"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SUMMARY + THEMES (side-by-side) -->
-    <section class="grid-2" style="margin-bottom:18px">
-      <div class="panel pad">
-        <div class="row">
-          <h2 class="h2" style="margin:0">Plain-language summary & quick actions</h2>
-          <button id="btnCopySummary" class="btn ghost tiny" title="Copy summary and actions">Copy summary</button>
-        </div>
-        <div id="plainSummary" class="ai-small">—</div>
-        <div style="margin-top:10px">
-          <b>Quick actions</b>
-          <ul id="quickActions" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
-        </div>
-      </div>
-
-      <aside class="panel pad">
-        <h2 class="h2">Themes & quotes</h2>
-        <div id="themeList" class="ai-small">—</div>
-        <div class="muted" style="margin-top:6px">Examples</div>
-        <ul id="themeQuotes" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
-      </aside>
-    </section>
-
     <!-- COMPARE (Upgraded) -->
     <section id="comparePanel" class="panel pad hide" style="margin-bottom:18px">
       <div class="row">
@@ -207,6 +165,49 @@
         <b>One-paragraph summary</b>
         <div id="cmpNarrative" class="ai-small" style="margin-top:6px">—</div>
       </div>
+    </section>
+
+    <!-- RESPONSE DISTRIBUTION -->
+    <section id="distributionPanel" class="panel pad" style="margin-bottom:18px">
+      <div class="row">
+        <h2 class="h2" style="margin:0">Response distribution</h2>
+        <div class="row" style="gap:8px">
+          <button id="btnDownloadLikert" class="btn ghost tiny" title="Download chart as PNG">Download PNG</button>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <table class="mini-table" aria-label="Score table">
+          <thead><tr><th>Score</th><th>Count</th><th>%</th></tr></thead>
+          <tbody id="scoreTable"></tbody>
+        </table>
+        <div>
+          <!-- compact height -->
+          <canvas id="likertBar" height="170" aria-label="Likert distribution"></canvas>
+          <div id="likertCaption" class="likert-caption"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SUMMARY + THEMES (side-by-side) -->
+    <section class="grid-2" style="margin-bottom:18px">
+      <div class="panel pad">
+        <div class="row">
+          <h2 class="h2" style="margin:0">Plain-language summary & quick actions</h2>
+          <button id="btnCopySummary" class="btn ghost tiny" title="Copy summary and actions">Copy summary</button>
+        </div>
+        <div id="plainSummary" class="ai-small">—</div>
+        <div style="margin-top:10px">
+          <b>Quick actions</b>
+          <ul id="quickActions" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
+        </div>
+      </div>
+
+      <aside class="panel pad">
+        <h2 class="h2">Themes & quotes</h2>
+        <div id="themeList" class="ai-small">—</div>
+        <div class="muted" style="margin-top:6px">Examples</div>
+        <ul id="themeQuotes" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
+      </aside>
     </section>
 
     <!-- METHODS -->
@@ -422,25 +423,30 @@
     }
 
     function drawLikert(dist){
-      const ds = dist.map((d,i)=>({ label:String(i+1), data:[d.n], backgroundColor:palette5[i], stack:'x' }));
+      const ds = dist.map((d,i)=>({ label:String(i+1), data:[d.n], backgroundColor:palette5[i], stack:'x', barThickness:16 }));
       const ctx = document.getElementById('likertBar');
       if(chLikert) chLikert.destroy();
-      chLikert = new Chart(ctx,{ type:'bar', data:{ labels:[''], datasets:ds },
-        options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} }, plugins:{legend:{position:'bottom'}} }
+      chLikert = new Chart(ctx,{
+        type:'bar',
+        data:{ labels:[''], datasets:ds },
+        options:{
+          indexAxis:'y',
+          scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} },
+          plugins:{legend:{position:'bottom', labels:{boxWidth:18, boxHeight:10, padding:8}}},
+          layout:{padding:{top:6,bottom:0,left:0,right:0}}
+        }
       });
       const cap = dist.map(d=>`${d.score}: ${d.n} (${d.p}%)`).join(' • ');
       $('#likertCaption').textContent = cap;
     }
 
     /* ------------ Compare utilities ------------ */
-    // Standard normal CDF (for two-proportion test)
     function cdfStandardNormal(z){
       const t = 1 / (1 + 0.2316419 * Math.abs(z));
       const d = 0.3989423 * Math.exp(-z*z/2);
       const p = d * t * (0.3193815 + t*(-0.3565638 + t*(1.781478 + t*(-1.821256 + t*1.330274))));
       return z>=0 ? 1-p : p;
     }
-    // two-proportion z test → p-value
     function twoPropP(p1, n1, p2, n2){
       if(n1===0 || n2===0) return 1;
       const phat = (p1*n1 + p2*n2) / (n1+n2);
@@ -702,6 +708,26 @@
       }
     }
 
+    /* ------------ section positioning (Compare first) ------------ */
+    function positionSections(compareOn){
+      const main = document.querySelector('main.wrap');
+      const controls = document.getElementById('controlsPanel');
+      const compare = document.getElementById('comparePanel');
+      const dist = document.getElementById('distributionPanel');
+
+      if(compareOn){
+        // Order: controls -> compare -> distribution
+        if(main.children[1] !== compare){
+          main.insertBefore(compare, dist); // move compare above distribution
+        }
+      }else{
+        // Order: controls -> distribution -> compare (hidden)
+        if(main.children[1] !== dist){
+          main.insertBefore(dist, compare);
+        }
+      }
+    }
+
     /* ------------ refresh pipeline ------------ */
     function refresh(){
       if(!ALL.length) return;
@@ -715,6 +741,7 @@
       themesAndQuotes(cur.texts || []);
 
       const compareOn = $('#compareToggle').checked && ALL.length>1;
+      positionSections(compareOn);
       $('#comparePanel').classList.toggle('hide', !compareOn);
       $('#compareSelect').disabled = !compareOn;
 
