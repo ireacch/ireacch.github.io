@@ -78,12 +78,12 @@
     @media (max-width:960px){.summary-grid{grid-template-columns:1fr}}
     .actions-list{margin:.2rem 0 0 1rem}
     .theme-chips{display:flex;flex-wrap:wrap;gap:6px}
-    .theme-chip{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:700;font-size:.85rem; white-space:normal; overflow-wrap:anywhere;}
+    .theme-chip{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:700;font-size:.85rem}
     .quote-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
     @media (max-width:960px){.quote-grid{grid-template-columns:1fr}}
     .quote-card{border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#fff}
     /* SHOW FULL QUOTE TEXT (no clipping) */
-    .quote-card p{margin:0;line-height:1.4;overflow-wrap:anywhere;white-space:normal}
+    .quote-card p{margin:0;line-height:1.4;word-break:break-word}
 
     .methods{font-size:.92rem;line-height:1.4;color:#2a3b52}
     details summary{cursor:pointer;font-weight:800}
@@ -208,7 +208,7 @@
           <div>
             <div id="plainSummary" class="ai-small">—</div>
           </div>
-          <div>
+          <div id="quickActionsBox">
             <b>Quick actions</b>
             <ul id="quickActions" class="ai-small actions-list"></ul>
           </div>
@@ -351,11 +351,9 @@
       const avg=scored? scores.reduce((a,b)=>a+b,0)/scored : 0;
       const med=scored? median(scores) : 0;
       const posPct=scored? Math.round(100*scores.filter(v=>v>=4).length/scored) : 0;
-      const negPct=scored? Math.round(100*scores.filter(v=>v<=2).length/scored) : 0;
-
+      const negPct=scored? Math.round(100+scores.filter(v=>v<=2).length/scored)-100 : 0; // keep integers
       const counts=[1,2,3,4,5].map(v=>scores.filter(x=>x===v).length);
       const perc = roundPercentsTo100(counts);
-
       const dist=[1,2,3,4,5].map((v,i)=>({score:v, n:counts[i], p:perc[i]}));
       return { id:s.id,title:s.title,total,scored,avg,med,posPct,negPct,dist,texts };
     }
@@ -407,24 +405,23 @@
         `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neu}%</b> neutral (3), and <b>${neg}%</b> negative (1–2). `
         + `Average is <b>${a.avg.toFixed(2)}</b> (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`;
 
-      // Data-responsive quick actions (show only when triggered)
+      // Data-responsive quick actions
       const actions=[];
       if(pos < 60) actions.push("Run a short focus group to understand low sentiment.");
+      if(neg >= 25) actions.push("Follow up with the bottom-scoring group confidentially.");
       if(neu >= 20) actions.push("Probe why many are neutral; clarify expectations or supports.");
-      if(a.dist[0].n + a.dist[1].n >= 10) actions.push("Follow up with the bottom-scoring group confidentially.");
-      if(a.scored > 0 && a.scored < 30) actions.push("Interpret cautiously (small n); widen sample before actioning.");
+      const lowTailPct = (a.dist[0]?.p||0) + (a.dist[1]?.p||0);
+      if(lowTailPct >= 10) actions.push("Escalate risks: review issues behind scores 1–2.");
+      if(a.scored > 0 && a.scored < 30) actions.push("Interpret with caution; widen the sample before acting.");
 
-      // Limit to 3 concise actions
-      const unique = Array.from(new Set(actions)).slice(0,3);
-      const qaList = $('#quickActions');
-      const qaBox = qaList.parentElement; // the column containing the title + list
-
-      if(unique.length){
-        qaBox.style.display = '';
-        qaList.innerHTML = unique.map(x=>`<li>${x}</li>`).join('');
+      const qaWrap = document.getElementById('quickActionsBox');
+      const qa = document.getElementById('quickActions');
+      if(actions.length){
+        qa.innerHTML = actions.slice(0,3).map(x=>`<li>${x}</li>`).join('');
+        qaWrap.style.display = 'block';
       }else{
-        qaList.innerHTML = '';
-        qaBox.style.display = 'none';
+        qa.innerHTML = '';
+        qaWrap.style.display = 'none';
       }
     }
 
@@ -573,7 +570,7 @@
       const cur = per.find(x=>x.id===sel) || per[0];
       const neu = cur.dist[2]?.p || 0;
 
-      const actions = Array.from(document.querySelectorAll('#quickActions li')).map(li=>li.textContent);
+      const items = Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`);
       const lines = [
         `${cur.title} — topline`,
         `Responses: ${cur.total} (scored n=${cur.scored})`,
@@ -581,8 +578,8 @@
         `Positive: ${cur.posPct}% • Neutral: ${neu}% • Negative: ${cur.negPct}%`,
         `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`
       ];
-      if(actions.length){
-        lines.push('', 'Quick actions:', ...actions.map(a=>`- ${a}`));
+      if(items.length){
+        lines.push("", "Quick actions:", ...items);
       }
       return lines.join('\n');
     }
@@ -608,7 +605,7 @@
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
       const neu = cur.dist[2]?.p || 0;
-      const actions = Array.from(document.querySelectorAll('#quickActions li')).map(li=>li.textContent);
+      const items = Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`);
 
       const base = [
         `Survey: ${cur.title}`,
@@ -617,8 +614,8 @@
         `Positive 4–5: ${cur.posPct}% | Neutral 3: ${neu}% | Negative 1–2: ${cur.negPct}%`,
         `Distribution: ${cur.dist.map(d=>`${d.score}=${d.n}(${d.p}%)`).join(', ')}`
       ];
-      if(actions.length){
-        base.push('', 'Suggested actions:', ...actions.map(a=>`- ${a}`));
+      if(items.length){
+        base.push("", "Suggested actions:", ...items);
       }
       return base.join('\n');
     }
@@ -738,7 +735,7 @@
       const text = buildCopilotPrompt();
       try{
         await navigator.clipboard.writeText(text;
-        )
+        );
         $('#btnCopyCopilot').textContent = 'Prompt copied!';
         setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200);
       }catch{
