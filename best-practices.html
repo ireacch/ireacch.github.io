@@ -15,20 +15,20 @@
       --chip:#eef2f7; --blue:#6366f1; --bg:#fff;
       --ok:#2ea44f; --warn:#e3a008; --no:#cf3d3d;
     }
+
+    /* page container (kept) */
     .bp-container{max-width:1200px;margin:32px auto;padding:0 24px}
     @media (max-width:640px){.bp-container{padding:0 16px}}
 
-    .hero{background:#cfe4e7;border-bottom:1px solid #c3d6d9}
-    .hero .container{max-width:1200px;margin:0 auto;padding:28px 24px}
-    .hero h1{margin:0 0 6px;font-weight:800;font-size:clamp(1.6rem,2.4vw,2.2rem)}
-    .hero p{margin:0;color:var(--muted)}
-
+    /* grid (kept) */
     .bp-grid{display:grid;grid-template-columns:380px 1fr;gap:24px}
     @media (max-width:1000px){.bp-grid{grid-template-columns:1fr;gap:28px}}
 
+    /* panels now also pick up brand .card / .pad */
     .bp-panel{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(28,39,51,.04)}
     .bp-pad{padding:20px}
 
+    /* form controls now also use brand classes */
     .bp-panel h3{margin:0 0 10px;font-size:1.1rem}
     .bp-panel label{display:block;font-weight:600;margin:14px 0 6px}
     .bp-input,.bp-select,.bp-textarea{
@@ -40,32 +40,40 @@
     }
     .bp-textarea{min-height:120px;resize:vertical}
 
+    /* buttons now also use brand styles */
     .bp-row{display:flex;gap:10px;align-items:center}
     .bp-btn{appearance:none;border:0;border-radius:999px;padding:10px 16px;font-weight:700;cursor:pointer;background:linear-gradient(90deg,#4a1ea8,#0aa0ff);color:#fff}
     .bp-btn.ghost{background:transparent;border:1px solid var(--border);color:#1c2733}
-    .bp-btn[type="button"]{ /* safety for buttons created in JS */ }
+    .bp-btn[type="button"]{ }
 
+    /* browse toolbar */
     .bp-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
     .bp-field{flex:1 1 260px}
     .bp-cnt{color:var(--muted);font-size:.88rem}
     .bp-sort{min-width:180px}
 
+    /* active filters */
     .bp-filter-pills{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
     .bp-pill{background:var(--chip);color:var(--muted-strong);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:600;font-size:.85rem}
     .bp-pill button{border:0;background:transparent;margin-left:6px;cursor:pointer}
 
+    /* cards grid */
     .bp-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     @media (max-width:1100px){.bp-cards{grid-template-columns:1fr}}
 
+    /* card */
     .bp-card{border:1px solid var(--border);border-radius:16px;background:#fff;padding:18px;display:flex;flex-direction:column;gap:10px}
     .bp-card h4{margin:0;font-size:1.05rem}
     .bp-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:#eaf5ff;color:#0c5ea8;font-weight:600;font-size:.86rem}
     .bp-sub{color:var(--muted);margin:0}
+
+    /* tags */
     .bp-tags{display:flex;gap:8px;row-gap:6px;flex-wrap:wrap}
     .bp-chip{background:var(--chip);color:var(--muted-strong);padding:4px 10px;border:1px solid var(--border);border-radius:999px;font-weight:600;font-size:.82rem}
     .bp-tag-btn{background:var(--chip);color:var(--muted-strong);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:600;font-size:.82rem;cursor:pointer}
     .bp-sep{height:1px;background:var(--border);border-radius:1px;margin:2px 0}
 
+    /* vote buttons */
     .bp-cta{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     .bp-vote{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .bp-vote button{border:1px solid var(--border);background:#fff;color:#1c2733;border-radius:999px;padding:8px 10px;font-weight:700;cursor:pointer}
@@ -90,11 +98,11 @@
 </head>
 <body>
 
-  <!-- Hero -->
+  <!-- Hero (brand hero styles) -->
   <section class="hero">
     <div class="container">
-      <h1>Best Practices for Enhancing Research Culture & Knowledge Exchange</h1>
-      <p>Share what works; see what peers are adopting across Schools and Colleges.</p>
+      <h1 class="page-title">Best Practices for Enhancing Research Culture & Knowledge Exchange</h1>
+      <p class="page-sub">Share what works; see what peers are adopting across Schools and Colleges.</p>
     </div>
   </section>
 
@@ -102,35 +110,35 @@
   <main class="bp-container">
     <section class="bp-grid">
       <!-- Submit -->
-      <aside class="bp-panel">
-        <div class="bp-pad">
+      <aside class="bp-panel card">
+        <div class="bp-pad pad">
           <h3>Submit a practice that enhances research culture</h3>
 
           <label for="bp-title">Title</label>
-          <input id="bp-title" class="bp-input" type="text" maxlength="80" placeholder="e.g., Mentoring circles for new PGRs" />
+          <input id="bp-title" class="bp-input input" type="text" maxlength="80" placeholder="e.g., Mentoring circles for new PGRs" />
           <div class="counter"><span>Keep it specific</span><span id="c-title">0/80</span></div>
 
           <label for="bp-school">School / College (open text)</label>
-          <input id="bp-school" class="bp-input" type="text" placeholder="e.g., School of Business / Doctoral College" />
+          <input id="bp-school" class="bp-input input" type="text" placeholder="e.g., School of Business / Doctoral College" />
 
           <label for="bp-desc">Description</label>
-          <textarea id="bp-desc" class="bp-textarea" maxlength="800" placeholder="How does it work? Who benefits? Any tips to adopt? Mention any resources/time needed."></textarea>
+          <textarea id="bp-desc" class="bp-textarea textarea" maxlength="800" placeholder="How does it work? Who benefits? Any tips to adopt? Mention any resources/time needed."></textarea>
           <div class="counter"><span>What would help someone replicate this?</span><span id="c-desc">0/800</span></div>
 
           <label for="bp-tags">Tags (optional, comma-separated)</label>
-          <input id="bp-tags" class="bp-input" type="text" placeholder="mentoring, onboarding, community" />
+          <input id="bp-tags" class="bp-input input" type="text" placeholder="mentoring, onboarding, community" />
           <div class="suggested-tags" id="suggested-tags">
-            <span class="bp-chip" data-tag="mentoring">mentoring</span>
-            <span class="bp-chip" data-tag="onboarding">onboarding</span>
-            <span class="bp-chip" data-tag="community">community</span>
-            <span class="bp-chip" data-tag="transparency">transparency</span>
-            <span class="bp-chip" data-tag="workload">workload</span>
-            <span class="bp-chip" data-tag="training">training</span>
+            <span class="bp-chip chip" data-tag="mentoring">mentoring</span>
+            <span class="bp-chip chip" data-tag="onboarding">onboarding</span>
+            <span class="bp-chip chip" data-tag="community">community</span>
+            <span class="bp-chip chip" data-tag="transparency">transparency</span>
+            <span class="bp-chip chip" data-tag="workload">workload</span>
+            <span class="bp-chip chip" data-tag="training">training</span>
           </div>
 
           <div class="bp-row" style="margin-top:12px">
-            <button class="bp-btn" id="bp-add" type="button">Add practice</button>
-            <button class="bp-btn ghost" id="bp-clear" type="button">Clear</button>
+            <button class="bp-btn btn primary" id="bp-add" type="button">Add practice</button>
+            <button class="bp-btn btn ghost" id="bp-clear" type="button">Clear</button>
             <span id="draft-status" class="bp-hint" style="margin-left:8px;display:none">Draft saved</span>
           </div>
           <p class="bp-hint" style="margin-top:10px">
@@ -140,18 +148,18 @@
       </aside>
 
       <!-- Browse -->
-      <section class="bp-panel">
-        <div class="bp-pad">
+      <section class="bp-panel card">
+        <div class="bp-pad pad">
           <h3>Browse practices</h3>
 
           <div class="bp-toolbar">
             <div class="bp-field">
-              <input id="q" class="bp-input" type="text" placeholder="Search title, description, or tags…" />
+              <input id="q" class="bp-input input" type="text" placeholder="Search title, description, or tags…" />
             </div>
             <div class="bp-field">
-              <input id="filter-school" class="bp-input" type="text" placeholder="Filter by School / College (free text)" />
+              <input id="filter-school" class="bp-input input" type="text" placeholder="Filter by School / College (free text)" />
             </div>
-            <select id="sort" class="bp-select bp-sort" aria-label="Sort results">
+            <select id="sort" class="bp-select select bp-sort" aria-label="Sort results">
               <option value="adopted">Sort: Most adopted</option>
               <option value="newest">Sort: Newest</option>
               <option value="az">Sort: A–Z</option>
@@ -163,7 +171,7 @@
 
           <div id="cards" class="bp-cards"></div>
           <div id="empty" class="bp-empty" style="display:none">
-            No practices match those filters. <button id="clear-filters" type="button" class="bp-btn ghost" style="margin:8px 0">Clear filters</button>
+            No practices match those filters. <button id="clear-filters" type="button" class="bp-btn btn ghost" style="margin:8px 0">Clear filters</button>
             or <a href="#bp-title">add this as a new practice</a>.
           </div>
         </div>
@@ -340,7 +348,7 @@
         reasonWrap.style.display = userChoseDidnt ? 'block' : 'none';
         reasonWrap.innerHTML = `
           <label class="bp-hint" for="r-${p.id}">Why didn't you use it? <i>(optional)</i></label>
-          <textarea id="r-${p.id}" class="bp-textarea" placeholder="e.g., Timing, not relevant to our context, missing resources…"></textarea>
+          <textarea id="r-${p.id}" class="bp-textarea textarea" placeholder="e.g., Timing, not relevant to our context, missing resources…"></textarea>
           <div class="bp-help">Specifics help others understand context.</div>
         `;
         const reasonEl = reasonWrap.querySelector('textarea');
