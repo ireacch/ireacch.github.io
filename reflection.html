@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>I-REACCH | Reflection</title>
+
+  <link rel="stylesheet" href="assets/css/brand.css"/>
+  <link rel="stylesheet" href="assets/css/header.css"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+
+  <style>
+    :root{
+      --border:#e6ecf1; --muted:#556070; --muted-strong:#384454;
+      --bubble-bg:#f7f9fb; --bubble-user:#eaf5ff;
+    }
+    .hero{background:var(--ire-hero);border-bottom:1px solid var(--border)}
+    .hero .container{max-width:1200px;margin:0 auto;padding:28px 24px}
+    .hero h1{margin:0 0 6px;font-weight:800;font-size:clamp(1.6rem,2.4vw,2.2rem)}
+    .hero p{margin:0;color:var(--muted)}
+
+    .reflect-container{max-width:900px;margin:32px auto;padding:0 24px}
+    @media(max-width:640px){.reflect-container{padding:0 16px}}
+
+    .chat-box{display:flex;flex-direction:column;gap:14px}
+    .bubble{padding:12px 16px;border-radius:12px;max-width:80%;line-height:1.4}
+    .bubble.system{background:var(--bubble-bg);color:var(--muted-strong);align-self:flex-start}
+    .bubble.user{background:var(--bubble-user);color:var(--ire-ink);align-self:flex-end}
+
+    .input-wrap{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+    textarea{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;resize:vertical;font:inherit}
+    .btn-row{display:flex;gap:10px;align-items:center}
+    .hint{font-size:.9rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <h1>Reflection space</h1>
+      <p>thanks for completing the survey — here’s a space to expand on your thoughts in your own words.</p>
+    </div>
+  </section>
+
+  <!-- Page -->
+  <main class="reflect-container">
+    <div id="chat" class="chat-box">
+      <div class="bubble system">what made you answer the way you did in the survey?</div>
+    </div>
+
+    <div class="input-wrap">
+      <textarea id="reply" rows="3" placeholder="type your reflection here…"></textarea>
+      <div class="btn-row">
+        <button id="sendBtn" class="btn">send</button>
+        <button id="clearBtn" class="btn ghost">clear</button>
+      </div>
+      <p class="hint">your reflections are anonymous and will be summarised with others.</p>
+    </div>
+  </main>
+
+  <script>
+    const chat=document.getElementById("chat");
+    const reply=document.getElementById("reply");
+    const sendBtn=document.getElementById("sendBtn");
+    const clearBtn=document.getElementById("clearBtn");
+
+    const prompts=[
+      "thanks — can you give an example or story that illustrates your experience?",
+      "what could your School or College do differently to improve this?",
+      "is there a best practice you’ve seen that others should adopt?",
+      "anything else you’d like to add?"
+    ];
+    let step=0;
+
+    function addBubble(text,cls){
+      const b=document.createElement("div");
+      b.className="bubble "+cls;
+      b.textContent=text;
+      chat.appendChild(b);
+      chat.scrollTop=chat.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click",()=>{
+      const val=reply.value.trim();
+      if(!val) return;
+      addBubble(val,"user");
+      reply.value="";
+      if(step<prompts.length){
+        setTimeout(()=>addBubble(prompts[step++],"system"),400);
+      }else{
+        setTimeout(()=>addBubble("thanks for sharing your reflections ✨","system"),400);
+      }
+    });
+
+    clearBtn.addEventListener("click",()=>{
+      chat.innerHTML='<div class="bubble system">what made you answer the way you did in the survey?</div>';
+      reply.value="";
+      step=0;
+    });
+  </script>
+</body>
+</html>
