@@ -9,8 +9,6 @@
   <link rel="stylesheet" href="assets/css/header.css"/>
   <link rel="stylesheet" href="assets/css/style.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-  <!-- SheetJS for Excel export (newer, stable build) -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
   <style>
@@ -20,6 +18,7 @@
       --band:#cfe4e7; --white:#fff;
       --grad-a:#4a1ea8; --grad-b:#0aa0ff;
       --good:#22a06b; --bad:#d14d4d; --warn:#c07c00;
+      --chip:#eef2f7;
     }
     .hero-slab{background:var(--band);padding:28px 0 22px;border-bottom:1px solid #c3d6d9}
     .wrap{max-width:var(--page-max);margin:0 auto;padding:0 24px}
@@ -37,6 +36,7 @@
     .hint{font-size:.9rem;color:var(--muted)}
     .muted{color:var(--muted)}
     .h2{font-weight:800;margin:0 0 10px;font-size:clamp(1.3rem,2.2vw,1.6rem)}
+    .hide{display:none}
 
     .kpis{display:flex;gap:18px;flex-wrap:wrap;font-weight:800}
     .kpi{display:flex;flex-direction:column}
@@ -48,24 +48,37 @@
 
     .grid-2{display:grid;grid-template-columns:1fr 360px;gap:18px}
     @media (max-width:1080px){.grid-2{grid-template-columns:1fr}}
-    .mini-grid{display:grid;grid-template-columns:260px 1fr;gap:18px}
+    .mini-grid{display:grid;grid-template-columns:240px 1fr;gap:18px}
     @media (max-width:900px){.mini-grid{grid-template-columns:1fr}}
     .mini-table{border-collapse:collapse;border:2px solid #2e4b6a;border-radius:8px;overflow:hidden;width:100%}
     .mini-table th,.mini-table td{border:2px solid #2e4b6a;padding:8px 10px;text-align:center;font-weight:700}
 
     .likert-caption{font-size:.9rem;color:var(--muted);margin-top:6px}
-    .hide{display:none}
     canvas{max-width:100%}
-    .ai-box{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:#fff}
-    .ai-small{color:var(--muted);font-size:.95rem}
 
-    /* Minimal KPI detail toggle */
+    /* KPI detail toggle */
     .kpi-core{display:flex;gap:18px;flex-wrap:wrap}
     .kpi-detail{display:none;margin-top:10px}
     .kpi-toggle{cursor:pointer}
 
-    /* Compare extras */
+    /* Summary internal layout */
+    .summary-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+    @media (max-width:900px){.summary-grid{grid-template-columns:1fr}}
+    .summary-text{line-height:1.6;max-width:64ch}
+    .actions-list{margin:.2rem 0 0 1rem}
+    .more-link{color:#1b2a41;text-decoration:underline;cursor:pointer;font-weight:700}
+
+    /* Themes + quotes */
+    .theme-chips{display:flex;gap:8px;flex-wrap:wrap}
+    .theme-chip{background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:4px 10px;font-weight:700}
+    .quotes-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+    @media (max-width:900px){.quotes-grid{grid-template-columns:1fr}}
+    .quote{padding:8px 10px;border:1px dashed var(--border);border-radius:10px}
+    .quote small{color:var(--muted)}
+
+    /* Compare */
     .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media (max-width:900px){.compare-grid{grid-template-columns:1fr}}
     .cmp-table{width:100%;border-collapse:collapse}
     .cmp-table th,.cmp-table td{border:1px solid var(--border);padding:8px 10px;text-align:center}
     .cmp-table th{background:#f7f9fb}
@@ -73,6 +86,8 @@
     .badge.ok{background:#eaf7f1;color:var(--good)}
     .badge.risk{background:#fdecec;color:var(--bad)}
     .badge.smalln{background:#fff4de;color:var(--warn)}
+
+    /* Methods */
     .methods{font-size:.92rem;line-height:1.4;color:#2a3b52}
     details summary{cursor:pointer;font-weight:800}
   </style>
@@ -87,7 +102,7 @@
 
   <main class="wrap" style="margin:20px auto 40px">
     <!-- CONTROLS + KPIs -->
-    <section id="controlsPanel" class="panel pad" style="margin-bottom:18px">
+    <section class="panel pad" style="margin-bottom:18px">
       <div class="row">
         <div class="row" style="gap:10px">
           <span class="pill">Dataset</span>
@@ -105,7 +120,6 @@
         </div>
       </div>
 
-      <!-- Minimal KPIs -->
       <div class="kpis" style="margin-top:12px">
         <div class="kpi-core">
           <div class="kpi"><div class="muted">Responses</div><div class="v" id="kpi-total">–</div></div>
@@ -130,25 +144,22 @@
       </div>
     </section>
 
-    <!-- COMPARE (Upgraded) -->
+    <!-- COMPARE (auto-moves above distribution when ON) -->
     <section id="comparePanel" class="panel pad hide" style="margin-bottom:18px">
       <div class="row">
         <h2 class="h2" style="margin:0">Compare datasets</h2>
       </div>
 
-      <!-- Topline table with deltas + significance -->
       <div style="overflow-x:auto;margin-bottom:14px">
         <table class="cmp-table" id="cmpTopline" aria-label="Topline comparison"></table>
       </div>
 
-      <!-- Δ distribution (percentage-point change by score) -->
       <div style="margin-bottom:14px">
         <h3 class="h2" style="font-size:1.1rem">Distribution change (percentage points)</h3>
-        <canvas id="likertDelta" height="200"></canvas>
+        <canvas id="likertDelta" height="180"></canvas>
         <div class="hint">Positive bars mean the second dataset has a higher share for that score.</div>
       </div>
 
-      <!-- Theme drift -->
       <div class="compare-grid" style="margin-bottom:14px">
         <div class="panel pad" style="border:1px dashed var(--border)">
           <b>Theme overlap</b>
@@ -160,15 +171,14 @@
         </div>
       </div>
 
-      <!-- Narrative -->
       <div class="ai-box">
         <b>One-paragraph summary</b>
         <div id="cmpNarrative" class="ai-small" style="margin-top:6px">—</div>
       </div>
     </section>
 
-    <!-- RESPONSE DISTRIBUTION -->
-    <section id="distributionPanel" class="panel pad" style="margin-bottom:18px">
+    <!-- RESPONSE DISTRIBUTION (more compact) -->
+    <section id="distPanel" class="panel pad" style="margin-bottom:18px">
       <div class="row">
         <h2 class="h2" style="margin:0">Response distribution</h2>
         <div class="row" style="gap:8px">
@@ -181,32 +191,37 @@
           <tbody id="scoreTable"></tbody>
         </table>
         <div>
-          <!-- compact height -->
-          <canvas id="likertBar" height="170" aria-label="Likert distribution"></canvas>
+          <canvas id="likertBar" height="160" aria-label="Likert distribution"></canvas>
           <div id="likertCaption" class="likert-caption"></div>
         </div>
       </div>
     </section>
 
-    <!-- SUMMARY + THEMES (side-by-side) -->
+    <!-- SUMMARY + THEMES -->
     <section class="grid-2" style="margin-bottom:18px">
       <div class="panel pad">
         <div class="row">
           <h2 class="h2" style="margin:0">Plain-language summary & quick actions</h2>
           <button id="btnCopySummary" class="btn ghost tiny" title="Copy summary and actions">Copy summary</button>
         </div>
-        <div id="plainSummary" class="ai-small">—</div>
-        <div style="margin-top:10px">
-          <b>Quick actions</b>
-          <ul id="quickActions" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
+
+        <div class="summary-grid">
+          <div class="summary-text">
+            <div id="plainSummary" class="ai-small">—</div>
+          </div>
+          <div>
+            <b>Quick actions</b>
+            <ul id="quickActions" class="ai-small actions-list"></ul>
+            <div id="moreActionsWrap" class="ai-small hide"><ul id="moreActions" class="actions-list"></ul></div>
+            <div id="toggleActions" class="more-link ai-small hide">Show more</div>
+          </div>
         </div>
       </div>
 
       <aside class="panel pad">
         <h2 class="h2">Themes & quotes</h2>
-        <div id="themeList" class="ai-small">—</div>
-        <div class="muted" style="margin-top:6px">Examples</div>
-        <ul id="themeQuotes" class="ai-small" style="margin:.2rem 0 0 1rem"></ul>
+        <div id="themeChips" class="theme-chips" aria-label="Top themes"></div>
+        <div class="quotes-grid" id="quotesGrid"></div>
       </aside>
     </section>
 
@@ -216,11 +231,11 @@
         <summary>Methods & definitions</summary>
         <div style="margin-top:10px">
           <ul>
-            <li><b>Scores</b>: 1..5 Likert mapped from text labels (e.g., 1=“Extremely unvalued”, 5=“Extremely valued”).</li>
+            <li><b>Scores</b>: Likert 1–5 mapped from text labels (e.g., 1=“Extremely unvalued”, 5=“Extremely valued”).</li>
             <li><b>% Positive</b>: share of scored responses that are 4 or 5. <b>% Negative</b>: share that are 1 or 2. Base size shown as n.</li>
             <li><b>Small n</b>: if n&lt;30, a “small n” tag appears — interpret cautiously.</li>
-            <li><b>Meaningful change</b>: Δ≥5 percentage points <i>and</i> two-proportion test p&lt;.05; otherwise shown as small/uncertain.</li>
-            <li><b>Theme extraction</b>: simple tokenization with stopwords removed; top frequent terms; theme drift = overlap vs new vs dropped terms. Quotes are anonymised.</li>
+            <li><b>Meaningful change</b>: Δ≥5 percentage points <i>and</i> two-proportion test p&lt;.05; otherwise small/uncertain.</li>
+            <li><b>Theme extraction</b>: simple tokenization with stopwords removed; theme drift = overlap vs new vs dropped terms. Quotes are anonymised.</li>
             <li><b>Average/median</b>: reported descriptively; medians are preferred for skewed distributions.</li>
           </ul>
         </div>
@@ -230,14 +245,14 @@
     <!-- COPILOT HANDOFF -->
     <section class="panel pad">
       <h2 class="h2">Copilot analysis (Excel/Teams)</h2>
-      <div class="hint">Use <b>Export to Excel</b> above, open it in Excel/Teams, then (when available) paste the copied prompt to get a full AI summary, comparisons, and actions — fully inside Microsoft 365.</div>
+      <div class="hint">Use <b>Export to Excel</b> above, open it in Excel/Teams, then paste the copied prompt to get a full AI summary, comparisons, and actions — fully inside Microsoft 365.</div>
     </section>
   </main>
 
   <script>
     /* ------------ helpers ------------ */
     const $ = s => document.querySelector(s);
-    const palette5 = ["#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5"]; // 1..5 light→dark
+    const palette5 = ["#c7d2fe","#a5b4fc","#818cf8","#6366f1","#4f46e5"]; // 1..5
 
     async function fetchJSON(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.json(); }
     async function fetchText(url){ const r=await fetch(url+(url.includes('?')?'&':'?')+'cb='+Date.now()); if(!r.ok) throw new Error(r.status); return r.text(); }
@@ -390,12 +405,25 @@
       $('#plainSummary').innerHTML =
         `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neu}%</b> neutral (3), and <b>${neg}%</b> negative (1–2). `
         + `Average is <b>${a.avg.toFixed(2)}</b> (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`;
-      const actions=[];
-      if(pos<60) actions.push("Run a short focus group to understand low sentiment.");
-      if(neu>=20) actions.push("Probe why many are neutral; clarify expectations or supports.");
-      if(a.dist[0].n + a.dist[1].n >= 10) actions.push("Follow up with the bottom-scoring group confidentially.");
-      if(!actions.length) actions.push("Share positives and maintain pulse checks.");
-      $('#quickActions').innerHTML = actions.map(x=>`<li>${x}</li>`).join('');
+
+      // Top 3 actions + “more”
+      const actionsAll=[];
+      if(pos<60) actionsAll.push("Run a short focus group to understand low sentiment.");
+      if(neu>=20) actionsAll.push("Probe why many are neutral; clarify expectations or supports.");
+      if(a.dist[0].n + a.dist[1].n >= 10) actionsAll.push("Follow up with the bottom-scoring group confidentially.");
+      if(!actionsAll.length) actionsAll.push("Share positives and maintain pulse checks.");
+
+      const top3 = actionsAll.slice(0,3);
+      const more = actionsAll.slice(3);
+      $('#quickActions').innerHTML = top3.map(x=>`<li>${x}</li>`).join('');
+      const moreWrap = $('#moreActionsWrap'), moreList = $('#moreActions'), toggle = $('#toggleActions');
+      if(more.length){
+        moreWrap.classList.add('hide'); toggle.classList.remove('hide');
+        moreList.innerHTML = more.map(x=>`<li>${x}</li>`).join('');
+        toggle.onclick = ()=>{ const open = !moreWrap.classList.contains('hide'); moreWrap.classList.toggle('hide', open); toggle.textContent = open?'Show more':'Show less'; };
+      }else{
+        toggle.classList.add('hide'); moreWrap.classList.add('hide');
+      }
     }
 
     function getTopTerms(texts, k=7){
@@ -411,11 +439,15 @@
 
     function themesAndQuotes(texts){
       const top=getTopTerms(texts,5);
-      $('#themeList').innerHTML = top.length ? top.map(t=>`• <b>${t.label}</b> (${t.count})`).join('<br>') : '—';
-      const q=[];
-      if(top[0]) for(const t of texts){ if(t.toLowerCase().includes(top[0].label) && q.length<2) q.push(t); }
-      if(q.length<2 && top[1]) for(const t of texts){ if(t.toLowerCase().includes(top[1].label) && q.length<2) q.push(t); }
-      $('#themeQuotes').innerHTML = q.length ? q.map(s=>`<li>“${s.replace(/"/g,'&quot;')}”</li>`).join('') : '<li>No free-text comments.</li>';
+      // chips
+      $('#themeChips').innerHTML = top.length ? top.map(t=>`<span class="theme-chip">${t.label} (${t.count})</span>`).join('') : '<span class="muted">No themes</span>';
+      // quotes grid (2–4 short)
+      const quotes=[];
+      for(const term of top){ for(const q of texts){ if(q.toLowerCase().includes(term.label) && quotes.length<4){ quotes.push(q); break; } } }
+      const grid = $('#quotesGrid');
+      grid.innerHTML = quotes.length
+        ? quotes.map(q=>`<div class="quote">“${q.replace(/"/g,'&quot;')}”</div>`).join('')
+        : '<div class="muted">No free-text comments.</div>';
     }
 
     function fillTable(dist){
@@ -423,19 +455,12 @@
     }
 
     function drawLikert(dist){
-      const ds = dist.map((d,i)=>({ label:String(i+1), data:[d.n], backgroundColor:palette5[i], stack:'x', barThickness:16 }));
+      const ds = dist.map((d,i)=>({ label:String(i+1), data:[d.n], backgroundColor:palette5[i], stack:'x' }));
       const ctx = document.getElementById('likertBar');
       if(chLikert) chLikert.destroy();
-      chLikert = new Chart(ctx,{
-        type:'bar',
-        data:{ labels:[''], datasets:ds },
-        options:{
-          indexAxis:'y',
-          scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} },
-          plugins:{legend:{position:'bottom', labels:{boxWidth:18, boxHeight:10, padding:8}}},
-          layout:{padding:{top:6,bottom:0,left:0,right:0}}
-        }
-      });
+      chLikert = new Chart(ctx,{ type:'bar', data:{ labels:[''], datasets:ds },
+        options:{ indexAxis:'y', scales:{ x:{stacked:true,beginAtZero:true,ticks:{precision:0}}, y:{stacked:true} },
+          plugins:{legend:{position:'bottom',labels:{boxWidth:12,usePointStyle:true}} }});
       const cap = dist.map(d=>`${d.score}: ${d.n} (${d.p}%)`).join(' • ');
       $('#likertCaption').textContent = cap;
     }
@@ -453,8 +478,7 @@
       const se = Math.sqrt(phat*(1-phat)*(1/n1 + 1/n2));
       if(se===0) return 1;
       const z = (p1 - p2) / se;
-      const p = 2 * (1 - cdfStandardNormal(Math.abs(z)));
-      return p;
+      return 2 * (1 - cdfStandardNormal(Math.abs(z)));
     }
     function fmtPP(x){ const s = (x>=0?'+':'')+Math.round(x)+' pp'; const cls = x>0?'good':(x<0?'bad':''); return `<span class="chip ${cls}">${s}</span>`; }
     function fmtDelta(x, dp=2){ const s=(x>=0?'+':'')+x.toFixed(dp); const cls=x>0?'good':(x<0?'bad':''); return `<span class="chip ${cls}">${s}</span>`; }
@@ -485,7 +509,7 @@
     }
 
     function drawDeltaDistribution(a,b){
-      const delta = [0,1,2,3,4].map(i => (b.dist[i].p - a.dist[i].p)); // in pp
+      const delta = [0,1,2,3,4].map(i => (b.dist[i].p - a.dist[i].p));
       const ctx = document.getElementById('likertDelta');
       if(chDelta) chDelta.destroy();
       chDelta = new Chart(ctx, {
@@ -524,7 +548,7 @@
       $('#cmpNarrative').innerHTML = main + caution;
     }
 
-    /* ------------ COPY + DOWNLOAD ------------ */
+    /* ------------ COPY + DOWNLOAD & EXPORT ------------ */
     function buildCopyText(){
       const sel = $('#surveySelect').value;
       const per = summariseAll();
@@ -542,21 +566,10 @@
       ];
       return lines.join('\n');
     }
-
     async function copySummary(){
       const text = buildCopyText();
-      try{
-        await navigator.clipboard.writeText(text);
-        $('#btnCopySummary').textContent = 'Copied!';
-        setTimeout(()=>$('#btnCopySummary').textContent='Copy summary',1200);
-      }catch{
-        const ta = document.createElement('textarea');
-        ta.value = text; document.body.appendChild(ta); ta.select();
-        try{ document.execCommand('copy'); }catch{}
-        document.body.removeChild(ta);
-        $('#btnCopySummary').textContent = 'Copied!';
-        setTimeout(()=>$('#btnCopySummary').textContent='Copy summary',1200);
-      }
+      try{ await navigator.clipboard.writeText(text); $('#btnCopySummary').textContent='Copied!'; setTimeout(()=>$('#btnCopySummary').textContent='Copy summary',1200); }
+      catch{ alert('Copy failed'); }
     }
 
     function buildWordText(){
@@ -575,14 +588,9 @@
         ...Array.from(document.querySelectorAll('#quickActions li')).map(li=>`- ${li.textContent}`)
       ].join('\n');
     }
-
     async function copyToWord(){
-      const text = buildWordText();
-      try{
-        await navigator.clipboard.writeText(text);
-        $('#btnCopyWord').textContent = 'Copied!';
-        setTimeout(()=>$('#btnCopyWord').textContent='Copy to Word',1200);
-      }catch(e){ alert("Copy failed: " + e.message); }
+      try{ await navigator.clipboard.writeText(buildWordText()); $('#btnCopyWord').textContent='Copied!'; setTimeout(()=>$('#btnCopyWord').textContent='Copy to Word',1200); }
+      catch(e){ alert("Copy failed: " + e.message); }
     }
 
     function downloadLikertPNG(){
@@ -593,7 +601,6 @@
       link.click();
     }
 
-    /* ------------ COPILOT-READY EXPORT ------------ */
     function safeName(s){ return (s||'survey').replace(/[^a-z0-9]+/gi,'_'); }
     function makePromptsSheet(cur, compare){
       const base = [
@@ -604,20 +611,15 @@
         ["Create a bar chart of the Distribution and explain what it shows in 2 sentences."]
       ];
       if(compare){
-        base.push(
-          [""],
-          ["Compare the current survey with the Compare sheet. Report change in average and change in % positive (percentage points). If change ≥ 5pp, suggest one likely reason using anonymised comments."]
-        );
+        base.push([""],["Compare the current survey with the Compare sheet. Report change in average and change in % positive (percentage points). If change ≥ 5pp, suggest one likely reason using anonymised comments."]);
       }
       return XLSX.utils.aoa_to_sheet(base);
     }
-
     function exportToExcel(){
       const sel = $('#surveySelect').value;
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
 
-      // Sheet 1: Topline
       const topline = [
         [cur.title, "Topline"],
         ["Responses", cur.total],
@@ -631,11 +633,9 @@
       const wsTop = XLSX.utils.aoa_to_sheet(topline);
       ['B6','B7','B8'].forEach(c=>{ if(wsTop[c]) wsTop[c].z='0%'; });
 
-      // Sheet 2: Distribution
       const wsDist = XLSX.utils.aoa_to_sheet([["Score","Count","Percent"], ...cur.dist.map(d=>[d.score,d.n,d.p/100])]);
       for(let r=2;r<=6;r++){ const cell=`C${r}`; if(wsDist[cell]) wsDist[cell].z='0%'; }
 
-      // Sheet 3: Responses (anonymised)
       const sDef = ALL.find(s=>s.id===cur.id);
       const rows = (sDef?.rows || []).map(r=>{
         const sc = sDef?.scoreCol ? toScore(r[sDef.scoreCol]) : null;
@@ -644,9 +644,8 @@
       });
       const wsResp = XLSX.utils.json_to_sheet(rows, { header:["Score (1-5)","Comment"] });
 
-      // Optional Compare sheet
       const compareOn = $('#compareToggle').checked && ALL.length>1;
-      let wsCmp = null;
+      let wsCmp=null;
       if(compareOn){
         const other = per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id) || cur;
         const cmpAoA = [
@@ -658,29 +657,23 @@
         ['B3','C3'].forEach(c=>{ if(wsCmp[c]) wsCmp[c].z='0%'; });
       }
 
-      // Prompts sheet
       const wsPrompts = makePromptsSheet(cur, !!wsCmp);
 
-      // Build workbook
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, wsTop, "Topline");
       XLSX.utils.book_append_sheet(wb, wsDist, "Distribution");
       XLSX.utils.book_append_sheet(wb, wsResp, "Responses (anonymised)");
       if(wsCmp) XLSX.utils.book_append_sheet(wb, wsCmp, "Compare");
       XLSX.utils.book_append_sheet(wb, wsPrompts, "Prompts");
-
       XLSX.writeFile(wb, `${safeName(cur.title)}_Copilot.xlsx`);
     }
 
-    /* ------------ Copilot prompt copier (no external AI) ------------ */
     function buildCopilotPrompt(){
       const sel = $('#surveySelect').value;
       const per = summariseAll();
       const cur = per.find(x=>x.id===sel) || per[0];
       const compareOn = $('#compareToggle').checked && ALL.length>1;
-      const other = compareOn
-        ? (per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id))
-        : null;
+      const other = compareOn ? (per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id)) : null;
 
       const lines = [];
       lines.push("You are Copilot in Excel. Using only the numbers in this workbook:");
@@ -692,40 +685,9 @@
       lines.push("4) Create a chart that best shows the distribution and insert it here.");
       return lines.join("\n");
     }
-
     async function copyCopilotPrompt(){
-      const text = buildCopilotPrompt();
-      try{
-        await navigator.clipboard.writeText(text);
-        $('#btnCopyCopilot').textContent = 'Prompt copied!';
-        setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200);
-      }catch{
-        const ta = document.createElement('textarea'); ta.value = text;
-        document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch{}
-        document.body.removeChild(ta);
-        $('#btnCopyCopilot').textContent = 'Prompt copied!';
-        setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200);
-      }
-    }
-
-    /* ------------ section positioning (Compare first) ------------ */
-    function positionSections(compareOn){
-      const main = document.querySelector('main.wrap');
-      const controls = document.getElementById('controlsPanel');
-      const compare = document.getElementById('comparePanel');
-      const dist = document.getElementById('distributionPanel');
-
-      if(compareOn){
-        // Order: controls -> compare -> distribution
-        if(main.children[1] !== compare){
-          main.insertBefore(compare, dist); // move compare above distribution
-        }
-      }else{
-        // Order: controls -> distribution -> compare (hidden)
-        if(main.children[1] !== dist){
-          main.insertBefore(dist, compare);
-        }
-      }
+      try{ await navigator.clipboard.writeText(buildCopilotPrompt()); $('#btnCopyCopilot').textContent='Prompt copied!'; setTimeout(()=>$('#btnCopyCopilot').textContent='Copy Copilot prompt',1200); }
+      catch{ alert('Copy failed'); }
     }
 
     /* ------------ refresh pipeline ------------ */
@@ -734,16 +696,25 @@
       const per = summariseAll();
       const cur = per.find(x=>x.id===CURRENT_ID) || per[0];
 
+      // Move compare block above distribution when ON
+      const compareOn = $('#compareToggle').checked && ALL.length>1;
+      const main = document.querySelector('main .wrap') || document.querySelector('main'); // safe
+      if(compareOn){
+        const panel = $('#comparePanel');
+        const dist = $('#distPanel');
+        if(panel.nextElementSibling !== dist) dist.parentNode.insertBefore(panel, dist); // ensure compare is above dist
+        panel.classList.remove('hide');
+        $('#compareSelect').disabled = false;
+      }else{
+        $('#comparePanel').classList.add('hide');
+        $('#compareSelect').disabled = true;
+      }
+
       fillKPIs(cur);
       fillTable(cur.dist);
       drawLikert(cur.dist);
       fillPlainSummary(cur);
       themesAndQuotes(cur.texts || []);
-
-      const compareOn = $('#compareToggle').checked && ALL.length>1;
-      positionSections(compareOn);
-      $('#comparePanel').classList.toggle('hide', !compareOn);
-      $('#compareSelect').disabled = !compareOn;
 
       if(compareOn){
         const other = per.find(x=>x.id === $('#compareSelect').value && x.id!==cur.id) || per.find(x=>x.id!==cur.id) || cur;
@@ -766,7 +737,6 @@
     $('#btnCopyCopilot').addEventListener('click', copyCopilotPrompt);
     $('#btnCopyWord').addEventListener('click', copyToWord);
 
-    // Minimalism toggle (avoid too many values by default)
     $('#toggleDetail').addEventListener('click', ()=>{
       const box = $('#kpiDetail');
       const open = box.style.display === 'block';
@@ -774,7 +744,6 @@
       $('#toggleDetail').textContent = open ? 'more detail' : 'hide detail';
     });
 
-    /* ------------ boot ------------ */
     (async function init(){
       try{ await loadAll(); buildSelects(); refresh(); }
       catch(e){ console.error(e); alert("Failed to load data. Check datasets.json and CSV paths."); }
