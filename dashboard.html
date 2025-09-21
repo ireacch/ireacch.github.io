@@ -736,19 +736,17 @@
       const distribution = $('#distributionPanel');
 
       if(on){
-        // move compare card to be right after the controls block, and hide big distribution
-        const controls = document.querySelector('main .panel.pad'); // first panel (controls)
-        if(controls && compare && controls.nextElementSibling !== compare){
-          controls.parentNode.insertBefore(compare, controls.nextElementSibling);
+        // Move compare card to sit immediately before the distribution card (keep both visible)
+        const parent = distribution.parentNode;
+        if(parent && parent.children){
+          if(compare && compare.nextElementSibling !== distribution){
+            parent.insertBefore(compare, distribution);
+          }
+          compare.classList.remove('hide');
         }
-        distribution.classList.add('hide');
       }else{
-        // ensure distribution is visible and sits after compare (or after controls if compare hidden)
-        distribution.classList.remove('hide');
-        const after = $('#comparePanel');
-        if(after && after.nextElementSibling !== distribution){
-          after.parentNode.insertBefore(distribution, after.nextElementSibling);
-        }
+        // Hide compare; distribution remains where it is
+        compare.classList.add('hide');
       }
     }
 
