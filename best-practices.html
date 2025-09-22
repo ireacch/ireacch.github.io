@@ -14,7 +14,19 @@
       --border:#e6ecf1; --muted:#556070; --muted-strong:#384454;
       --chip:#eef2f7; --blue:#6366f1; --bg:#fff;
       --ok:#2ea44f; --warn:#e3a008; --no:#cf3d3d;
+      --page-max:1200px;
     }
+
+    /* ===== Consistent top header (matched to micro-surveys & reflection) ===== */
+    .overview-bar{ background:#cfe4e7; padding:22px 0; border-bottom:1px solid #c3d6d9; }
+    .overview-inner{ max-width:var(--page-max); margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand-wrap{ display:flex; align-items:center; gap:14px; }
+    .brand-wrap img{ height:48px; width:auto; display:block; }
+    .titles{ display:flex; flex-direction:column; }
+    .page-title{ font-size:22px; font-weight:800; color:#1b2a41; }
+    .page-sub{ margin-top:2px; font-size:14px; color:var(--muted); }
+    .back-link{ font-weight:700; font-size:15px; color:#245b74; text-decoration:none; padding:8px 12px; border-radius:8px; }
+    .back-link:hover{ background:rgba(0,0,0,.05); }
 
     /* page container (kept) */
     .bp-container{max-width:1200px;margin:32px auto;padding:0 24px}
@@ -98,13 +110,19 @@
 </head>
 <body>
 
-  <!-- Hero (brand hero styles) -->
-  <section class="hero">
-    <div class="container">
-      <h1 class="page-title">Best Practices for Enhancing Research Culture & Knowledge Exchange</h1>
-      <p class="page-sub">Share what works; see what peers are adopting across Schools and Colleges.</p>
+  <!-- Consistent I-REACCH header -->
+  <header class="overview-bar" role="banner">
+    <div class="overview-inner">
+      <div class="brand-wrap">
+        <img src="assets/img/ireacch-logo.png" alt="I-REACCH">
+        <div class="titles">
+          <div class="page-title">Best Practices for Enhancing Research Culture & Knowledge Exchange</div>
+          <div class="page-sub">Share what works; see what peers are adopting across Schools and Colleges.</div>
+        </div>
+      </div>
+      <a class="back-link" href="https://ireacch.le.ac.uk/" target="_blank" rel="noopener">Back to official website</a>
     </div>
-  </section>
+  </header>
 
   <!-- Page -->
   <main class="bp-container">
