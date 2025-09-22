@@ -13,6 +13,13 @@
       "csv": "data/q2.csv",
       "answerColumn": "How confident do you feel about your career planning?",
       "textColumn": "Anything you want to add?"
+    },
+    {
+      "id": "q3",
+      "title": "Q3: Job Description & Day-to-day Work",
+      "csv": "data/q3.csv",
+      "answerColumn": "To what extent does the information provided during your job interview align with your day-to-day work?",
+      "textColumn": "Anything you want to add?"
     }
   ]
 }
