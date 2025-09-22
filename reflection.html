@@ -3,35 +3,38 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>I-REACCH | Reflection space</title>
+  <title>Reflection space | I-REACCH</title>
 
-  <!-- Shared brand styles -->
+  <!-- Shared styles -->
   <link rel="stylesheet" href="assets/css/brand.css"/>
+  <link rel="stylesheet" href="assets/css/header.css"/>
+  <link rel="stylesheet" href="assets/css/style.css"/>
 
   <style>
     :root{
       --border:#e6ecf1; --muted:#556070; --ink:#1b2a41;
       --pill:#eef2f7; --gradA:#5b2ca1; --gradB:#00b0f0;
-      --hero:#cfe4e7;
+      --page-max: 1200px;
     }
 
-    /* Hero (consistent with other pages) */
-    .hero{background:var(--hero);border-bottom:1px solid #c3d6d9;padding:56px 0 36px;margin-bottom:36px}
-    .hero .container{max-width:1200px;margin:0 auto;padding:0 24px}
-    .hero h1{margin:0 0 6px;font-weight:800;font-size:clamp(1.8rem,3vw,2.6rem);color:var(--ire-headline)}
-    .hero p{margin:0;color:var(--muted)}
-    .badge{display:inline-block;background:var(--pill);border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-weight:700;color:#384454}
+    /* TOP BANNER (matched to micro-survey page) */
+    .overview-bar{ background:#cfe4e7; padding:22px 0; border-bottom:1px solid #c3d6d9; }
+    .overview-inner{ max-width:var(--page-max); margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand-wrap{ display:flex; align-items:center; gap:14px; }
+    .brand-wrap img{ height:48px; width:auto; display:block; }
+    .page-title{ font-size:22px; font-weight:800; color:var(--ink); }
+    .back-link{ font-weight:700; font-size:15px; color:#245b74; text-decoration:none; padding:8px 12px; border-radius:8px; }
+    .back-link:hover{ background:rgba(0,0,0,.05); }
 
-    /* Page container */
-    .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
-    @media (max-width:640px){.wrap{padding:0 16px}}
+    /* Main page container (consistent spacing) */
+    .page{ max-width:var(--page-max); margin:18px auto 48px; padding:0 24px; }
 
     /* Card holds thread + sticky composer */
     .chat-card{
       position:relative;
       background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(28,39,51,.04);
       padding:18px;
-      overflow:visible; /* let sticky sit nicely while the spacer keeps flow */
+      overflow:visible;
     }
 
     /* Thread + bubbles */
@@ -60,6 +63,8 @@
     }
     .composer header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
     .composer header .count{color:var(--muted);font-size:.9rem}
+    .badge{display:inline-block;background:var(--pill);border:1px solid var(--border);border-radius:999px;padding:6px 10px;font-weight:700;color:#384454}
+
     .composer textarea{
       width:100%;min-height:140px;resize:vertical;padding:12px 14px;
       border:1px solid var(--border);border-radius:10px;font:inherit;line-height:1.5;box-sizing:border-box;
@@ -82,18 +87,19 @@
 </head>
 <body>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="container">
-      <h1>Reflection space</h1>
-      <p>Thanks for completing the survey — here’s a space to expand on your thoughts in your own words.</p>
-      <div class="badge" id="context-badge">Reflecting on: the survey item you just answered</div>
+  <!-- Matched header -->
+  <header class="overview-bar" role="banner">
+    <div class="overview-inner">
+      <div class="brand-wrap">
+        <img src="assets/img/ireacch-logo.png" alt="I-REACCH">
+        <div class="page-title">Reflection space</div>
+      </div>
+      <a class="back-link" href="https://ireacch.le.ac.uk/" target="_blank" rel="noopener">Back to official website</a>
     </div>
-  </section>
+  </header>
 
-  <!-- Card with thread + composer -->
-  <main class="wrap">
-    <section class="chat-card">
+  <main class="page">
+    <section class="chat-card" aria-label="Reflection conversation">
       <div class="thread" id="thread" aria-live="polite" aria-relevant="additions"></div>
       <!-- spacer for sticky composer -->
       <div id="spacer" aria-hidden="true"></div>
@@ -167,7 +173,6 @@
     window.addEventListener('resize', updateSpacer);
     const raf = fn => requestAnimationFrame(()=>requestAnimationFrame(fn));
     function scrollToEnd(){
-      // Smoothly bring the latest content into view
       raf(()=>{
         const last = thread.lastElementChild;
         if(last){ last.scrollIntoView({behavior:'smooth', block:'end'}); }
@@ -215,7 +220,7 @@
       setTimeout(()=>{
         t.remove();
         bubble(QUESTIONS[i],'sys');
-      }, 900); // keep visible long enough to notice
+      }, 900);
     }
 
     function renderFromState(){
