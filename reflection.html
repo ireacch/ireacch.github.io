@@ -22,7 +22,9 @@
     .overview-inner{ max-width:var(--page-max); margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
     .brand-wrap{ display:flex; align-items:center; gap:14px; }
     .brand-wrap img{ height:48px; width:auto; display:block; }
+    .titles{ display:flex; flex-direction:column; }
     .page-title{ font-size:22px; font-weight:800; color:var(--ink); }
+    .page-sub{ margin-top:2px; font-size:14px; color:var(--muted); }
     .back-link{ font-weight:700; font-size:15px; color:#245b74; text-decoration:none; padding:8px 12px; border-radius:8px; }
     .back-link:hover{ background:rgba(0,0,0,.05); }
 
@@ -87,12 +89,15 @@
 </head>
 <body>
 
-  <!-- Matched header -->
+  <!-- Matched header with short introduction -->
   <header class="overview-bar" role="banner">
     <div class="overview-inner">
       <div class="brand-wrap">
         <img src="assets/img/ireacch-logo.png" alt="I-REACCH">
-        <div class="page-title">Reflection space</div>
+        <div class="titles">
+          <div class="page-title">Reflection space</div>
+          <div class="page-sub">Thanks for completing the survey — here’s a space to expand on your thoughts in your own words.</div>
+        </div>
       </div>
       <a class="back-link" href="https://ireacch.le.ac.uk/" target="_blank" rel="noopener">Back to official website</a>
     </div>
