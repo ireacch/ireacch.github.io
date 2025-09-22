@@ -21,9 +21,17 @@
       --chip:#eef2f7;
     }
 
-    /* brand hero is used now; keep heading sizes */
-    .h1{font-weight:800;margin:0;font-size:clamp(1.6rem,2.6vw,2.1rem)}
-    .sub{color:var(--muted);margin-top:6px}
+    /* NEW: header styles to match Micro Survey page */
+    .overview-bar{ background:var(--band); padding:22px 0; border-bottom:1px solid #c3d6d9; }
+    .overview-inner{ max-width:var(--page-max); margin:0 auto; padding:0 24px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand-wrap{ display:flex; align-items:center; gap:14px; }
+    .brand-wrap img{ height:48px; width:auto; display:block; }
+    .page-title{ font-size:22px; font-weight:800; color:var(--text); }
+    .back-link{ font-weight:700; font-size:15px; color:#245b74; text-decoration:none; padding:8px 12px; border-radius:8px; }
+    .back-link:hover{ background:rgba(0,0,0,.05); }
+
+    .wrap{max-width:var(--page-max);margin:0 auto;padding:0 24px}
+    @media (max-width:640px){.wrap{padding:0 16px}}
 
     .panel{background:var(--white);border:1px solid var(--border);border-radius:16px;box-shadow:0 10px 24px rgba(28,39,51,.04)}
     .pad{padding:18px}
@@ -44,7 +52,7 @@
     .chip.bad{background:#fdecec;color:var(--bad)}
     .chip.warn{background:#fff4de;color:var(--warn)}
 
-    /* Wider right column so Themes & quotes has room */
+    /* Wider right column so Themes & quotes has room; nothing moves, just breathes */
     .grid-2{
       display:grid;
       grid-template-columns:1fr minmax(380px, 480px);
@@ -131,15 +139,19 @@
   </style>
 </head>
 <body>
-  <!-- Brand hero for consistency -->
-  <section class="hero">
-    <div class="container">
-      <h1 class="page-title">Dashboard <span class="pill">beta</span></h1>
-      <p class="page-sub">Clear, reproducible summaries of each micro-survey — with Copilot-ready export for secure AI summaries in Microsoft 365.</p>
-    </div>
-  </section>
 
-  <main class="container" style="margin:20px auto 40px">
+  <!-- Consistent header -->
+  <header class="overview-bar" role="banner">
+    <div class="overview-inner">
+      <div class="brand-wrap">
+        <img src="assets/img/ireacch-logo.png" alt="I-REACCH">
+        <div class="page-title">Dashboard <span class="pill">beta</span></div>
+      </div>
+      <a class="back-link" href="https://ireacch.le.ac.uk/" target="_blank" rel="noopener">Back to official website</a>
+    </div>
+  </header>
+
+  <main class="wrap" style="margin:20px auto 40px">
     <!-- CONTROLS + KPIs -->
     <section class="panel pad" style="margin-bottom:18px">
       <div class="row">
@@ -447,6 +459,7 @@
         `Out of <b>${a.total}</b> responses, <b>${pos}%</b> are positive (4–5), <b>${neu}%</b> neutral (3), and <b>${neg}%</b> negative (1–2). `
         + `Average is <b>${a.avg.toFixed(2)}</b> (median ${Number.isInteger(a.med)?a.med:a.med.toFixed(1)}).`;
 
+      /* Data-responsive quick actions (hide if none) */
       const actions=[];
       if(pos<60) actions.push("Run a short focus group to understand low sentiment.");
       if(neu>=20) actions.push("Probe why many are neutral; clarify expectations or supports.");
@@ -463,6 +476,7 @@
       }
     }
 
+    /* Themes → chips; quotes → grid */
     function getTopTerms(texts, k=7){
       const stop=new Set("the,and,to,of,in,for,a,on,is,are,it,with,that,this,at,as,be,or,we,our,your,i,have,has,was,were,from,by,an,you,they,them,not,sure,very,more,less,also".split(','));
       const freq={};
@@ -784,7 +798,6 @@
       const distribution = $('#distributionPanel');
 
       if(on){
-        // Move compare card to sit immediately before the distribution card (keep both visible)
         const parent = distribution.parentNode;
         if(parent && parent.children){
           if(compare && compare.nextElementSibling !== distribution){
@@ -793,7 +806,6 @@
           compare.classList.remove('hide');
         }
       }else{
-        // Hide compare; distribution remains where it is
         compare.classList.add('hide');
       }
     }
