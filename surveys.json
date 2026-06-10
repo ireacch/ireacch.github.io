@@ -100,6 +100,26 @@
     "school": "All"
   },
     {
+    "id": "q11-Research Culture",
+    "title": "Positive Research Culture (Q11)",
+    "displayTitle": "Q11: Positive Research Culture",
+    "publishedAt": "2026-6-5",
+    "minutes": 1,
+    "audience": "All staff",
+    "url": "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=as2-rtQxAUuVzoJ0r-hT2fQzA7AjhgpNrWLtDWN1y_RURE9XTDg0WlRQSDFUTko3QlJJVVlWWDhaVS4u&embed=true",
+    "school": "All"
+  },
+    {
+    "id": "q12-Leadership",
+    "title": " Supported by Your Leader (Q12)",
+    "displayTitle": "Q12: Supported by Your Leader",
+    "publishedAt": "2026-6-5",
+    "minutes": 1,
+    "audience": "All staff",
+    "url": "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=as2-rtQxAUuVzoJ0r-hT2fQzA7AjhgpNrWLtDWN1y_RUMUlLUDkxTk1PQThBVFFCODBGOU80NTc1SS4u&embed=true",
+    "school": "All"
+  },
+    {
     "id": "q13-Connectedness",
     "title": "Feel Connected with Your School Community (Q13)",
     "displayTitle": "Q13: Feel Connected with Your School Community",
