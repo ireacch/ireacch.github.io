@@ -251,8 +251,8 @@
   },
     {
     "id": "2026: q4-Research-related Activities Information",
-    "title": "2026: Research-related Activities Information (Q3)",
-    "displayTitle": "2026 Q3: Research-related Activities Information",
+    "title": "2026: Research-related Activities Information (Q4)",
+    "displayTitle": "2026 Q4: Research-related Activities Information",
     "publishedAt": "2026-9-7",
     "minutes": 1,
     "audience": "All staff",
@@ -261,8 +261,8 @@
   },
     {
     "id": "2026: q5-Tracking Information across Channels",
-    "title": "2026: Tracking Information across Channels (Q3)",
-    "displayTitle": "2026 Q3: Tracking Information across Channels",
+    "title": "2026: Tracking Information across Channels (Q5)",
+    "displayTitle": "2026 Q5: Tracking Information across Channels",
     "publishedAt": "2026-9-14",
     "minutes": 1,
     "audience": "All staff",
@@ -271,8 +271,8 @@
   },
     {
     "id": "2026: q6-Cross-disciplinary Networkingk",
-    "title": "2026: Cross-disciplinary Networking (Q3)",
-    "displayTitle": "2026 Q3: Cross-disciplinary Networking",
+    "title": "2026: Cross-disciplinary Networking (Q6)",
+    "displayTitle": "2026 Q6: Cross-disciplinary Networking",
     "publishedAt": "2026-9-21",
     "minutes": 1,
     "audience": "All staff",
@@ -281,12 +281,22 @@
   },
     {
     "id": "2026: q7-Creativity Support",
-    "title": "2026: Creativity Support (Q3)",
-    "displayTitle": "2026 Q3: Creativity Support",
+    "title": "2026: Creativity Support (Q7)",
+    "displayTitle": "2026 Q7: Creativity Support",
     "publishedAt": "2026-9-28",
     "minutes": 1,
     "audience": "All staff",
     "url": "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=as2-rtQxAUuVzoJ0r-hT2fQzA7AjhgpNrWLtDWN1y_RUQVJVNlBHTlhaWVRHSTc3NEhSNUVXR0dENi4u&embed=true",
+    "school": "All"  
+  },
+    {
+    "id": "2026: q8-Freedom In Your Job",
+    "title": "2026: Freedom In Your Job (Q8)",
+    "displayTitle": "2026 Q8: Freedom In Your Job",
+    "publishedAt": "2026-10-01",
+    "minutes": 1,
+    "audience": "All staff",
+    "url": "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=as2-rtQxAUuVzoJ0r-hT2fQzA7AjhgpNrWLtDWN1y_RURDhPVUpCNUdTQ1pEOTQxREpMU1MzQVpDWC4u&embed=true",
     "school": "All"  
   }
 ]
